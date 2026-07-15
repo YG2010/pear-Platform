@@ -90,6 +90,16 @@
   }
   .tilt-card .tilt-float { transform: translateZ(46px); }   /* badges hover above the card */
 
+  /* ── Hero VTon loop · the clip is 5s, silent and portrait, so it runs as an
+       ambient loop with no native chrome. The single toggle fades in on hover,
+       and stays visible whenever the clip is paused — otherwise touch and
+       reduced-motion visitors would have no way to start it. ── */
+  .vton-toggle { opacity: 0; transition: opacity .25s ease; }
+  .vton-frame:hover .vton-toggle,
+  .vton-frame.is-paused .vton-toggle,
+  .vton-toggle:focus-visible { opacity: 1; }
+  @media (hover: none) { .vton-toggle { opacity: 1; } }
+
   /* ── Scroll HUD · glowing ring gauge + % + chapter label (fixed corner) ── */
   #scrollHud {
     position: fixed; bottom: 1.4rem; right: 1.4rem; z-index: 55;
@@ -159,7 +169,7 @@
       radial-gradient(1000px 640px at 6% 104%, rgba(56,189,248,0.09), transparent 60%),
       linear-gradient(180deg, #f7f9fc 0%, #eef1f6 55%, #f4f7fb 100%);
   }
-  body.docs-active #pearStage, body.docs-active #scrollHud { display: none; }
+  body.subview-active #pearStage, body.subview-active #scrollHud { display: none; }
   @media (max-width: 1023px) { #pearStage { display: none; } }
 
   /* ── LIQUID GLASS surfaces (Apple-style): translucent + blurred + saturated,
@@ -234,12 +244,13 @@
     </a>
 
     <div class="flex items-center gap-1 sm:gap-2 h-full">
-      <a href="#overview" data-nav="overview" class="nav-link nav-tab h-full inline-flex items-center px-3 sm:px-4 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">אודות המיזם</a>
+      <a href="#overview" data-nav="overview" data-scroll="hero"
+         class="nav-link nav-tab cursor-pointer h-full inline-flex items-center px-3 sm:px-4 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">על המיזם</a>
       <a href="#docs" data-nav="docs" class="nav-link nav-tab h-full inline-flex items-center px-3 sm:px-4 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">מדריך הטמעה</a>
     </div>
 
-    <a href="mailto:itaiarazi99@gmail.com"
-       class="hidden sm:inline-flex items-center gap-1.5 rounded-lg bg-slate-900 text-white text-sm font-semibold px-4 py-2 hover:bg-slate-700 transition-colors">
+    <a href="#contact" data-nav="contact" data-scroll="contact-section" data-view="contact"
+       class="nav-link cursor-pointer inline-flex items-center gap-1.5 rounded-lg bg-slate-900 text-white text-sm font-semibold px-4 py-2 hover:bg-slate-700 transition-colors">
       דברו איתנו
     </a>
   </nav>
@@ -298,13 +309,31 @@
         </div>
       </div>
 
-      <!-- ── Mockup side: 3D tilt card + floating result badges ── -->
+      <!-- ── Mockup side: Try-On loop in a glass card + floating result badges ──
+           pear-VTon.mp4 already ships its own phone device mockup (bezel, header,
+           branding), so we do NOT add a second device shell — the clip sits in the
+           same glass card the brand animation used, adapted to its 464×832 portrait.
+           object-contain keeps the whole phone visible; a warm backdrop matching
+           the clip's own background fills any gap so it reads as intentional. -->
       <div class="tilt-scene relative z-10 order-first lg:order-none">
         <div class="parallax-blob pointer-events-none absolute -inset-10 bg-[radial-gradient(ellipse_at_center,rgb(16_185_129/0.12),transparent_65%)] blur-2xl" data-speed="-.25" aria-hidden="true"></div>
 
-        <div id="tiltCard" class="tilt-card relative max-w-md mx-auto rounded-3xl glass p-4">
-          <!-- brand animation = the product visual -->
-          <video class="w-full rounded-2xl" src="pear-anmtion.mp4" autoplay muted loop playsinline aria-label="אנימציית המותג של PEAR"></video>
+        <div id="tiltCard" class="tilt-card vton-frame relative mx-auto w-[248px] sm:w-[280px] lg:w-[312px] rounded-3xl glass p-3">
+
+          <div class="relative aspect-[464/832] rounded-2xl overflow-hidden bg-[#f1efe9]">
+            <video id="vtonVideo" class="absolute inset-0 w-full h-full object-contain"
+                   src="pear-VTon.mp4" muted loop playsinline preload="auto"
+                   aria-label="הדגמת מדידה וירטואלית של PEAR — לולאה ללא קול"></video>
+
+            <!-- the only control on the clip: a single minimal play/pause toggle -->
+            <button id="vtonToggle" type="button"
+                    class="vton-toggle absolute bottom-2.5 left-2.5 inline-flex items-center justify-center w-9 h-9 rounded-full bg-black/45 backdrop-blur-md text-white/95 hover:bg-black/70 transition-colors"
+                    aria-label="השהיית ההדגמה">
+              <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor" aria-hidden="true">
+                <path id="vtonPath" d="M8 5h3v14H8zM13 5h3v14h-3z"/>
+              </svg>
+            </button>
+          </div>
 
           <!-- floating chips: hover above the card in 3D space -->
           <div class="tilt-float absolute -top-4 -left-3 sm:-left-6 rounded-xl glass px-4 py-2.5 flex items-center gap-2">
@@ -480,7 +509,7 @@
   </section>
 
   <!-- ══════════ MARKET RESEARCH · industry data + product potential ══════════ -->
-  <section id="voices" data-hud="נתוני שוק" class="max-w-6xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
+  <section id="market-section" data-hud="נתוני שוק" class="max-w-6xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
     <div class="max-w-2xl mx-auto text-center mb-14 reveal">
       <p class="text-xs font-mono font-semibold tracking-[0.2em] text-pear-600 uppercase mb-3">נתוני שוק</p>
       <h2 data-split class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">מה שמחקרי השוק מראים</h2>
@@ -646,31 +675,6 @@
       </div>
     </section>
 
-    <!-- ── 03 · Preview ── -->
-    <section class="reveal">
-      <div class="flex items-center gap-3 mb-5">
-        <span class="font-mono text-xs font-bold text-pear-600 bg-pear-50 border border-pear-100 rounded-md px-2 py-1">03</span>
-        <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">תצוגה מקדימה</h2>
-      </div>
-
-      <div class="rounded-2xl border-2 border-dashed border-slate-300 bg-white p-8 sm:p-10">
-        <p class="text-center text-xs font-mono tracking-widest text-slate-400 uppercase mb-8">כך ייראה הכפתור בדף המוצר שלכם</p>
-        <div class="max-w-sm mx-auto rounded-2xl glass p-6">
-          <div class="h-40 rounded-xl bg-slate-100 mb-5 flex items-center justify-center text-slate-300">
-            <svg class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M18 12h.008v.008H18V12zm-1.5-9H7.5A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h9a2.25 2.25 0 002.25-2.25V5.25A2.25 2.25 0 0016.5 3z"/></svg>
-          </div>
-          <p class="font-bold text-slate-900 mb-0.5">חולצת אוברסייז · שחור</p>
-          <p class="text-sm text-slate-400 mb-5">₪129.90</p>
-          <button id="previewBtn" class="cta-glow w-full inline-flex items-center justify-center gap-2 rounded-xl bg-pear-600 text-white font-bold px-6 py-3.5 shadow-btn hover:bg-pear-700 hover:-translate-y-0.5 active:translate-y-0 transition-all">
-            ✨ מדוד על הגוף שלך עכשיו
-          </button>
-          <p id="previewNote" class="text-center text-xs text-slate-400 mt-3 opacity-0 transition-opacity duration-300">
-            כאן נפתח חלון המדידה של PEAR — בזמן אמת, בלי לעזוב את העמוד
-          </p>
-        </div>
-      </div>
-    </section>
-
     <!-- Support note -->
     <section class="reveal">
       <div class="rounded-2xl bg-pear-50 border border-pear-100 px-7 py-6 flex items-start gap-4">
@@ -682,6 +686,119 @@
         </p>
       </div>
     </section>
+  </div>
+</main>
+
+<!-- ════════════════════════════════════════════════════════════════
+     VIEW 3 · CONTACT
+     ════════════════════════════════════════════════════════════════ -->
+<main id="view-contact" class="view" aria-label="צור קשר">
+
+  <!-- Contact hero -->
+  <section id="contact-section" class="border-b border-white/50">
+    <div class="max-w-3xl mx-auto px-5 sm:px-8 pt-20 pb-14 sm:pt-24 sm:pb-16 text-center">
+      <p class="text-xs font-mono font-semibold tracking-[0.2em] text-pear-600 uppercase mb-3">Get In Touch</p>
+      <h1 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight mb-5">בואו נדבר</h1>
+      <p class="text-lg text-slate-500 leading-relaxed max-w-xl mx-auto">
+        שאלה על הטמעה, בקשת דמו למותג שלכם, או סתם רוצים להכיר?
+        מלאו את הטופס או פנו אלינו ישירות.
+      </p>
+    </div>
+  </section>
+
+  <div class="max-w-6xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
+    <div class="grid lg:grid-cols-5 gap-6 lg:gap-8 items-start">
+
+      <!-- ── Form ── -->
+      <div class="reveal lg:col-span-3 rounded-3xl glass p-7 sm:p-9">
+        <form id="contactForm" class="space-y-5">
+          <!-- Honeypot: real visitors never see or fill this; Web3Forms auto-rejects submissions where it's checked. -->
+          <input type="checkbox" name="botcheck" class="hidden" style="display:none" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+          <div class="grid sm:grid-cols-2 gap-5">
+            <label class="block">
+              <span class="block text-sm font-bold text-slate-700 mb-2">שם מלא</span>
+              <input type="text" name="name" required autocomplete="name"
+                     class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 transition-colors hover:border-slate-300 focus:outline-none focus:border-pear-500 focus:ring-4 focus:ring-pear-500/15"
+                     placeholder="ישראל ישראלי">
+            </label>
+            <label class="block">
+              <span class="block text-sm font-bold text-slate-700 mb-2">אימייל</span>
+              <input type="email" name="email" dir="ltr" required autocomplete="email"
+                     class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 transition-colors hover:border-slate-300 focus:outline-none focus:border-pear-500 focus:ring-4 focus:ring-pear-500/15"
+                     placeholder="you@brand.com">
+            </label>
+          </div>
+
+          <label class="block">
+            <span class="block text-sm font-bold text-slate-700 mb-2">נושא</span>
+            <input type="text" name="subject" required
+                   class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 transition-colors hover:border-slate-300 focus:outline-none focus:border-pear-500 focus:ring-4 focus:ring-pear-500/15"
+                   placeholder="למשל: בקשת דמו למותג אופנה">
+          </label>
+
+          <label class="block">
+            <span class="block text-sm font-bold text-slate-700 mb-2">הודעה</span>
+            <textarea name="message" rows="5" required
+                      class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 resize-none transition-colors hover:border-slate-300 focus:outline-none focus:border-pear-500 focus:ring-4 focus:ring-pear-500/15"
+                      placeholder="ספרו לנו קצת על הפרויקט..."></textarea>
+          </label>
+
+          <button id="contactSubmit" type="submit"
+             class="cta-glow w-full inline-flex items-center justify-center gap-2 rounded-xl bg-pear-600 text-white font-bold px-7 py-3.5 shadow-btn hover:bg-pear-700 hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-80 disabled:cursor-wait disabled:hover:translate-y-0">
+            <svg id="contactSpinner" class="hidden w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle class="opacity-25" cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3"/>
+              <path class="opacity-90" stroke="currentColor" stroke-width="3" stroke-linecap="round" d="M21 12a9 9 0 0 0-9-9"/>
+            </svg>
+            <svg id="contactSendIcon" viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M19 12H5"/><path d="m11 6-6 6 6 6"/>
+            </svg>
+            <span id="contactSubmitLabel">שליחת הודעה</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- ── Direct contact info ── -->
+      <div class="reveal lg:col-span-2 space-y-5">
+        <div class="rounded-3xl glass-dark text-white p-7 sm:p-8">
+          <h2 class="text-lg font-extrabold mb-1.5">פנייה ישירה</h2>
+          <p class="text-sm text-slate-300 mb-7 leading-relaxed">מעדיפים לדבר ישירות? אנחנו זמינים באימייל ובטלפון.</p>
+
+          <a href="mailto:pearytrank@gmail.com"
+             class="flex items-center gap-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-pear-400/40 px-4 py-3.5 mb-3 transition-all duration-200 hover:-translate-y-0.5">
+            <span class="shrink-0 w-10 h-10 rounded-xl bg-pear-500/20 text-pear-400 flex items-center justify-center">
+              <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 6.5 8.5 7 8.5-7"/>
+              </svg>
+            </span>
+            <span class="min-w-0">
+              <span class="block text-[11px] font-mono uppercase tracking-widest text-slate-400 mb-0.5">Email</span>
+              <span class="block text-sm font-bold truncate" dir="ltr">pearytrank@gmail.com</span>
+            </span>
+          </a>
+
+          <a href="tel:0527067006"
+             class="flex items-center gap-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-pear-400/40 px-4 py-3.5 transition-all duration-200 hover:-translate-y-0.5">
+            <span class="shrink-0 w-10 h-10 rounded-xl bg-pear-500/20 text-pear-400 flex items-center justify-center">
+              <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/>
+              </svg>
+            </span>
+            <span class="min-w-0">
+              <span class="block text-[11px] font-mono uppercase tracking-widest text-slate-400 mb-0.5">Phone</span>
+              <span class="block text-sm font-bold" dir="ltr">052-706-7006</span>
+            </span>
+          </a>
+        </div>
+
+        <div class="rounded-3xl glass p-6 flex items-start gap-3">
+          <span class="text-xl leading-none mt-0.5">🍐</span>
+          <p class="text-sm text-slate-600 leading-relaxed">
+            צוות PEAR זמין לשאלות טכניות, הדגמות למותגים ותמיכה בהטמעה.
+          </p>
+        </div>
+      </div>
+    </div>
   </div>
 </main>
 
@@ -704,13 +821,13 @@
 /* ════════════════════════════════════════════════════════════════
    PEAR landing · vanilla JS
    Blocks: 1) view routing  2) smooth-scroll CTAs  3) clipboard
-           4) toast  5) docs preview  6) size simulator
-           7) 3D tilt  8) scroll HUD  9) scroll reveal
+           4) toast  5) contact form  6) size simulator
+           7) 3D tilt  7b) VTon loop  8) scroll HUD  9) scroll reveal
            9.5) GSAP cinematics  10) boot
    ════════════════════════════════════════════════════════════════ */
 
-/* ── 1 · View routing (#overview / #docs) ─────────────────────── */
-const VIEWS = ['overview', 'docs'];
+/* ── 1 · View routing (#overview / #docs / #contact) ──────────── */
+const VIEWS = ['overview', 'docs', 'contact'];
 
 function currentView() {
   const v = location.hash.replace('#', '');
@@ -725,19 +842,28 @@ function renderView(view, { scroll = true } = {}) {
     else el.removeAttribute('aria-current');
   });
   if (scroll) window.scrollTo(0, 0);
-  // Hide the fixed 3D layer + HUD while reading docs; re-measure triggers on return.
-  document.body.classList.toggle('docs-active', view === 'docs');
+  // Hide the fixed 3D layer + HUD outside the cinematic overview; re-measure triggers on return.
+  document.body.classList.toggle('subview-active', view !== 'overview');
   if (window.ScrollTrigger) setTimeout(() => ScrollTrigger.refresh(), 60);
   revealInit();                       // observe the fresh view's .reveal elements
 }
 
-/* ── 2 · Smooth-scroll CTA buttons (data-scroll="sectionId") ──── */
+/* ── 2 · Smooth-scroll CTA buttons (data-scroll="sectionId", optional
+   data-view="overview|docs|contact" — defaults to overview) ──────
+   If the target section's view isn't on screen, switch to it first
+   (which jumps to top), then smooth-scroll down to the section once
+   the new view has rendered. The cross-view delay is 220ms, not the
+   old 60ms: renderView() schedules its own ScrollTrigger.refresh()
+   60ms after the hashchange, and refresh() briefly yanks scroll back
+   to measure pinned sections (the "demo" video is pin:true) — firing
+   our scrollIntoView before that settles gets it cancelled mid-flight. */
 document.querySelectorAll('[data-scroll]').forEach((btn) => {
   btn.addEventListener('click', () => {
+    const targetView = btn.dataset.view || 'overview';
     const target = () => document.getElementById(btn.dataset.scroll);
-    if (currentView() !== 'overview') {          // sections live in view 1
-      location.hash = 'overview';
-      setTimeout(() => target()?.scrollIntoView({ behavior: 'smooth' }), 60);
+    if (currentView() !== targetView) {
+      location.hash = targetView;
+      setTimeout(() => target()?.scrollIntoView({ behavior: 'smooth' }), 220);
     } else {
       target()?.scrollIntoView({ behavior: 'smooth' });
     }
@@ -760,21 +886,93 @@ document.querySelectorAll('.copy-btn').forEach((btn) => {
   });
 });
 
-/* ── 4 · Toast ────────────────────────────────────────────────── */
+/* ── 4 · Toast ────────────────────────────────────────────────────
+   type: 'default' | 'success' | 'error'. `msg` must stay a literal we
+   wrote — it's injected via innerHTML for the icon, so never pass
+   user- or API-supplied text through here. */
 let toastTimer = null;
-function showToast(msg) {
+const TOAST_ICONS = {
+  success: '<svg viewBox="0 0 24 24" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',
+  error: '<svg viewBox="0 0 24 24" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v6"/><path d="M12 16.5h.01"/></svg>',
+};
+function showToast(msg, type = 'default') {
   const t = document.getElementById('toast');
-  t.textContent = msg;
+  const tone = type === 'success' ? 'bg-pear-600' : type === 'error' ? 'bg-red-600' : 'bg-slate-900';
+  t.className = `fixed bottom-6 inset-x-0 mx-auto w-max max-w-[90vw] z-[60] rounded-xl ${tone} text-white text-sm font-semibold px-5 py-3 shadow-lift opacity-0 translate-y-3 transition-all duration-300 pointer-events-none flex items-center gap-2`;
+  t.innerHTML = (TOAST_ICONS[type] || '') + `<span>${msg}</span>`;
+  void t.offsetWidth;                     // force reflow so the fade-in replays even mid-toast
   t.classList.remove('opacity-0', 'translate-y-3');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.add('opacity-0', 'translate-y-3'), 2200);
+  toastTimer = setTimeout(() => t.classList.add('opacity-0', 'translate-y-3'), 2600);
 }
 
-/* ── 5 · Docs widget preview ──────────────────────────────────── */
-document.getElementById('previewBtn').addEventListener('click', () => {
-  document.getElementById('previewNote').classList.remove('opacity-0');
-  showToast('✨ בגרסה החיה: חלון המדידה נפתח כאן');
-});
+/* ── 5 · Contact form → Web3Forms ─────────────────────────────────
+   No backend of our own, so submissions POST straight to Web3Forms,
+   which relays them to pearytrank@gmail.com (reply-to set to whatever
+   the visitor typed). Get a free access key at https://web3forms.com
+   — sign up with that inbox — and paste it below; until then every
+   submission will fail gracefully with the red error toast. */
+const WEB3FORMS_ACCESS_KEY = 'YOUR_WEB3FORMS_ACCESS_KEY';
+
+const contactForm = document.getElementById('contactForm');
+if (contactForm) {
+  if (WEB3FORMS_ACCESS_KEY === 'YOUR_WEB3FORMS_ACCESS_KEY') {
+    console.warn('[PEAR] Contact form: set WEB3FORMS_ACCESS_KEY (from web3forms.com) before going live.');
+  }
+
+  const submitBtn = document.getElementById('contactSubmit');
+  const spinner   = document.getElementById('contactSpinner');
+  const sendIcon  = document.getElementById('contactSendIcon');
+  const label     = document.getElementById('contactSubmitLabel');
+
+  contactForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (submitBtn.disabled) return;
+
+    const data = new FormData(contactForm);
+    if (data.get('botcheck')) return;     // honeypot tripped — silently drop, no UI feedback for bots
+
+    submitBtn.disabled = true;
+    spinner.classList.remove('hidden');
+    sendIcon.classList.add('hidden');
+    label.textContent = 'שולח…';
+
+    try {
+      const res = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          access_key: WEB3FORMS_ACCESS_KEY,
+          name: data.get('name'),
+          email: data.get('email'),
+          subject: data.get('subject') || 'פנייה חדשה מאתר PEAR',
+          message: data.get('message'),
+        }),
+      });
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok || !result.success) throw new Error(result.message || 'Web3Forms rejected the submission');
+
+      spinner.classList.add('hidden');
+      label.textContent = 'נשלח בהצלחה ✓';
+      showToast('הודעתך נשלחה בהצלחה! נחזור אליכם בהקדם', 'success');
+      contactForm.reset();
+
+      setTimeout(() => {
+        submitBtn.disabled = false;
+        sendIcon.classList.remove('hidden');
+        label.textContent = 'שליחת הודעה';
+      }, 1800);
+
+    } catch (err) {
+      console.warn('[PEAR] contact form submit failed:', err?.message || err);
+      spinner.classList.add('hidden');
+      sendIcon.classList.remove('hidden');
+      label.textContent = 'שליחת הודעה';
+      submitBtn.disabled = false;
+      showToast('השליחה נכשלה — נסו שוב או כתבו לנו ישירות למייל', 'error');
+    }
+  });
+}
 
 /* ── 6 · Size simulator (the playground) ──────────────────────────
    A miniature, honest imitation of the real engine's UX: inputs →
@@ -876,6 +1074,43 @@ if (tiltCard && !REDUCED) {
     tiltCard.style.setProperty('--rx', '0deg');
     tiltCard.style.setProperty('--ry', '0deg');
   });
+}
+
+/* ── 7b · Hero Try-On loop ────────────────────────────────────────
+   Silent 5s loop, driven from JS rather than the autoplay attribute so
+   reduced-motion visitors land on a still frame instead of catching a
+   flash of movement before we can pause it. Also parks the decoder
+   whenever the hero is off-screen. */
+const vton = document.getElementById('vtonVideo');
+if (vton) {
+  const frame = vton.closest('.vton-frame');
+  const btn   = document.getElementById('vtonToggle');
+  const path  = document.getElementById('vtonPath');
+  const D_PLAY  = 'M8 5v14l11-7z';
+  const D_PAUSE = 'M8 5h3v14H8zM13 5h3v14h-3z';
+
+  let wantsPlay = !REDUCED;
+  let onScreen  = true;
+
+  const sync = () => {
+    const playing = !vton.paused;
+    path.setAttribute('d', playing ? D_PAUSE : D_PLAY);
+    btn.setAttribute('aria-label', playing ? 'השהיית ההדגמה' : 'הפעלת ההדגמה');
+    frame.classList.toggle('is-paused', !playing);
+  };
+  // A blocked autoplay rejects here; the still frame is a fine resting state.
+  const apply = () => { (wantsPlay && onScreen) ? vton.play().catch(() => {}) : vton.pause(); };
+
+  vton.addEventListener('play', sync);
+  vton.addEventListener('pause', sync);
+  btn.addEventListener('click', () => { wantsPlay = !wantsPlay; apply(); });
+
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(([e]) => { onScreen = e.isIntersecting; apply(); },
+                             { threshold: 0.15 }).observe(vton);
+  }
+  apply();
+  sync();
 }
 
 /* ── 8 · Scroll HUD (ring gauge + % + chapter) + navbar elevation ─
@@ -1319,7 +1554,7 @@ try {
     const clock = new THREE.Clock();
     function frame() {
       requestAnimationFrame(frame);
-      if (document.hidden || innerWidth < 1024 || document.body.classList.contains('docs-active')) return;
+      if (document.hidden || innerWidth < 1024 || document.body.classList.contains('subview-active')) return;
       const t = clock.getElapsedTime();
 
       /* hero pear: slow lerp (0.02) toward the active waypoint = weighty,
