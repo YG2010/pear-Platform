@@ -712,6 +712,7 @@
       <!-- ── Form ── -->
       <div class="reveal lg:col-span-3 rounded-3xl glass p-7 sm:p-9">
         <form id="contactForm" class="space-y-5">
+          <input type="hidden" name="access_key" value="3784c35e-7ff4-493c-80a9-cada9bc84313">
           <!-- Honeypot: real visitors never see or fill this; Web3Forms auto-rejects submissions where it's checked. -->
           <input type="checkbox" name="botcheck" class="hidden" style="display:none" tabindex="-1" autocomplete="off" aria-hidden="true">
 
@@ -909,17 +910,10 @@ function showToast(msg, type = 'default') {
 /* ── 5 · Contact form → Web3Forms ─────────────────────────────────
    No backend of our own, so submissions POST straight to Web3Forms,
    which relays them to pearytrank@gmail.com (reply-to set to whatever
-   the visitor typed). Get a free access key at https://web3forms.com
-   — sign up with that inbox — and paste it below; until then every
-   submission will fail gracefully with the red error toast. */
-const WEB3FORMS_ACCESS_KEY = 'YOUR_WEB3FORMS_ACCESS_KEY';
-
+   the visitor typed). The access key lives in the form's own hidden
+   access_key input — one source of truth, no key duplicated in JS. */
 const contactForm = document.getElementById('contactForm');
 if (contactForm) {
-  if (WEB3FORMS_ACCESS_KEY === 'YOUR_WEB3FORMS_ACCESS_KEY') {
-    console.warn('[PEAR] Contact form: set WEB3FORMS_ACCESS_KEY (from web3forms.com) before going live.');
-  }
-
   const submitBtn = document.getElementById('contactSubmit');
   const spinner   = document.getElementById('contactSpinner');
   const sendIcon  = document.getElementById('contactSendIcon');
@@ -942,7 +936,7 @@ if (contactForm) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
-          access_key: WEB3FORMS_ACCESS_KEY,
+          access_key: data.get('access_key'),
           name: data.get('name'),
           email: data.get('email'),
           subject: data.get('subject') || 'פנייה חדשה מאתר PEAR',
