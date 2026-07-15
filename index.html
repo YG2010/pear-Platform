@@ -203,8 +203,51 @@
   /* ── Docs access gate: cosmetic blur only — a soft, client-side speed
        bump, NOT real access control. The full guide HTML is still in
        the initial page load and fully readable via view-source /
-       devtools regardless of this class. ── */
-  .docs-gated { filter: blur(7px) saturate(.7); pointer-events: none; user-select: none; transition: filter .3s ease; }
+       devtools regardless of this class. The blur itself lives on the
+       scrim overlay (backdrop-blur, see #docsGateScrim), not on this
+       element — this just makes the real content inert underneath. ── */
+  .docs-gated { pointer-events: none; user-select: none; }
+
+  /* ── Pulsing glow ring — the docs-gate lock icon ── */
+  @keyframes lockGlow {
+    0%, 100% { box-shadow: 0 0 0 0 rgb(16 185 129 / .45), 0 0 22px 2px rgb(16 185 129 / .25); }
+    50%      { box-shadow: 0 0 0 9px rgb(16 185 129 / 0), 0 0 34px 8px rgb(16 185 129 / .4); }
+  }
+  .lock-glow { animation: lockGlow 2.6s ease-in-out infinite; }
+
+  /* ── Docs unlock reveal — content fades/scales/unblurs in once the
+       correct code is entered (or on an already-authorized return visit). ── */
+  @keyframes docsUnlock {
+    from { opacity: 0; transform: translateY(16px) scale(.98); filter: blur(6px); }
+    to   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+  }
+  .docs-unlocking { animation: docsUnlock .65s cubic-bezier(.2,.7,.2,1) both; }
+
+  /* ── Copy-button success flash: a brief green glow behind the checkmark ── */
+  @keyframes copyFlash {
+    0%   { box-shadow: 0 0 0 0 rgb(16 185 129 / .5); }
+    60%  { box-shadow: 0 0 0 6px rgb(16 185 129 / 0); }
+    100% { box-shadow: 0 0 0 0 rgb(16 185 129 / 0); }
+  }
+  .copy-flash { animation: copyFlash 1s ease-out; }
+
+  /* ── Reverse-spinning inner ring for the dual-ring submit loader ── */
+  @keyframes spinReverse { to { transform: rotate(-360deg); } }
+  .spin-reverse { animation: spinReverse 1.1s linear infinite; }
+
+  /* ── Toast: spring/overshoot entrance (top-center — bottom-right is
+       already occupied by the scroll HUD) ── */
+  @keyframes toastSpring {
+    0%   { opacity: 0; transform: translate(-50%, -14px) scale(.94); }
+    60%  { opacity: 1; transform: translate(-50%, 3px) scale(1.015); }
+    100% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  }
+  .toast-in  { animation: toastSpring .5s cubic-bezier(.34,1.56,.64,1) both; }
+  .toast-out { opacity: 0; transform: translate(-50%, -10px) scale(.96); transition: opacity .25s ease, transform .25s ease; }
+
+  /* ── Underline-expand focus treatment — contact form single-line fields ── */
+  .field-underline { transform: scaleX(0); transition: transform .3s cubic-bezier(.2,.7,.2,1); }
+  .peer:focus ~ .field-underline { transform: scaleX(1); }
 
   /* ── Reduced motion: kill all decorative movement ── */
   @media (prefers-reduced-motion: reduce) {
@@ -596,37 +639,49 @@
 
   <div id="docsGate" class="relative">
 
-    <!-- Locked overlay: sits near the top of the gated area, so scrolling
-         here (nav click, or already-scrolled visitors) puts it in view
-         immediately. Hidden once docsRealContent is unlocked. -->
-    <div id="docsGateCard" class="absolute top-8 sm:top-12 inset-x-0 z-20 max-w-md mx-auto rounded-3xl glass p-7 sm:p-8 text-center shadow-lift">
-      <div class="w-14 h-14 rounded-2xl bg-slate-900 text-white flex items-center justify-center mx-auto mb-5">
-        <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <!-- Scrim: backdrop-blurs + dims the real content through it (rather than
+         blurring the content's own pixels). absolute + inset-0 sizes it to
+         #docsGate's full (tall) height, so however far the visitor scrolls
+         within the gated area, whatever's on screen is already covered —
+         no change needed here for the sticky card below. -->
+    <div id="docsGateScrim" class="absolute inset-0 z-10 backdrop-blur-xl bg-gradient-to-b from-slate-50/55 via-slate-50/75 to-slate-50/95 pointer-events-none"></div>
+
+    <!-- Locked overlay: position:sticky (not absolute) so it tracks the
+         scroll and stays vertically centered in the viewport for as long as
+         #docsGate — its containing block — is still on screen, then
+         releases naturally once the visitor scrolls past the gated area
+         entirely (into the ungated help/support sections below). Hidden
+         once docsRealContent is unlocked. -->
+    <div id="docsGateCard" class="sticky top-1/2 -translate-y-1/2 z-20 max-w-md mx-auto rounded-3xl bg-slate-900/40 backdrop-blur-2xl border border-white/10 p-7 sm:p-8 text-center shadow-[0_24px_70px_-20px_rgb(0_0_0/0.55)]">
+      <div class="lock-glow w-16 h-16 rounded-2xl bg-gradient-to-br from-pear-400 to-pear-600 text-white flex items-center justify-center mx-auto mb-6">
+        <svg viewBox="0 0 24 24" class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <rect x="4" y="10" width="16" height="10" rx="2.5"/>
           <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
         </svg>
       </div>
-      <h2 class="text-xl font-extrabold text-slate-900 mb-2">המדריך נעול לקהל הרחב</h2>
-      <p class="text-sm text-slate-500 leading-relaxed mb-6">
-        הגישה למדריך ההטמעה המלא ניתנת לשותפים מאושרים בלבד. הזינו קוד גישה, או בקשו גישה ונחזור אליכם.
+      <h2 class="text-xl font-extrabold text-white tracking-tight mb-2">המדריך נעול לקהל הרחב</h2>
+      <p class="text-sm text-slate-300 leading-relaxed mb-7">
+        גישה למדריך ההטמעה הטכני ניתנת באישור ידני של צוות הפיתוח.
       </p>
 
       <form id="docsGateForm" class="flex flex-col sm:flex-row gap-2 mb-3">
         <input id="docsAccessInput" type="text" dir="ltr" autocomplete="off" placeholder="קוד גישה"
-               class="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-center font-mono tracking-wider text-slate-800 placeholder:text-slate-400 placeholder:tracking-normal placeholder:font-sans transition-colors hover:border-slate-300 focus:outline-none focus:border-pear-500 focus:ring-4 focus:ring-pear-500/15">
-        <button type="submit" class="cursor-pointer shrink-0 rounded-xl bg-slate-900 text-white font-bold px-6 py-3 hover:bg-slate-700 transition-colors">
+               class="flex-1 rounded-xl border border-white/15 bg-white/5 px-4 py-3.5 text-sm text-center font-mono tracking-[0.15em] text-white placeholder:text-slate-500 placeholder:tracking-normal placeholder:font-sans transition-all hover:border-white/25 focus:outline-none focus:border-pear-400 focus:ring-2 focus:ring-pear-500/50">
+        <button type="submit"
+           class="cta-glow cursor-pointer shrink-0 rounded-xl bg-gradient-to-r from-pear-600 to-pear-500 bg-[length:200%_100%] bg-left hover:bg-right text-white font-bold px-6 py-3.5 shadow-btn transition-[background-position] duration-500">
           אימות
         </button>
       </form>
-      <p id="docsGateError" class="hidden text-xs font-bold text-red-600 mb-3">קוד שגוי — נסו שוב.</p>
+      <p id="docsGateError" class="hidden text-xs font-bold text-red-400 mb-3">קוד שגוי — נסו שוב.</p>
 
       <a href="#contact" data-scroll="contact-section" data-view="contact" data-prefill="docsAccess"
-         class="inline-flex items-center gap-1.5 text-sm font-semibold text-pear-700 hover:text-pear-600 cursor-pointer">
-        אין לכם קוד? בקשו גישה ←
+         class="inline-flex items-center gap-1.5 text-sm font-semibold text-pear-400 hover:text-pear-300 transition-colors cursor-pointer">
+        אין לכם קוד גישה? מלאו את הטופס למטה ונשלח לכם מיידית ←
       </a>
     </div>
 
-    <!-- Real guide content: blurred + inert by default until unlocked -->
+    <!-- Real guide content: inert by default until unlocked (blur comes from
+         the scrim above, not this element — see .docs-gated) -->
     <div id="docsRealContent" class="docs-gated max-w-3xl mx-auto px-5 sm:px-8 py-14 sm:py-16 space-y-14">
 
     <!-- ── 01 · Requirements ── -->
@@ -656,54 +711,102 @@
         <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">שלבי ההטמעה</h2>
       </div>
 
-      <div class="space-y-8">
+      <div>
         <!-- Step 1: CDN -->
-        <div class="rounded-2xl glass overflow-hidden">
-          <div class="p-7 pb-5">
-            <h3 class="font-bold text-slate-900 text-lg mb-1.5">שלב 1 · הוספת סקריפט המערכת (CDN)</h3>
-            <p class="text-sm text-slate-500">הדביקו את השורה הבאה לפני תג <code class="font-mono text-xs bg-slate-100 border border-slate-200 rounded px-1.5 py-0.5 text-slate-700" dir="ltr">&lt;/body&gt;</code> — פעם אחת, בכל עמודי המוצר.</p>
+        <div class="relative flex gap-5">
+          <div class="flex flex-col items-center shrink-0">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pear-400 to-pear-600 text-white font-mono font-bold text-sm flex items-center justify-center shadow-[0_0_0_4px_rgb(16_185_129/0.12),0_8px_20px_-6px_rgb(16_185_129/0.55)]">1</div>
+            <div class="w-px flex-1 bg-gradient-to-b from-pear-400/50 to-transparent mt-2 mb-1"></div>
           </div>
-          <div class="mx-7 mb-7 rounded-xl overflow-hidden border border-slate-800 bg-slate-950">
-            <div class="flex items-center justify-between px-4 py-2.5 bg-slate-900 border-b border-slate-800" dir="ltr">
-              <span class="font-mono text-[11px] text-slate-400 tracking-wider">index.html</span>
-              <button class="copy-btn font-mono text-[11px] font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 rounded-md px-3 py-1.5 transition-colors" data-copy="snippet-cdn">Copy</button>
-            </div>
-            <pre class="code-scroll p-5 text-[13px] leading-relaxed font-mono"><code id="snippet-cdn"><span class="text-slate-500">&lt;!-- PEAR Virtual Try-On SDK --&gt;</span>
+          <div class="flex-1 min-w-0 pb-8">
+            <div class="rounded-2xl glass overflow-hidden">
+              <div class="p-7 pb-5">
+                <h3 class="font-bold text-slate-900 text-lg mb-1.5">שלב 1 · הוספת סקריפט המערכת (CDN)</h3>
+                <p class="text-sm text-slate-500">הדביקו את השורה הבאה לפני תג <code class="font-mono text-xs bg-slate-100 border border-slate-200 rounded px-1.5 py-0.5 text-slate-700" dir="ltr">&lt;/body&gt;</code> — פעם אחת, בכל עמודי המוצר.</p>
+              </div>
+              <div class="mx-7 mb-7 rounded-xl overflow-hidden border border-white/5 bg-[#0d1117] shadow-[0_20px_50px_-24px_rgb(0_0_0/0.6)]">
+                <div class="flex items-center gap-4 px-4 py-3 bg-[#161b22] border-b border-white/5" dir="ltr">
+                  <div class="flex items-center gap-1.5" aria-hidden="true">
+                    <span class="w-3 h-3 rounded-full bg-[#ff5f56]"></span>
+                    <span class="w-3 h-3 rounded-full bg-[#ffbd2e]"></span>
+                    <span class="w-3 h-3 rounded-full bg-[#27c93f]"></span>
+                  </div>
+                  <span class="font-mono text-[11px] text-slate-400 tracking-wider">index.html</span>
+                  <button class="copy-btn group ml-auto inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold text-slate-300 bg-white/5 hover:bg-white/10 border border-white/10 rounded-md px-3 py-1.5 transition-colors" data-copy="snippet-cdn">
+                    <svg class="copy-icon w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>
+                    <svg class="check-icon hidden w-3.5 h-3.5 text-pear-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+                    <span class="copy-label">Copy</span>
+                  </button>
+                </div>
+                <pre class="code-scroll p-5 text-[13px] leading-relaxed font-mono"><code id="snippet-cdn"><span class="text-slate-500">&lt;!-- PEAR Virtual Try-On SDK --&gt;</span>
 <span class="text-sky-300">&lt;script</span> <span class="text-emerald-300">src</span><span class="text-slate-400">=</span><span class="text-amber-200">"https://cdn.pear-tryon.com/sdk/v2/widget.js"</span> <span class="text-emerald-300">async</span><span class="text-sky-300">&gt;&lt;/script&gt;</span></code></pre>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- Step 2: container -->
-        <div class="rounded-2xl glass overflow-hidden">
-          <div class="p-7 pb-5">
-            <h3 class="font-bold text-slate-900 text-lg mb-1.5">שלב 2 · מיקום כפתור המדידה בדף המוצר</h3>
-            <p class="text-sm text-slate-500">הניחו את הקונטיינר בכל מקום בעמוד המוצר — לרוב מתחת לבורר המידות. הוויג'ט יעצב את עצמו בהתאם למקום.</p>
+        <div class="relative flex gap-5">
+          <div class="flex flex-col items-center shrink-0">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pear-400 to-pear-600 text-white font-mono font-bold text-sm flex items-center justify-center shadow-[0_0_0_4px_rgb(16_185_129/0.12),0_8px_20px_-6px_rgb(16_185_129/0.55)]">2</div>
+            <div class="w-px flex-1 bg-gradient-to-b from-pear-400/50 to-transparent mt-2 mb-1"></div>
           </div>
-          <div class="mx-7 mb-7 rounded-xl overflow-hidden border border-slate-800 bg-slate-950">
-            <div class="flex items-center justify-between px-4 py-2.5 bg-slate-900 border-b border-slate-800" dir="ltr">
-              <span class="font-mono text-[11px] text-slate-400 tracking-wider">product-page.html</span>
-              <button class="copy-btn font-mono text-[11px] font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 rounded-md px-3 py-1.5 transition-colors" data-copy="snippet-container">Copy</button>
-            </div>
-            <pre class="code-scroll p-5 text-[13px] leading-relaxed font-mono"><code id="snippet-container"><span class="text-sky-300">&lt;div</span>
+          <div class="flex-1 min-w-0 pb-8">
+            <div class="rounded-2xl glass overflow-hidden">
+              <div class="p-7 pb-5">
+                <h3 class="font-bold text-slate-900 text-lg mb-1.5">שלב 2 · מיקום כפתור המדידה בדף המוצר</h3>
+                <p class="text-sm text-slate-500">הניחו את הקונטיינר בכל מקום בעמוד המוצר — לרוב מתחת לבורר המידות. הוויג'ט יעצב את עצמו בהתאם למקום.</p>
+              </div>
+              <div class="mx-7 mb-7 rounded-xl overflow-hidden border border-white/5 bg-[#0d1117] shadow-[0_20px_50px_-24px_rgb(0_0_0/0.6)]">
+                <div class="flex items-center gap-4 px-4 py-3 bg-[#161b22] border-b border-white/5" dir="ltr">
+                  <div class="flex items-center gap-1.5" aria-hidden="true">
+                    <span class="w-3 h-3 rounded-full bg-[#ff5f56]"></span>
+                    <span class="w-3 h-3 rounded-full bg-[#ffbd2e]"></span>
+                    <span class="w-3 h-3 rounded-full bg-[#27c93f]"></span>
+                  </div>
+                  <span class="font-mono text-[11px] text-slate-400 tracking-wider">product-page.html</span>
+                  <button class="copy-btn group ml-auto inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold text-slate-300 bg-white/5 hover:bg-white/10 border border-white/10 rounded-md px-3 py-1.5 transition-colors" data-copy="snippet-container">
+                    <svg class="copy-icon w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>
+                    <svg class="check-icon hidden w-3.5 h-3.5 text-pear-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+                    <span class="copy-label">Copy</span>
+                  </button>
+                </div>
+                <pre class="code-scroll p-5 text-[13px] leading-relaxed font-mono"><code id="snippet-container"><span class="text-sky-300">&lt;div</span>
   <span class="text-emerald-300">id</span><span class="text-slate-400">=</span><span class="text-amber-200">"pear-widget-container"</span>
   <span class="text-emerald-300">data-product-id</span><span class="text-slate-400">=</span><span class="text-amber-200">"12345"</span>
   <span class="text-emerald-300">data-store-id</span><span class="text-slate-400">=</span><span class="text-amber-200">"YOUR_STORE_ID"</span><span class="text-sky-300">&gt;
 &lt;/div&gt;</span></code></pre>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- Step 3: init -->
-        <div class="rounded-2xl glass overflow-hidden">
-          <div class="p-7 pb-5">
-            <h3 class="font-bold text-slate-900 text-lg mb-1.5">שלב 3 · אתחול והגדרות מותאמות אישית</h3>
-            <p class="text-sm text-slate-500">שליטה מלאה על שפה, ערכת נושא, טקסט הכפתור ו-callbacks — הכל מאובייקט קונפיגורציה אחד.</p>
+        <div class="relative flex gap-5">
+          <div class="flex flex-col items-center shrink-0">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pear-400 to-pear-600 text-white font-mono font-bold text-sm flex items-center justify-center shadow-[0_0_0_4px_rgb(16_185_129/0.12),0_8px_20px_-6px_rgb(16_185_129/0.55)]">3</div>
           </div>
-          <div class="mx-7 mb-7 rounded-xl overflow-hidden border border-slate-800 bg-slate-950">
-            <div class="flex items-center justify-between px-4 py-2.5 bg-slate-900 border-b border-slate-800" dir="ltr">
-              <span class="font-mono text-[11px] text-slate-400 tracking-wider">pear-init.js</span>
-              <button class="copy-btn font-mono text-[11px] font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 rounded-md px-3 py-1.5 transition-colors" data-copy="snippet-init">Copy</button>
-            </div>
-            <pre class="code-scroll p-5 text-[13px] leading-relaxed font-mono"><code id="snippet-init"><span class="text-slate-300">window</span><span class="text-slate-400">.</span><span class="text-slate-300">PearWidget</span><span class="text-slate-400">.</span><span class="text-sky-300">init</span><span class="text-slate-400">({</span>
+          <div class="flex-1 min-w-0">
+            <div class="rounded-2xl glass overflow-hidden">
+              <div class="p-7 pb-5">
+                <h3 class="font-bold text-slate-900 text-lg mb-1.5">שלב 3 · אתחול והגדרות מותאמות אישית</h3>
+                <p class="text-sm text-slate-500">שליטה מלאה על שפה, ערכת נושא, טקסט הכפתור ו-callbacks — הכל מאובייקט קונפיגורציה אחד.</p>
+              </div>
+              <div class="mx-7 mb-7 rounded-xl overflow-hidden border border-white/5 bg-[#0d1117] shadow-[0_20px_50px_-24px_rgb(0_0_0/0.6)]">
+                <div class="flex items-center gap-4 px-4 py-3 bg-[#161b22] border-b border-white/5" dir="ltr">
+                  <div class="flex items-center gap-1.5" aria-hidden="true">
+                    <span class="w-3 h-3 rounded-full bg-[#ff5f56]"></span>
+                    <span class="w-3 h-3 rounded-full bg-[#ffbd2e]"></span>
+                    <span class="w-3 h-3 rounded-full bg-[#27c93f]"></span>
+                  </div>
+                  <span class="font-mono text-[11px] text-slate-400 tracking-wider">pear-init.js</span>
+                  <button class="copy-btn group ml-auto inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold text-slate-300 bg-white/5 hover:bg-white/10 border border-white/10 rounded-md px-3 py-1.5 transition-colors" data-copy="snippet-init">
+                    <svg class="copy-icon w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>
+                    <svg class="check-icon hidden w-3.5 h-3.5 text-pear-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+                    <span class="copy-label">Copy</span>
+                  </button>
+                </div>
+                <pre class="code-scroll p-5 text-[13px] leading-relaxed font-mono"><code id="snippet-init"><span class="text-slate-300">window</span><span class="text-slate-400">.</span><span class="text-slate-300">PearWidget</span><span class="text-slate-400">.</span><span class="text-sky-300">init</span><span class="text-slate-400">({</span>
   <span class="text-emerald-300">storeId</span><span class="text-slate-400">:</span> <span class="text-amber-200">'YOUR_STORE_ID'</span><span class="text-slate-400">,</span>
   <span class="text-emerald-300">theme</span><span class="text-slate-400">:</span> <span class="text-amber-200">'light'</span><span class="text-slate-400">,</span>          <span class="text-slate-500">// 'light' | 'dark'</span>
   <span class="text-emerald-300">locale</span><span class="text-slate-400">:</span> <span class="text-amber-200">'he'</span><span class="text-slate-400">,</span>
@@ -714,6 +817,8 @@
     <span class="text-slate-300">console</span><span class="text-slate-400">.</span><span class="text-sky-300">log</span><span class="text-slate-400">(</span><span class="text-amber-200">'המידה המומלצת:'</span><span class="text-slate-400">,</span> <span class="text-slate-300">result</span><span class="text-slate-400">.</span><span class="text-slate-300">size</span><span class="text-slate-400">);</span>
   <span class="text-slate-400">},</span>
 <span class="text-slate-400">});</span></code></pre>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -721,14 +826,20 @@
 
     <!-- Dev-help helper card -->
     <section class="reveal">
-      <div class="rounded-2xl glass-dark text-white px-7 py-6 flex flex-col sm:flex-row sm:items-center gap-5">
-        <div class="flex-1">
+      <div class="relative overflow-hidden rounded-2xl glass-dark text-white px-7 py-6 flex flex-col sm:flex-row sm:items-center gap-5">
+        <!-- mesh gradient: same recipe language as #pageBg, scaled down for a card -->
+        <div class="pointer-events-none absolute inset-0" aria-hidden="true"
+             style="background:
+               radial-gradient(420px 220px at 15% 0%, rgb(16 185 129 / .22), transparent 65%),
+               radial-gradient(360px 200px at 100% 100%, rgb(56 189 248 / .16), transparent 65%);"></div>
+        <div class="relative flex-1">
           <h3 class="font-bold text-lg mb-1">הסתבכתם עם הקוד?</h3>
           <p class="text-sm text-slate-300 leading-relaxed">צוות הפיתוח של PEAR זמין לעזור לכם לחבר את הווידג'ט לחנות שלכם במהירות ובקלות.</p>
         </div>
         <button data-scroll="contact-section" data-view="contact" data-prefill="integration"
-           class="shrink-0 cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl bg-pear-600 text-white font-bold px-6 py-3 shadow-btn hover:bg-pear-700 hover:-translate-y-0.5 transition-all whitespace-nowrap">
-          דברו איתנו עכשיו ←
+           class="group relative shrink-0 cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl bg-pear-600 text-white font-bold px-6 py-3 shadow-btn hover:bg-pear-700 hover:-translate-y-0.5 transition-all whitespace-nowrap">
+          <span>דברו איתנו עכשיו</span>
+          <span class="inline-block transition-transform duration-300 group-hover:-translate-x-1">←</span>
         </button>
       </div>
     </section>
@@ -765,12 +876,15 @@
     </div>
   </section>
 
-  <div class="max-w-6xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
-    <div class="grid lg:grid-cols-5 gap-6 lg:gap-8 items-start">
+  <div class="relative max-w-6xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
+    <!-- glowing organic blob, floats gently with scroll -->
+    <div class="parallax-blob pointer-events-none absolute -inset-x-10 -top-16 -bottom-16 bg-[radial-gradient(700px_420px_at_20%_10%,rgb(16_185_129/0.14),transparent_60%),radial-gradient(600px_360px_at_90%_90%,rgb(56_189_248/0.10),transparent_60%)] blur-2xl" data-speed="-.12" aria-hidden="true"></div>
+
+    <div class="relative grid lg:grid-cols-5 gap-6 lg:gap-8 items-start">
 
       <!-- ── Form ── -->
       <div class="reveal lg:col-span-3 rounded-3xl glass p-7 sm:p-9">
-        <form id="contactForm" class="space-y-5">
+        <form id="contactForm" class="space-y-6">
           <input type="hidden" name="access_key" value="3784c35e-7ff4-493c-80a9-cada9bc84313">
           <!-- Set by PREFILLS when a visitor arrives via a tagged CTA (e.g. the docs
                access-request link) — shows up as its own labeled line in the Web3Forms
@@ -779,41 +893,49 @@
           <!-- Honeypot: real visitors never see or fill this; Web3Forms auto-rejects submissions where it's checked. -->
           <input type="checkbox" name="botcheck" class="hidden" style="display:none" tabindex="-1" autocomplete="off" aria-hidden="true">
 
-          <div class="grid sm:grid-cols-2 gap-5">
-            <label class="block">
+          <div class="grid sm:grid-cols-2 gap-6">
+            <label class="relative block">
               <span class="block text-sm font-bold text-slate-700 mb-2">שם מלא</span>
               <input type="text" name="name" required autocomplete="name"
-                     class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 transition-colors hover:border-slate-300 focus:outline-none focus:border-pear-500 focus:ring-4 focus:ring-pear-500/15"
+                     class="peer w-full border-0 border-b-2 border-slate-200 bg-transparent px-1 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none transition-colors"
                      placeholder="ישראל ישראלי">
+              <span class="pointer-events-none absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-pear-400 to-pear-600 scale-x-0 peer-focus:scale-x-100 transition-transform duration-300 origin-center"></span>
             </label>
-            <label class="block">
+            <label class="relative block">
               <span class="block text-sm font-bold text-slate-700 mb-2">אימייל</span>
               <input type="email" name="email" dir="ltr" required autocomplete="email"
-                     class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 transition-colors hover:border-slate-300 focus:outline-none focus:border-pear-500 focus:ring-4 focus:ring-pear-500/15"
+                     class="peer w-full border-0 border-b-2 border-slate-200 bg-transparent px-1 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none transition-colors"
                      placeholder="you@brand.com">
+              <span class="pointer-events-none absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-pear-400 to-pear-600 scale-x-0 peer-focus:scale-x-100 transition-transform duration-300 origin-center"></span>
             </label>
           </div>
 
-          <label class="block">
+          <label class="relative block">
             <span class="block text-sm font-bold text-slate-700 mb-2">נושא</span>
             <input type="text" name="subject" required
-                   class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 transition-colors hover:border-slate-300 focus:outline-none focus:border-pear-500 focus:ring-4 focus:ring-pear-500/15"
+                   class="peer w-full border-0 border-b-2 border-slate-200 bg-transparent px-1 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none transition-colors"
                    placeholder="למשל: בקשת דמו למותג אופנה">
+            <span class="pointer-events-none absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-pear-400 to-pear-600 scale-x-0 peer-focus:scale-x-100 transition-transform duration-300 origin-center"></span>
           </label>
 
           <label class="block">
             <span class="block text-sm font-bold text-slate-700 mb-2">הודעה</span>
             <textarea name="message" rows="5" required
-                      class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 resize-none transition-colors hover:border-slate-300 focus:outline-none focus:border-pear-500 focus:ring-4 focus:ring-pear-500/15"
+                      class="w-full rounded-2xl border border-slate-200 bg-white/60 px-4 py-3.5 text-sm text-slate-800 placeholder:text-slate-400 resize-none shadow-sm transition-all hover:border-slate-300 focus:outline-none focus:border-pear-500 focus:ring-4 focus:ring-pear-500/15 focus:bg-white"
                       placeholder="ספרו לנו קצת על הפרויקט..."></textarea>
           </label>
 
           <button id="contactSubmit" type="submit"
-             class="cta-glow w-full inline-flex items-center justify-center gap-2 rounded-xl bg-pear-600 text-white font-bold px-7 py-3.5 shadow-btn hover:bg-pear-700 hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-80 disabled:cursor-wait disabled:hover:translate-y-0">
-            <svg id="contactSpinner" class="hidden w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <circle class="opacity-25" cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3"/>
-              <path class="opacity-90" stroke="currentColor" stroke-width="3" stroke-linecap="round" d="M21 12a9 9 0 0 0-9-9"/>
-            </svg>
+             class="cta-glow w-full inline-flex items-center justify-center gap-2 rounded-xl bg-pear-600 text-white font-bold px-7 py-3.5 shadow-btn hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-80 disabled:cursor-wait disabled:hover:translate-y-0">
+            <span id="contactSpinner" class="hidden relative w-4 h-4">
+              <svg class="absolute inset-0 w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2.5"/>
+                <path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M22 12a10 10 0 0 0-10-10"/>
+              </svg>
+              <svg class="spin-reverse absolute inset-0 w-4 h-4 opacity-60" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M12 5.5a6.5 6.5 0 0 1 6.5 6.5"/>
+              </svg>
+            </span>
             <svg id="contactSendIcon" viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M19 12H5"/><path d="m11 6-6 6 6 6"/>
             </svg>
@@ -875,7 +997,7 @@
 </footer>
 
 <!-- Toast (copy feedback etc.) -->
-<div id="toast" class="fixed bottom-6 inset-x-0 mx-auto w-max max-w-[90vw] z-[60] rounded-xl bg-slate-900 text-white text-sm font-semibold px-5 py-3 shadow-lift opacity-0 translate-y-3 transition-all duration-300 pointer-events-none" role="status"></div>
+<div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 w-max max-w-[90vw] z-[60] rounded-xl bg-slate-900 text-white text-sm font-semibold px-5 py-3 shadow-lift opacity-0 pointer-events-none" role="status"></div>
 
 <!-- GSAP + ScrollTrigger — the cinematic scroll engine -->
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
@@ -971,11 +1093,14 @@ const DOCS_AUTH_KEY = 'pear_docs_authorized';
 
 const docsRealContent = document.getElementById('docsRealContent');
 const docsGateCard = document.getElementById('docsGateCard');
+const docsGateScrim = document.getElementById('docsGateScrim');
 const docsGateForm = document.getElementById('docsGateForm');
 
 function unlockDocs() {
   docsRealContent?.classList.remove('docs-gated');
+  docsRealContent?.classList.add('docs-unlocking');
   docsGateCard?.classList.add('hidden');
+  docsGateScrim?.classList.add('hidden');
 }
 
 if (localStorage.getItem(DOCS_AUTH_KEY) === 'true') unlockDocs();
@@ -1003,16 +1128,27 @@ if (docsGateForm) {
 
 /* ── 3 · Copy-to-clipboard for code blocks ────────────────────── */
 document.querySelectorAll('.copy-btn').forEach((btn) => {
+  const copyIcon = btn.querySelector('.copy-icon');
+  const checkIcon = btn.querySelector('.check-icon');
+  const label = btn.querySelector('.copy-label');
   btn.addEventListener('click', async () => {
     const code = document.getElementById(btn.dataset.copy);
     if (!code) return;
     try {
       await navigator.clipboard.writeText(code.innerText);
-      btn.textContent = 'Copied ✓';
+      copyIcon.classList.add('hidden');
+      checkIcon.classList.remove('hidden');
+      label.textContent = 'Copied';
+      btn.classList.add('copy-flash');
       showToast('הקוד הועתק ללוח ✓');
-      setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+      setTimeout(() => {
+        copyIcon.classList.remove('hidden');
+        checkIcon.classList.add('hidden');
+        label.textContent = 'Copy';
+        btn.classList.remove('copy-flash');
+      }, 2000);
     } catch {
-      showToast('ההעתקה נכשלה — העתיקו ידנית');
+      showToast('ההעתקה נכשלה — העתיקו ידנית', 'error');
     }
   });
 });
@@ -1029,12 +1165,16 @@ const TOAST_ICONS = {
 function showToast(msg, type = 'default') {
   const t = document.getElementById('toast');
   const tone = type === 'success' ? 'bg-pear-600' : type === 'error' ? 'bg-red-600' : 'bg-slate-900';
-  t.className = `fixed bottom-6 inset-x-0 mx-auto w-max max-w-[90vw] z-[60] rounded-xl ${tone} text-white text-sm font-semibold px-5 py-3 shadow-lift opacity-0 translate-y-3 transition-all duration-300 pointer-events-none flex items-center gap-2`;
+  t.className = `fixed top-20 left-1/2 w-max max-w-[90vw] z-[60] rounded-xl ${tone} text-white text-sm font-semibold px-5 py-3 shadow-lift pointer-events-none flex items-center gap-2`;
   t.innerHTML = (TOAST_ICONS[type] || '') + `<span>${msg}</span>`;
-  void t.offsetWidth;                     // force reflow so the fade-in replays even mid-toast
-  t.classList.remove('opacity-0', 'translate-y-3');
+  t.classList.remove('toast-out');
+  void t.offsetWidth;                     // force reflow so the spring-in replays even mid-toast
+  t.classList.add('toast-in');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.add('opacity-0', 'translate-y-3'), 2600);
+  toastTimer = setTimeout(() => {
+    t.classList.remove('toast-in');
+    t.classList.add('toast-out');
+  }, 2600);
 }
 
 /* ── 5 · Contact form → Web3Forms ─────────────────────────────────
