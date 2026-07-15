@@ -200,6 +200,12 @@
   /* Code blocks are always LTR, regardless of page direction. */
   .code-scroll { direction: ltr; text-align: left; overflow-x: auto; }
 
+  /* ── Docs access gate: cosmetic blur only — a soft, client-side speed
+       bump, NOT real access control. The full guide HTML is still in
+       the initial page load and fully readable via view-source /
+       devtools regardless of this class. ── */
+  .docs-gated { filter: blur(7px) saturate(.7); pointer-events: none; user-select: none; transition: filter .3s ease; }
+
   /* ── Reduced motion: kill all decorative movement ── */
   @media (prefers-reduced-motion: reduce) {
     .reveal { opacity: 1; transform: none; transition: none; }
@@ -246,7 +252,7 @@
     <div class="flex items-center gap-1 sm:gap-2 h-full">
       <a href="#overview" data-nav="overview" data-scroll="hero"
          class="nav-link nav-tab cursor-pointer h-full inline-flex items-center px-3 sm:px-4 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">על המיזם</a>
-      <a href="#docs" data-nav="docs" class="nav-link nav-tab h-full inline-flex items-center px-3 sm:px-4 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">מדריך הטמעה</a>
+      <a href="#docs" data-nav="docs" data-scroll="docsGate" data-view="docs" class="nav-link nav-tab cursor-pointer h-full inline-flex items-center px-3 sm:px-4 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">מדריך הטמעה</a>
     </div>
 
     <a href="#contact" data-nav="contact" data-scroll="contact-section" data-view="contact"
@@ -588,7 +594,40 @@
     </div>
   </section>
 
-  <div class="max-w-3xl mx-auto px-5 sm:px-8 py-14 sm:py-16 space-y-14">
+  <div id="docsGate" class="relative">
+
+    <!-- Locked overlay: sits near the top of the gated area, so scrolling
+         here (nav click, or already-scrolled visitors) puts it in view
+         immediately. Hidden once docsRealContent is unlocked. -->
+    <div id="docsGateCard" class="absolute top-8 sm:top-12 inset-x-0 z-20 max-w-md mx-auto rounded-3xl glass p-7 sm:p-8 text-center shadow-lift">
+      <div class="w-14 h-14 rounded-2xl bg-slate-900 text-white flex items-center justify-center mx-auto mb-5">
+        <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="4" y="10" width="16" height="10" rx="2.5"/>
+          <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+        </svg>
+      </div>
+      <h2 class="text-xl font-extrabold text-slate-900 mb-2">המדריך נעול לקהל הרחב</h2>
+      <p class="text-sm text-slate-500 leading-relaxed mb-6">
+        הגישה למדריך ההטמעה המלא ניתנת לשותפים מאושרים בלבד. הזינו קוד גישה, או בקשו גישה ונחזור אליכם.
+      </p>
+
+      <form id="docsGateForm" class="flex flex-col sm:flex-row gap-2 mb-3">
+        <input id="docsAccessInput" type="text" dir="ltr" autocomplete="off" placeholder="קוד גישה"
+               class="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-center font-mono tracking-wider text-slate-800 placeholder:text-slate-400 placeholder:tracking-normal placeholder:font-sans transition-colors hover:border-slate-300 focus:outline-none focus:border-pear-500 focus:ring-4 focus:ring-pear-500/15">
+        <button type="submit" class="cursor-pointer shrink-0 rounded-xl bg-slate-900 text-white font-bold px-6 py-3 hover:bg-slate-700 transition-colors">
+          אימות
+        </button>
+      </form>
+      <p id="docsGateError" class="hidden text-xs font-bold text-red-600 mb-3">קוד שגוי — נסו שוב.</p>
+
+      <a href="#contact" data-scroll="contact-section" data-view="contact" data-prefill="docsAccess"
+         class="inline-flex items-center gap-1.5 text-sm font-semibold text-pear-700 hover:text-pear-600 cursor-pointer">
+        אין לכם קוד? בקשו גישה ←
+      </a>
+    </div>
+
+    <!-- Real guide content: blurred + inert by default until unlocked -->
+    <div id="docsRealContent" class="docs-gated max-w-3xl mx-auto px-5 sm:px-8 py-14 sm:py-16 space-y-14">
 
     <!-- ── 01 · Requirements ── -->
     <section class="reveal">
@@ -705,6 +744,7 @@
         </p>
       </div>
     </section>
+    </div>
   </div>
 </main>
 
@@ -732,6 +772,10 @@
       <div class="reveal lg:col-span-3 rounded-3xl glass p-7 sm:p-9">
         <form id="contactForm" class="space-y-5">
           <input type="hidden" name="access_key" value="3784c35e-7ff4-493c-80a9-cada9bc84313">
+          <!-- Set by PREFILLS when a visitor arrives via a tagged CTA (e.g. the docs
+               access-request link) — shows up as its own labeled line in the Web3Forms
+               notification email, so it's easy to spot at a glance. Empty for a normal inquiry. -->
+          <input type="hidden" name="request_type" value="">
           <!-- Honeypot: real visitors never see or fill this; Web3Forms auto-rejects submissions where it's checked. -->
           <input type="checkbox" name="botcheck" class="hidden" style="display:none" tabindex="-1" autocomplete="off" aria-hidden="true">
 
@@ -883,17 +927,27 @@ const PREFILLS = {
     subject: 'עזרה בהטמעת PEAR באתר',
     message: 'היי, אני מנסה להטמיע את PEAR באתר שלי ואשמח לקבל עזרה קלה מהצוות הטכני שלכם.',
   },
+  docsAccess: {
+    subject: 'בקשת גישה למדריך ההטמעה',
+    message: '🔐 בקשת גישה למדריך ההטמעה\n\nהיי, אשמח לקבל קוד גישה למדריך ההטמעה הטכני של PEAR.\n\n(לאישור: השיבו לכתובת המייל הזו עם קוד הגישה)',
+    requestType: 'בקשת גישה למדריך ההטמעה 🔐',
+  },
 };
 
 document.querySelectorAll('[data-scroll]').forEach((btn) => {
   btn.addEventListener('click', () => {
     const preset = PREFILLS[btn.dataset.prefill];
-    if (preset) {
-      const form = document.getElementById('contactForm');
-      if (form) {
-        form.querySelector('[name="subject"]').value = preset.subject;
-        form.querySelector('[name="message"]').value = preset.message;
-      }
+    const targetForm = btn.dataset.scroll === 'contact-section' && document.getElementById('contactForm');
+    if (targetForm) {
+      // request_type is a hidden field the visitor never edits, so it's always
+      // safe to sync it to whichever button was actually clicked — unlike
+      // subject/message below, there's no risk of clobbering typed-in text.
+      const reqType = targetForm.querySelector('[name="request_type"]');
+      if (reqType) reqType.value = preset?.requestType || '';
+    }
+    if (preset && targetForm) {
+      targetForm.querySelector('[name="subject"]').value = preset.subject;
+      targetForm.querySelector('[name="message"]').value = preset.message;
     }
 
     const targetView = btn.dataset.view || 'overview';
@@ -906,6 +960,46 @@ document.querySelectorAll('[data-scroll]').forEach((btn) => {
     }
   });
 });
+
+/* ── 2b · Docs access gate ─────────────────────────────────────────
+   Cosmetic only: blurs #docsRealContent and requires a passcode, but
+   the guide's full markup is already in the page source regardless —
+   this is a lead-gen speed bump, not real access control. Persisted
+   in localStorage so approved visitors aren't asked twice. */
+const DOCS_ACCESS_CODE = 'PEAR-PARTNER-2026';   // ← change to rotate the code
+const DOCS_AUTH_KEY = 'pear_docs_authorized';
+
+const docsRealContent = document.getElementById('docsRealContent');
+const docsGateCard = document.getElementById('docsGateCard');
+const docsGateForm = document.getElementById('docsGateForm');
+
+function unlockDocs() {
+  docsRealContent?.classList.remove('docs-gated');
+  docsGateCard?.classList.add('hidden');
+}
+
+if (localStorage.getItem(DOCS_AUTH_KEY) === 'true') unlockDocs();
+
+if (docsGateForm) {
+  const docsAccessInput = document.getElementById('docsAccessInput');
+  const docsGateError = document.getElementById('docsGateError');
+
+  docsGateForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (docsAccessInput.value.trim() === DOCS_ACCESS_CODE) {
+      localStorage.setItem(DOCS_AUTH_KEY, 'true');
+      unlockDocs();
+    } else {
+      docsGateError.classList.remove('hidden');
+      docsAccessInput.classList.add('border-red-400');
+      docsAccessInput.focus();
+    }
+  });
+  docsAccessInput.addEventListener('input', () => {
+    docsGateError.classList.add('hidden');
+    docsAccessInput.classList.remove('border-red-400');
+  });
+}
 
 /* ── 3 · Copy-to-clipboard for code blocks ────────────────────── */
 document.querySelectorAll('.copy-btn').forEach((btn) => {
@@ -977,6 +1071,7 @@ if (contactForm) {
           email: data.get('email'),
           subject: data.get('subject') || 'פנייה חדשה מאתר PEAR',
           message: data.get('message'),
+          ...(data.get('request_type') ? { request_type: data.get('request_type') } : {}),
         }),
       });
       const result = await res.json().catch(() => ({}));
