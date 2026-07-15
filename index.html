@@ -1061,21 +1061,29 @@ if (contactForm) {
     sendIcon.classList.add('hidden');
     label.textContent = 'שולח…';
 
+    const payload = {
+      access_key: data.get('access_key'),
+      name: data.get('name'),
+      email: data.get('email'),
+      subject: data.get('subject') || 'פנייה חדשה מאתר PEAR',
+      message: data.get('message'),
+      ...(data.get('request_type') ? { request_type: data.get('request_type') } : {}),
+    };
+    console.log('[Web3Forms] sending payload:', payload);
+
     try {
       const res = await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({
-          access_key: data.get('access_key'),
-          name: data.get('name'),
-          email: data.get('email'),
-          subject: data.get('subject') || 'פנייה חדשה מאתר PEAR',
-          message: data.get('message'),
-          ...(data.get('request_type') ? { request_type: data.get('request_type') } : {}),
-        }),
+        body: JSON.stringify(payload),
       });
       const result = await res.json().catch(() => ({}));
-      if (!res.ok || !result.success) throw new Error(result.message || 'Web3Forms rejected the submission');
+      console.log('[Web3Forms] response:', res.status, result);
+
+      if (!res.ok || result.success !== true) {
+        console.error('[Web3Forms] submission not accepted:', result.message || `HTTP ${res.status}`);
+        throw new Error(result.message || 'Web3Forms rejected the submission');
+      }
 
       spinner.classList.add('hidden');
       label.textContent = 'נשלח בהצלחה ✓';
@@ -1089,7 +1097,7 @@ if (contactForm) {
       }, 1800);
 
     } catch (err) {
-      console.warn('[PEAR] contact form submit failed:', err?.message || err);
+      console.error('[Web3Forms] fetch failed:', err);
       spinner.classList.add('hidden');
       sendIcon.classList.remove('hidden');
       label.textContent = 'שליחת הודעה';
