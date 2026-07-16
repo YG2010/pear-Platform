@@ -23,12 +23,13 @@
      ════════════════════════════════════════════════════════════════ -->
 <meta http-equiv="Content-Security-Policy" content="
   default-src 'self';
-  script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net;
+  script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://pear-web-demo.vercel.app;
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   font-src 'self' https://fonts.gstatic.com;
   img-src 'self' data:;
   media-src 'self';
   connect-src 'self' https://api.web3forms.com;
+  frame-src 'self' https://pear-web-demo.vercel.app;
   form-action 'self' https://api.web3forms.com;
   object-src 'none';
   base-uri 'self';
@@ -171,13 +172,6 @@
   .bento[data-tone="sky"]:hover     { box-shadow: 0 20px 50px -16px rgb(14 165 233 / .35); }
   .bento[data-tone="violet"]:hover  { box-shadow: 0 20px 50px -16px rgb(139 92 246 / .35); }
 
-  /* ── Simulator: animated confidence bar + thinking dots ── */
-  .conf-bar { transition: width 1s cubic-bezier(.2,.6,.2,1); }
-  .dots i { animation: dot 1s infinite; font-style: normal; }
-  .dots i:nth-child(2) { animation-delay: .18s; }
-  .dots i:nth-child(3) { animation-delay: .36s; }
-  @keyframes dot { 0%,60%,100% { opacity: .25; } 30% { opacity: 1; } }
-
   /* ── Testimonial highlight marker ── */
   mark.hl { background: linear-gradient(transparent 55%, rgb(16 185 129 / .28) 55%); color: inherit; font-weight: 800; padding: 0 .1em; }
 
@@ -272,7 +266,6 @@
   /* ── Reduced motion: kill all decorative movement ── */
   @media (prefers-reduced-motion: reduce) {
     .reveal { opacity: 1; transform: none; transition: none; }
-    .dots i { animation: none; }
     .tilt-card { transform: none !important; }
     #scrollHud, #pearStage { display: none; }
     [data-split] .w { transform: none !important; opacity: 1 !important; }
@@ -359,7 +352,7 @@
         <div class="flex flex-wrap items-center justify-center lg:justify-start gap-3 mb-4">
           <button data-scroll="playground"
              class="cta-glow inline-flex items-center gap-2 rounded-xl bg-pear-600 text-white font-bold px-7 py-3.5 shadow-btn hover:bg-pear-700 hover:-translate-y-0.5 transition-all">
-            ✨ נסו את הסימולטור — 30 שניות
+            ✨ נסו את הוויג'ט האמיתי — 30 שניות
           </button>
           <button data-scroll="demo"
              class="inline-flex items-center gap-2 rounded-xl glass text-slate-700 font-bold px-7 py-3.5 hover:-translate-y-0.5 transition-all">
@@ -418,146 +411,36 @@
 
   </section>
 
-  <!-- ══════════ PHASES + BENTO GRID · מודדים → מתאימים → ממירים ══════════ -->
-  <section id="platform" data-hud="הפלטפורמה" class="max-w-6xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
-    <div class="max-w-2xl mx-auto text-center mb-6 reveal">
-      <p class="text-xs font-mono font-semibold tracking-[0.2em] text-pear-600 uppercase mb-3">הפלטפורמה</p>
-      <h2 data-split class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight mb-5">
-        מודדים<span class="text-pear-500">.</span> מתאימים<span class="text-sky-500">.</span> ממירים<span class="text-violet-500">.</span>
-      </h2>
-      <p class="text-slate-500 text-lg">שלוש יכולות, צבע לכל אחת — וכולן עובדות באותו וויג'ט אחד שמוטמע בשורת קוד.</p>
-    </div>
-
-    <!-- category legend -->
-    <div class="flex flex-wrap justify-center gap-2 mb-12 reveal">
-      <span class="inline-flex items-center gap-1.5 text-xs font-bold text-pear-700 bg-pear-50 border border-pear-100 rounded-full px-3 py-1.5"><span class="w-1.5 h-1.5 rounded-full bg-pear-500"></span>Try-On · מודדים</span>
-      <span class="inline-flex items-center gap-1.5 text-xs font-bold text-sky-700 bg-sky-50 border border-sky-100 rounded-full px-3 py-1.5"><span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>Fit · מתאימים</span>
-      <span class="inline-flex items-center gap-1.5 text-xs font-bold text-violet-700 bg-violet-50 border border-violet-100 rounded-full px-3 py-1.5"><span class="w-1.5 h-1.5 rounded-full bg-violet-500"></span>Convert · ממירים</span>
-    </div>
-
-    <!-- Bento grid: 12-col, varying spans -->
-    <div class="grid md:grid-cols-12 gap-5">
-
-      <!-- BIG · Try-On (emerald) -->
-      <div class="bento reveal md:col-span-7 rounded-3xl glass border border-pear-100/70 p-8" data-tone="emerald">
-        <span class="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold text-pear-700 bg-white border border-pear-100 rounded-full px-2.5 py-1 mb-5">TRY-ON · LIVE</span>
-        <h3 class="text-2xl font-extrabold text-slate-900 mb-3">הלבשה פוטוריאליסטית בזמן אמת</h3>
-        <p class="text-slate-500 leading-relaxed max-w-md mb-6">
-          מנועי <span class="font-mono text-sm">Nano Banana 2</span> ו-<span class="font-mono text-sm">Decart Lucy</span> מלבישים את הבגד
-          על תמונת הלקוח לפי גזרה אמיתית ונקודות גוף — כולל חזית וגב, ישירות בדפדפן.
-        </p>
-        <!-- mini visual: front/back chips -->
-        <div class="flex gap-2">
-          <span class="rounded-lg bg-white border border-pear-100 px-3 py-1.5 text-xs font-bold text-slate-600">👕 חזית</span>
-          <span class="rounded-lg bg-white border border-pear-100 px-3 py-1.5 text-xs font-bold text-slate-600">🔄 גב</span>
-          <span class="rounded-lg bg-pear-600 text-white px-3 py-1.5 text-xs font-bold">AUTO ✨</span>
-        </div>
-      </div>
-
-      <!-- Fit / sizing (sky) -->
-      <div class="bento reveal md:col-span-5 rounded-3xl glass border border-sky-100/70 p-8" data-tone="sky">
-        <span class="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold text-sky-700 bg-white border border-sky-100 rounded-full px-2.5 py-1 mb-5">FIT · SIZING</span>
-        <h3 class="text-2xl font-extrabold text-slate-900 mb-3">חישוב מידה חכם</h3>
-        <p class="text-slate-500 leading-relaxed mb-5">
-          אלגוריתם <span class="font-semibold text-slate-700">Penalty-based</span> מנתח גובה, משקל והיקפים ומחזיר את המידה שהכי פחות "תעניש" את הלקוח.
-        </p>
-        <div class="font-mono text-xs text-sky-700 bg-white border border-sky-100 rounded-lg px-3 py-2 inline-block" dir="ltr">size = argmin Σ penalty(fit)</div>
-      </div>
-
-      <!-- Body profile memory (sky, small) -->
-      <div class="bento reveal md:col-span-4 rounded-3xl glass border border-sky-100/70 p-7" data-tone="sky">
-        <span class="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold text-sky-700 bg-sky-50 border border-sky-100 rounded-full px-2.5 py-1 mb-4">FIT · PROFILE</span>
-        <h3 class="text-lg font-extrabold text-slate-900 mb-2">פרופיל גוף נשמר</h3>
-        <p class="text-sm text-slate-500 leading-relaxed">בביקור הבא PEAR כבר מכיר את המידות — מדידה אחת, קניות בכל החנות.</p>
-      </div>
-
-      <!-- Recommendations (violet, small) -->
-      <div class="bento reveal md:col-span-4 rounded-3xl glass border border-violet-100/70 p-7" data-tone="violet">
-        <span class="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold text-violet-700 bg-violet-50 border border-violet-100 rounded-full px-2.5 py-1 mb-4">CONVERT · AI STYLIST</span>
-        <h3 class="text-lg font-extrabold text-slate-900 mb-2">אאוטפיטים והמלצות</h3>
-        <p class="text-sm text-slate-500 leading-relaxed">ה-AI מרכיב לוק שלם מהקטלוג — פריטים משלימים שמעלים סל ממוצע.</p>
-      </div>
-
-      <!-- Inventory sync (violet, small) -->
-      <div class="bento reveal md:col-span-4 rounded-3xl glass border border-violet-100/70 p-7" data-tone="violet">
-        <span class="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold text-violet-700 bg-white border border-violet-100 rounded-full px-2.5 py-1 mb-4">CONVERT · INVENTORY</span>
-        <h3 class="text-lg font-extrabold text-slate-900 mb-2">סנכרון מלאי חכם</h3>
-        <p class="text-sm text-slate-500 leading-relaxed">התראות חוסרים בזמן אמת — הלקוח לא יתאהב בפריט שאזל, והמלאי הנעול מ-Bracketing משתחרר.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ══════════ INTERACTIVE PLAYGROUND · size simulator, zero signup ══════════ -->
-  <section id="playground" data-hud="סימולטור" class="border-y border-white/50">
+  <!-- ══════════ TRY IT YOURSELF · the real PEAR widget, live on this page ══════════
+       This is not a mockup — pear-widget.js (loaded near the end of <body>) scans the
+       page for an Add-to-Cart button, then injects its own "מדוד וירטואלית" button
+       right after it, wired to the nearest [data-product-image]. The "הוסף לסל" button
+       below stands in for a store's real Add-to-Cart control, purely so the PEAR
+       button has one to anchor next to — exactly like it would on a live product page. -->
+  <section id="playground" data-hud="נסו בעצמכם" class="border-y border-white/50">
     <div class="max-w-6xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
       <div class="max-w-2xl mx-auto text-center mb-12 reveal">
-        <p class="text-xs font-mono font-semibold tracking-[0.2em] text-pear-600 uppercase mb-3">Playground · בלי הרשמה</p>
-        <h2 data-split class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">נסו את מנוע המידות. עכשיו.</h2>
-        <p class="text-slate-500 text-lg">זהו בדיוק החישוב שהלקוחות שלכם יקבלו בדף המוצר — הזינו נתונים וקבלו מידה.</p>
+        <p class="text-xs font-mono font-semibold tracking-[0.2em] text-pear-600 uppercase mb-3">Live Widget · בלי הרשמה</p>
+        <h2 data-split class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">זה הוויג'ט האמיתי. ממש כאן.</h2>
+        <p class="text-slate-500 text-lg">כך זה נראה בדף מוצר: לחצו "הוסף לסל" — ושימו לב לכפתור ה-Virtual Try-On שה-widget מזריק אוטומטית לצידו.</p>
       </div>
 
-      <div class="grid lg:grid-cols-2 gap-8 items-stretch max-w-4xl mx-auto">
-
-        <!-- ── inputs card ── -->
-        <div class="reveal rounded-3xl glass p-7">
-          <p class="text-xs font-mono tracking-widest text-slate-400 uppercase mb-5">1 · הפרופיל שלכם</p>
-
-          <!-- height -->
-          <label class="block mb-5">
-            <span class="flex justify-between text-sm font-bold text-slate-700 mb-2">גובה <span class="font-mono text-pear-600"><span id="hVal">172</span> ס"מ</span></span>
-            <input id="hIn" type="range" min="145" max="205" value="172" class="w-full accent-emerald-600">
-          </label>
-
-          <!-- weight -->
-          <label class="block mb-6">
-            <span class="flex justify-between text-sm font-bold text-slate-700 mb-2">משקל <span class="font-mono text-pear-600"><span id="wVal">70</span> ק"ג</span></span>
-            <input id="wIn" type="range" min="40" max="150" value="70" class="w-full accent-emerald-600">
-          </label>
-
-          <!-- garment -->
-          <p class="text-sm font-bold text-slate-700 mb-2">הפריט</p>
-          <div id="garmentChips" class="flex flex-wrap gap-2 mb-7">
-            <button data-g="tee"   class="g-chip rounded-lg px-3.5 py-2 text-xs font-bold border transition-all bg-pear-600 text-white border-pear-600">👕 חולצת אוברסייז</button>
-            <button data-g="jeans" class="g-chip rounded-lg px-3.5 py-2 text-xs font-bold border transition-all bg-white text-slate-600 border-slate-200 hover:border-pear-400">👖 ג'ינס סלים</button>
-            <button data-g="dress" class="g-chip rounded-lg px-3.5 py-2 text-xs font-bold border transition-all bg-white text-slate-600 border-slate-200 hover:border-pear-400">👗 שמלת מידי</button>
-          </div>
-
-          <button id="simBtn"
-             class="cta-glow w-full inline-flex items-center justify-center gap-2 rounded-xl bg-pear-600 text-white font-bold px-6 py-3.5 shadow-btn hover:bg-pear-700 transition-all">
-            ✨ חשבו לי מידה
-          </button>
+      <div class="reveal rounded-3xl glass p-7 sm:p-10 max-w-md mx-auto text-center">
+        <div class="relative rounded-2xl overflow-hidden bg-[#f1efe9] mb-5 aspect-square">
+          <img
+            data-product-image
+            src="pear-tshirt.jpg"
+            alt="חולצה בעיצוב PEAR Virtual Try-On, גזרת אוברסייז, בז'"
+            class="absolute inset-0 w-full h-full object-contain">
         </div>
+        <p class="text-sm font-bold text-slate-700 mb-1">חולצת PEAR · Virtual Try-On</p>
+        <p class="text-xs text-slate-400 mb-5">בז' · מידות S–XXL</p>
 
-        <!-- ── result card ── -->
-        <div class="reveal rounded-3xl glass p-7 flex flex-col">
-          <p class="text-xs font-mono tracking-widest text-slate-400 uppercase mb-5">2 · ההמלצה של PEAR</p>
-
-          <!-- idle / busy / done states are swapped by JS -->
-          <div id="simIdle" class="flex-1 flex flex-col items-center justify-center text-center text-slate-400">
-            <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-2xl mb-4">🍐</div>
-            <p class="text-sm">הזינו פרופיל ולחצו "חשבו לי מידה"</p>
-          </div>
-
-          <div id="simBusy" class="flex-1 hidden flex-col items-center justify-center text-center">
-            <p class="font-mono text-sm text-slate-500 dots">ה-AI מודד<i>.</i><i>.</i><i>.</i></p>
-          </div>
-
-          <div id="simDone" class="flex-1 hidden flex-col">
-            <div class="flex items-end justify-between mb-2">
-              <span class="text-6xl font-black font-mono text-pear-600" id="simSize">M</span>
-              <span class="text-xs font-mono text-slate-400" id="simBase">הערכת התאמה · הדגמה</span>
-            </div>
-            <p class="text-sm font-bold text-slate-700 mb-1.5">רמת ביטחון <span class="font-mono text-pear-600" id="simConfTxt">94%</span></p>
-            <div class="h-2.5 rounded-full bg-slate-100 overflow-hidden mb-6">
-              <div id="simConf" class="conf-bar h-full rounded-full bg-gradient-to-l from-pear-400 to-pear-600" style="width:0%"></div>
-            </div>
-            <p class="text-sm text-slate-500 leading-relaxed mb-6" id="simNote"></p>
-            <a href="#contact" data-scroll="contact-section" data-view="contact"
-               class="mt-auto w-full text-center rounded-xl bg-slate-900 text-white font-bold px-6 py-3 hover:bg-slate-700 transition-colors cursor-pointer">
-              ככה זה ירגיש ללקוח → דברו איתנו
-            </a>
-          </div>
-        </div>
+        <!-- Stand-in Add-to-Cart button — see comment above the section. -->
+        <button type="button" class="w-full rounded-xl bg-slate-900 text-white font-bold px-6 py-3.5 hover:bg-slate-700 transition-colors">
+          הוסף לסל
+        </button>
+        <p class="text-xs text-slate-400 mt-4">👆 כפתור "הוסף לסל" לדוגמה — שימו לב לכפתור שמופיע מתחתיו.</p>
       </div>
     </div>
   </section>
@@ -626,7 +509,7 @@
       <p class="text-slate-500 text-lg mb-9 reveal">שורת קוד אחת. חמש דקות. והלקוחות שלכם מודדים בבית.</p>
       <div class="flex flex-wrap justify-center gap-3 reveal">
         <button data-scroll="playground" class="cta-glow inline-flex items-center gap-2 rounded-xl bg-pear-600 text-white font-bold px-8 py-4 shadow-btn hover:bg-pear-700 hover:-translate-y-0.5 transition-all">
-          ✨ נסו את הסימולטור
+          ✨ נסו את הוויג'ט
         </button>
         <a href="#docs" data-nav="docs" class="nav-link inline-flex items-center rounded-xl glass text-slate-700 font-bold px-8 py-4 hover:-translate-y-0.5 transition-all">
           למדריך ההטמעה ←
@@ -754,6 +637,31 @@
             </label>
           </div>
 
+          <div class="grid sm:grid-cols-2 gap-6">
+            <label class="relative block">
+              <span class="block text-sm font-bold text-slate-700 mb-2">טלפון</span>
+              <input type="tel" name="phone" dir="ltr" autocomplete="tel"
+                     class="peer w-full border-0 border-b-2 border-slate-200 bg-transparent px-1 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none transition-colors"
+                     placeholder="050-1234567">
+              <span class="pointer-events-none absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-pear-400 to-pear-600 scale-x-0 peer-focus:scale-x-100 transition-transform duration-300 origin-center"></span>
+            </label>
+            <label class="relative block">
+              <span class="block text-sm font-bold text-slate-700 mb-2">שם החברה</span>
+              <input type="text" name="company" autocomplete="organization"
+                     class="peer w-full border-0 border-b-2 border-slate-200 bg-transparent px-1 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none transition-colors"
+                     placeholder="שם המותג / החברה">
+              <span class="pointer-events-none absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-pear-400 to-pear-600 scale-x-0 peer-focus:scale-x-100 transition-transform duration-300 origin-center"></span>
+            </label>
+          </div>
+
+          <label class="relative block">
+            <span class="block text-sm font-bold text-slate-700 mb-2">תפקיד</span>
+            <input type="text" name="role" autocomplete="organization-title"
+                   class="peer w-full border-0 border-b-2 border-slate-200 bg-transparent px-1 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none transition-colors"
+                   placeholder="למשל: מנהל/ת דיגיטל">
+            <span class="pointer-events-none absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-pear-400 to-pear-600 scale-x-0 peer-focus:scale-x-100 transition-transform duration-300 origin-center"></span>
+          </label>
+
           <label class="relative block">
             <span class="block text-sm font-bold text-slate-700 mb-2">נושא</span>
             <input type="text" name="subject" required
@@ -851,7 +759,7 @@
 /* ════════════════════════════════════════════════════════════════
    PEAR landing · vanilla JS
    Blocks: 1) view routing  2) smooth-scroll CTAs  3) clipboard
-           4) toast  5) contact form  6) size simulator
+           4) toast  5) contact form
            7) 3D tilt  7b) VTon loop  8) scroll HUD  9) scroll reveal
            9.5) GSAP cinematics  10) boot
    ════════════════════════════════════════════════════════════════ */
@@ -1101,6 +1009,9 @@ if (contactForm) {
       access_key: data.get('access_key'),
       name: data.get('name'),
       email: data.get('email'),
+      phone: data.get('phone'),
+      company: data.get('company'),
+      role: data.get('role'),
       subject: data.get('subject') || 'פנייה חדשה מאתר PEAR',
       message: data.get('message'),
       ...(data.get('request_type') ? { request_type: data.get('request_type') } : {}),
@@ -1142,90 +1053,6 @@ if (contactForm) {
     }
   });
 }
-
-/* ── 6 · Size simulator (the playground) ──────────────────────────
-   A miniature, honest imitation of the real engine's UX: inputs →
-   brief "AI is measuring" beat → size + confidence. The sizing here
-   is a simple BMI banding + per-garment adjustment (demo only). */
-const hIn = document.getElementById('hIn'), wIn = document.getElementById('wIn');
-const hVal = document.getElementById('hVal'), wVal = document.getElementById('wVal');
-let simGarment = 'tee';
-
-/* live value chips pulse as you drag (GSAP-optional) */
-const pulse = (el) => {
-  if (window.gsap) gsap.fromTo(el, { scale: 1.28, color: '#059669', display: 'inline-block' },
-                                   { scale: 1, clearProps: 'color', duration: .45, ease: 'power3.out' });
-};
-hIn.addEventListener('input', () => { hVal.textContent = hIn.value; pulse(hVal.parentElement); });
-wIn.addEventListener('input', () => { wVal.textContent = wIn.value; pulse(wVal.parentElement); });
-
-document.getElementById('garmentChips').addEventListener('click', (e) => {
-  const chip = e.target.closest('.g-chip');
-  if (!chip) return;
-  simGarment = chip.dataset.g;
-  document.querySelectorAll('.g-chip').forEach((c) => {
-    const active = c === chip;
-    c.classList.toggle('bg-pear-600', active);
-    c.classList.toggle('text-white', active);
-    c.classList.toggle('border-pear-600', active);
-    c.classList.toggle('bg-white', !active);
-    c.classList.toggle('text-slate-600', !active);
-    c.classList.toggle('border-slate-200', !active);
-  });
-});
-
-function computeSize(h, w, garment) {
-  const bmi = w / ((h / 100) ** 2);
-  const bands = [ [18.5, 0], [22.5, 1], [26, 2], [30, 3], [34, 4] ];  // → idx into SIZES
-  const SIZES = ['S', 'M', 'L', 'XL', 'XXL', '3XL'];
-  let idx = 5;
-  for (const [limit, i] of bands) if (bmi < limit) { idx = i; break; }
-  if (garment === 'tee'   && idx > 0) idx -= 0;              // oversize cut — true to size
-  if (garment === 'jeans' && bmi > 24) idx += 0;             // slim cut — keep strict
-  if (garment === 'dress' && idx > 0 && bmi < 20) idx -= 1;  // midi runs large
-  idx = Math.max(0, Math.min(SIZES.length - 1, idx));
-  const conf = Math.round(88 + Math.random() * 9);           // demo confidence 88–97%
-  return { size: SIZES[idx], conf };
-}
-
-const NOTES = {
-  tee:   'גזרת אוברסייז — ההמלצה שומרת על נפילה רפויה בלי להיראות ענקית.',
-  jeans: 'גזרת סלים — ההמלצה מקפידה על היקף מותן מדויק לפני אורך.',
-  dress: 'שמלת מידי — נלקח בחשבון שהדגם נוטה למידות גדולות.',
-};
-
-document.getElementById('simBtn').addEventListener('click', () => {
-  const idle = document.getElementById('simIdle'),
-        busy = document.getElementById('simBusy'),
-        done = document.getElementById('simDone');
-  idle.classList.add('hidden');  idle.classList.remove('flex');
-  done.classList.add('hidden');  done.classList.remove('flex');
-  busy.classList.remove('hidden'); busy.classList.add('flex');
-
-  setTimeout(() => {                                          // the "AI beat"
-    const { size, conf } = computeSize(+hIn.value, +wIn.value, simGarment);
-    busy.classList.add('hidden'); busy.classList.remove('flex');
-    done.classList.remove('hidden'); done.classList.add('flex');
-    const sizeEl = document.getElementById('simSize'), confTxt = document.getElementById('simConfTxt');
-    sizeEl.textContent = size;
-    document.getElementById('simNote').textContent = NOTES[simGarment];
-    document.getElementById('simBase').textContent = 'הערכת AI · הדגמה';
-    const bar = document.getElementById('simConf');
-    if (window.gsap) {
-      /* elastic size pop + glowing count-up + liquid bar */
-      gsap.fromTo(sizeEl, { scale: .2, rotate: -10, opacity: 0 },
-                          { scale: 1, rotate: 0, opacity: 1, duration: .9, ease: 'elastic.out(1, .5)' });
-      const cs = { v: 0 };
-      gsap.to(cs, { v: conf, duration: 1.1, ease: 'power2.out',
-                    onUpdate: () => confTxt.textContent = Math.round(cs.v) + '%' });
-      gsap.fromTo(bar, { width: '0%' }, { width: conf + '%', duration: 1.2, ease: 'power4.out' });
-    } else {
-      confTxt.textContent = conf + '%';
-      bar.style.width = '0%';
-      requestAnimationFrame(() => requestAnimationFrame(() => bar.style.width = conf + '%'));
-    }
-  }, 900);
-});
 
 /* ── 7 · Hero mockup 3D tilt (mouse-driven) ───────────────────── */
 const tiltCard = document.getElementById('tiltCard');
@@ -1628,7 +1455,6 @@ try {
     const state = { x: -2.9, y: 0.4, s: 0.72, spin: 0.10 };
     const WPS = [
       ['hero',       -2.9,  0.40, 0.72, 0.10],
-      ['platform',    4.3,  0.05, 0.50, 0.09],  // gutter accent, right margin
       ['playground', -4.3,  0.05, 0.52, 0.13],  // gutter accent, left margin
       ['demo',        4.3, -0.10, 0.44, 0.08],
       ['voices',     -4.3,  0.05, 0.48, 0.09],
@@ -1756,6 +1582,19 @@ try {
   console.warn('[PEAR] 3D scene skipped:', e?.message || e);
 }
 </script>
+
+<!-- ════════════════════════════════════════════════════════════════
+     PEAR WIDGET · real virtual try-on embed
+     Scans the page for an Add-to-Cart button (see the #playground
+     section's "הוסף לסל" stand-in above), injects a "מדוד וירטואלית"
+     button right after it wired to the nearest [data-product-image],
+     and opens the fitting room in a modal iframe on click. Requires
+     the CSP's script-src / frame-src to allow this origin (see <head>
+     + vercel.json).
+     ════════════════════════════════════════════════════════════════ -->
+<script
+  src="https://pear-web-demo.vercel.app/widget/pear-widget.js"
+  data-pear-key="TEST"></script>
 
 </body>
 </html>
