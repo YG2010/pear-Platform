@@ -1,0 +1,6 @@
+.vercel
+.DS_Store
+
+# Local-only backups & unused assets — kept out of the repo and the deploy
+PEAR-logo-original.png
+pear-anmtion.mp4
