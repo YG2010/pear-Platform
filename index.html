@@ -9,9 +9,9 @@
 <!-- ════════════════════════════════════════════════════════════════
      CSP · honest limitations, read before assuming this is airtight:
      1) script-src and style-src need 'unsafe-inline' because this file
-        has no build step — the whole app logic, the Tailwind config,
-        and the three.js module all live in inline <script> tags, and
-        Tailwind's CDN JIT compiler injects a <style> tag at runtime.
+        has no build step — the whole app logic and the three.js module
+        live in inline <script> tags, and pear-tailwind.css is loaded
+        alongside a small inline <style> block of hand-written CSS.
         A CSP without 'unsafe-inline' would break the entire site, not
         just stop injected scripts. Real inline-script XSS protection
         needs per-request nonces, which need server-side templating —
@@ -23,7 +23,7 @@
      ════════════════════════════════════════════════════════════════ -->
 <meta http-equiv="Content-Security-Policy" content="
   default-src 'self';
-  script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://pear-web-demo.vercel.app;
+  script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://pear-web-demo.vercel.app;
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   font-src 'self' https://fonts.gstatic.com;
   img-src 'self' data:;
@@ -43,34 +43,41 @@
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
 <!-- ════════════════════════════════════════════════════════════════
-     TAILWIND (CDN) · restrained palette:
+     TAILWIND (precompiled) · restrained palette:
        base    = slate (backgrounds, text)
        brand   = emerald  → Try-On category + primary CTAs
        fit     = sky      → Sizing/Fit category
        convert = violet   → Recommendations/Inventory category
      Three purposeful accents, used ONLY inside their category.
+
+     pear-tailwind.css is a static build (tailwindcss v3 CLI, config below
+     kept only as documentation of the theme it was built from) — NOT the
+     https://cdn.tailwindcss.com runtime JIT compiler. The CDN script ships
+     unstyled HTML on first paint and only applies classes once its JS has
+     downloaded and compiled them client-side, which on a slow mobile
+     connection shows up as a broken-looking page (no centering, no
+     padding, no rounded corners) for a beat before it snaps into place.
+     A static stylesheet has none of that: styles apply at first paint,
+     same as any other CSS file. Regenerate after editing classes with:
+       npx tailwindcss -i input.css -o pear-tailwind.css --minify
+     using a tailwind.config.js with this theme.extend and
+     content: ["index.html"].
+     ════════════════════════════════════════════════════════════════
+     theme.extend used to build pear-tailwind.css:
+       fontFamily: {
+         sans: ['Heebo', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+         mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+       },
+       colors: {
+         pear: { 50:'#ecfdf5', 100:'#d1fae5', 200:'#a7f3d0', 400:'#34d399', 500:'#10b981', 600:'#059669', 700:'#047857' },
+       },
+       boxShadow: {
+         card: '0 1px 2px rgb(15 23 42 / 0.04), 0 8px 24px -8px rgb(15 23 42 / 0.08)',
+         lift: '0 2px 4px rgb(15 23 42 / 0.05), 0 16px 40px -12px rgb(15 23 42 / 0.14)',
+         btn:  '0 8px 24px -6px rgb(16 185 129 / 0.45)',
+       },
      ════════════════════════════════════════════════════════════════ -->
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        fontFamily: {
-          sans: ['Heebo', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-          mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
-        },
-        colors: {
-          pear: { 50:'#ecfdf5', 100:'#d1fae5', 200:'#a7f3d0', 400:'#34d399', 500:'#10b981', 600:'#059669', 700:'#047857' },
-        },
-        boxShadow: {
-          card: '0 1px 2px rgb(15 23 42 / 0.04), 0 8px 24px -8px rgb(15 23 42 / 0.08)',
-          lift: '0 2px 4px rgb(15 23 42 / 0.05), 0 16px 40px -12px rgb(15 23 42 / 0.14)',
-          btn:  '0 8px 24px -6px rgb(16 185 129 / 0.45)',
-        },
-      },
-    },
-  };
-</script>
+<link rel="stylesheet" href="pear-tailwind.css">
 
 <style type="text/css">
   /* ══════════════════════════════════════════════════════════════
@@ -93,8 +100,11 @@
      PEAR-logo.png ships with a transparent background (the cream paper backdrop
      was keyed out to alpha), so the black mark drops cleanly onto any surface —
      the frosted navbar, the footer glass, light or dark — with no halo or box.
-     Size by height and let width follow (`w-auto`) to keep the aspect ratio. */
-  .brand-logo { display: block; height: auto; }
+     Sizing (height + w-auto, to keep the aspect ratio) is done entirely by the
+     h-9/sm:h-10/w-auto utility classes on the <img> — this rule must NOT also
+     set height, or the two same-specificity rules race on stylesheet order and
+     can render the logo at its full native size (1110×1586px) instead. */
+  .brand-logo { display: block; }
 
   /* ── Brand wordmark ──
      Every on-page instance of the "PEAR" name is wrapped in <span class="brand-pear">
@@ -363,7 +373,7 @@
 
         <p class="max-w-xl mx-auto lg:mx-0 text-lg sm:text-xl text-slate-500 leading-relaxed mb-8">
           <span class="brand-pear">PEAR</span> מלביש את הבגד על הלקוח בזמן אמת, ממליץ מידה מדויקת — ומוריד החזרות.
-          <span class="font-semibold text-slate-700">מודדים בבית, קונים בביטחון.</span>
+          <span class="font-semibold text-slate-700"><br> מודדים בבית, קונים בביטחון.</span>
         </p>
 
         <!-- Frictionless CTAs -->
