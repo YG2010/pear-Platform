@@ -1652,17 +1652,20 @@ try {
      the CSP's script-src / frame-src to allow this origin (see <head>
      + vercel.json).
 
-     data-pear-demo="true" is the ONE thing that makes this embed different
+     data-pear-demo-gate="true" is the ONE thing that makes this embed different
      from a real merchant's: it tells the widget + fitting room to skip name/
      phone registration and cap this browser to one measurement, since this
      is the public marketing-site demo, not a live store. No other embed
      (the main app, any real merchant) should ever set this attribute — its
-     absence is what keeps their registration flow fully intact.
+     absence is what keeps their registration flow fully intact. Must be the
+     exact string "true" — the widget checks for strict equality on purpose
+     (see widget/pear-widget.js), so a bare attribute or any other value
+     leaves the normal unlimited flow untouched.
      ════════════════════════════════════════════════════════════════ -->
 <script
   src="https://pear-web-demo.vercel.app/widget/pear-widget.js"
   data-pear-key="TEST"
-  data-pear-demo="true"></script>
+  data-pear-demo-gate="true"></script>
 
 </body>
 </html>
