@@ -217,6 +217,11 @@
         "font-family:inherit;line-height:1.2;" +
       "}" +
       ".pear-widget-btn:hover{background:#00AA44;}" +
+      ".pear-widget-btn:disabled{" +
+        "opacity:0.45;cursor:not-allowed;pointer-events:none;" +
+        "box-shadow:none;" +
+      "}" +
+      ".pear-widget-btn:disabled:hover{background:#000;}" +
       ".pear-widget-overlay{" +
         "position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.88);" +
         "display:flex;align-items:center;justify-content:center;" +
@@ -236,6 +241,36 @@
     style.className = "pear-widget-styles";
     style.textContent = css;
     d.head.appendChild(style);
+  }
+
+  /* ── single-measurement-per-session guard ─────────────────────────────────
+     Once the fitting room has been opened, the try-on counts as "used" for
+     this visit. sessionStorage (not a plain in-memory var) so the lock
+     survives a page reload within the same tab but clears on a fresh visit.
+     A page can inject more than one button (multiple product images), so
+     every tracked button is disabled together — no instance can be used to
+     route around another's lock. */
+  var MEASURE_FLAG_KEY = "pearWidgetHasMeasured";
+  var hasMeasured = false;
+  try { hasMeasured = w.sessionStorage.getItem(MEASURE_FLAG_KEY) === "1"; } catch (_) {}
+
+  var trackedButtons = [];
+
+  function setButtonDisabled(btn, disabled) {
+    btn.disabled = disabled;
+    btn.setAttribute("aria-disabled", disabled ? "true" : "false");
+    if (disabled) btn.title = "כבר בוצעה מדידה וירטואלית בביקור הזה";
+    else btn.removeAttribute("title");
+  }
+
+  /* Marks the measurement as used and disables every injected button.
+     Called at click-time (not on modal close) so the restriction can't be
+     bypassed by opening several modals back-to-back. */
+  function lockMeasurement() {
+    if (hasMeasured) return;
+    hasMeasured = true;
+    try { w.sessionStorage.setItem(MEASURE_FLAG_KEY, "1"); } catch (_) {}
+    for (var i = 0; i < trackedButtons.length; i++) setButtonDisabled(trackedButtons[i], true);
   }
 
   /* ── STEP 3 — fullscreen modal with the fitting-room iframe ─────────────── */
@@ -315,8 +350,16 @@
     btn.addEventListener("click", function (e) {
       e.preventDefault();
       e.stopPropagation();
+      /* Logic safeguard: block re-entry even if a disabled button somehow
+         still receives a click (programmatic dispatch, stale reference,
+         a second widget instance, etc.) — disabled styling alone is UI,
+         this is the actual gate. */
+      if (hasMeasured) return;
+      lockMeasurement();
       openModal({ url: entry.url, type: category, name: name, back: entry.back });
     });
+    setButtonDisabled(btn, hasMeasured);
+    trackedButtons.push(btn);
     container.appendChild(btn);
   }
 
