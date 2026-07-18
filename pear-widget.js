@@ -55,6 +55,13 @@
   var _reqBoth = script ? script.getAttribute("data-pear-require-both-views") : null;
   var REQUIRE_BOTH_VIEWS = _reqBoth !== null && _reqBoth !== "false";
 
+  /* Opt-in demo gate: only the public marketing-site embed sets this (see
+     index.html), so only that embed gets capped to one measurement per
+     session. Absent (any real merchant embed) → unlimited, as normal. Must
+     be the exact string "true" on purpose — a bare attribute or any other
+     value leaves the unlimited flow untouched. */
+  var DEMO_GATE = (script ? script.getAttribute("data-pear-demo-gate") : null) === "true";
+
   /* Garment-category keyword map (scanned against product name + page title). */
   var CATEGORY_KEYWORDS = {
     shirt: ["חולצה", "טישרט", "גופייה", "shirt", "tee", "top",
@@ -252,7 +259,9 @@
      route around another's lock. */
   var MEASURE_FLAG_KEY = "pearWidgetHasMeasured";
   var hasMeasured = false;
-  try { hasMeasured = w.sessionStorage.getItem(MEASURE_FLAG_KEY) === "1"; } catch (_) {}
+  if (DEMO_GATE) {
+    try { hasMeasured = w.sessionStorage.getItem(MEASURE_FLAG_KEY) === "1"; } catch (_) {}
+  }
 
   var trackedButtons = [];
 
@@ -265,9 +274,10 @@
 
   /* Marks the measurement as used and disables every injected button.
      Called at click-time (not on modal close) so the restriction can't be
-     bypassed by opening several modals back-to-back. */
+     bypassed by opening several modals back-to-back. No-op outside the
+     demo gate, so real merchant embeds stay unlimited. */
   function lockMeasurement() {
-    if (hasMeasured) return;
+    if (!DEMO_GATE || hasMeasured) return;
     hasMeasured = true;
     try { w.sessionStorage.setItem(MEASURE_FLAG_KEY, "1"); } catch (_) {}
     for (var i = 0; i < trackedButtons.length; i++) setButtonDisabled(trackedButtons[i], true);
