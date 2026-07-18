@@ -1651,10 +1651,18 @@ try {
      and opens the fitting room in a modal iframe on click. Requires
      the CSP's script-src / frame-src to allow this origin (see <head>
      + vercel.json).
+
+     data-pear-demo="true" is the ONE thing that makes this embed different
+     from a real merchant's: it tells the widget + fitting room to skip name/
+     phone registration and cap this browser to one measurement, since this
+     is the public marketing-site demo, not a live store. No other embed
+     (the main app, any real merchant) should ever set this attribute — its
+     absence is what keeps their registration flow fully intact.
      ════════════════════════════════════════════════════════════════ -->
 <script
   src="https://pear-web-demo.vercel.app/widget/pear-widget.js"
-  data-pear-key="TEST"></script>
+  data-pear-key="TEST"
+  data-pear-demo="true"></script>
 
 </body>
 </html>
