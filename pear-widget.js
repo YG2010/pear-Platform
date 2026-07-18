@@ -55,12 +55,30 @@
   var _reqBoth = script ? script.getAttribute("data-pear-require-both-views") : null;
   var REQUIRE_BOTH_VIEWS = _reqBoth !== null && _reqBoth !== "false";
 
-  /* Opt-in demo gate: only the public marketing-site embed sets this (see
-     index.html), so only that embed gets capped to one measurement per
-     session. Absent (any real merchant embed) → unlimited, as normal. Must
-     be the exact string "true" on purpose — a bare attribute or any other
-     value leaves the unlimited flow untouched. */
-  var DEMO_GATE = (script ? script.getAttribute("data-pear-demo-gate") : null) === "true";
+  /* Main-platform gate: the single-measurement lock applies ONLY when the
+     top-level browser tab is our own site, https://pear-platform.vercel.app.
+     Everywhere else — pear-web-demo.vercel.app, any real merchant storefront —
+     stays unlimited.
+     This script normally runs injected directly into the host page (not
+     inside an iframe), so window.location.hostname is already the parent
+     site's hostname. window.top / document.referrer are extra fallbacks in
+     case it ever ends up loaded inside a framed context, where a cross-origin
+     window.top.location read throws and has to be caught. */
+  var MAIN_PLATFORM_HOST = "pear-platform.vercel.app";
+
+  function detectTopHostname() {
+    try {
+      if (w.top && w.top.location && w.top.location.hostname) {
+        return w.top.location.hostname;
+      }
+    } catch (_) { /* cross-origin parent frame — location is unreadable */ }
+    try {
+      if (d.referrer) return new URL(d.referrer).hostname;
+    } catch (_) {}
+    return w.location.hostname;
+  }
+
+  var IS_MAIN_PLATFORM = detectTopHostname() === MAIN_PLATFORM_HOST;
 
   /* Garment-category keyword map (scanned against product name + page title). */
   var CATEGORY_KEYWORDS = {
@@ -259,7 +277,7 @@
      route around another's lock. */
   var MEASURE_FLAG_KEY = "pearWidgetHasMeasured";
   var hasMeasured = false;
-  if (DEMO_GATE) {
+  if (IS_MAIN_PLATFORM) {
     try { hasMeasured = w.sessionStorage.getItem(MEASURE_FLAG_KEY) === "1"; } catch (_) {}
   }
 
@@ -274,10 +292,11 @@
 
   /* Marks the measurement as used and disables every injected button.
      Called at click-time (not on modal close) so the restriction can't be
-     bypassed by opening several modals back-to-back. No-op outside the
-     demo gate, so real merchant embeds stay unlimited. */
+     bypassed by opening several modals back-to-back. No-op off the main
+     platform, so pear-web-demo.vercel.app and real merchant embeds stay
+     unlimited regardless of hasMeasured. */
   function lockMeasurement() {
-    if (!DEMO_GATE || hasMeasured) return;
+    if (!IS_MAIN_PLATFORM || hasMeasured) return;
     hasMeasured = true;
     try { w.sessionStorage.setItem(MEASURE_FLAG_KEY, "1"); } catch (_) {}
     for (var i = 0; i < trackedButtons.length; i++) setButtonDisabled(trackedButtons[i], true);

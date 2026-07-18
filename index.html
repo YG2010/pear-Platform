@@ -1652,15 +1652,15 @@ try {
      the CSP's script-src / frame-src to allow this origin (see <head>
      + vercel.json).
 
-     data-pear-demo-gate="true" is the ONE thing that makes this embed different
-     from a real merchant's: it tells the widget + fitting room to skip name/
-     phone registration and cap this browser to one measurement, since this
-     is the public marketing-site demo, not a live store. No other embed
-     (the main app, any real merchant) should ever set this attribute — its
-     absence is what keeps their registration flow fully intact. Must be the
-     exact string "true" — the widget checks for strict equality on purpose
-     (see widget/pear-widget.js), so a bare attribute or any other value
-     leaves the normal unlimited flow untouched.
+     data-pear-demo-gate="true" tells the fitting room to skip name/phone
+     registration for this public marketing-site demo (a live store still
+     needs it). It no longer controls the one-measurement-per-visit cap on
+     the "מדוד וירטואלית" button itself — pear-widget.js now derives that
+     independently, by checking whether the top-level browser tab's hostname
+     is pear-platform.vercel.app (see IS_MAIN_PLATFORM in widget/pear-widget.js).
+     So the cap applies only when this page is viewed on our own main site,
+     and stays off on pear-web-demo.vercel.app or any real merchant embed,
+     regardless of this attribute.
      ════════════════════════════════════════════════════════════════ -->
 <script
   src="https://pear-web-demo.vercel.app/widget/pear-widget.js"
