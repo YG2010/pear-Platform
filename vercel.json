@@ -17,6 +17,12 @@
       "headers": [
         { "key": "Content-Type", "value": "application/xml; charset=utf-8" }
       ]
+    },
+    {
+      "source": "/1b09a68696455da41acc51d1c77f4ae1.txt",
+      "headers": [
+        { "key": "Content-Type", "value": "text/plain; charset=utf-8" }
+      ]
     }
   ]
 }
