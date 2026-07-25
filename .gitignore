@@ -1,5 +1,10 @@
 .vercel
 .DS_Store
+node_modules
+
+# Pulled from Vercel by `npm run pull-env` — contains DOCS_PASSCODE. Never commit.
+.env.local
+.env*.local
 
 # Local-only backups & unused assets — kept out of the repo and the deploy
 PEAR-logo-original.png

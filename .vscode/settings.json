@@ -1,0 +1,22 @@
+{
+  // Live Server cannot run api/get-docs.js — use `npm run dev` (vercel dev) for
+  // anything touching the docs gate. These settings only make Live Server safe
+  // for pure CSS/markup work.
+  //
+  // host is pinned to 127.0.0.1 on purpose. Browsers treat localhost/127.0.0.1
+  // as a secure context, so getUserMedia and camera delegation into the
+  // cross-origin fitting-room iframe still work over plain http. If Live Server
+  // binds a LAN address instead (0.0.0.0 -> http://192.168.x.x:5500), the page
+  // stops being a secure context and camera access dies with no useful error.
+  "liveServer.settings.host": "127.0.0.1",
+  "liveServer.settings.port": 5500,
+  "liveServer.settings.CustomBrowser": "chrome",
+
+  // Serve from the folder holding index.html regardless of workspace shape, so
+  // root-absolute URLs resolve the same way they do on Vercel.
+  "liveServer.settings.root": "/",
+
+  // Stop the browser holding stale copies of pear-tailwind.css / pear-widget.js.
+  "liveServer.settings.https": { "enable": false },
+  "liveServer.settings.NoBrowser": false
+}

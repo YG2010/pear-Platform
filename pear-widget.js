@@ -56,15 +56,26 @@
   var REQUIRE_BOTH_VIEWS = _reqBoth !== null && _reqBoth !== "false";
 
   /* Main-platform gate: the single-measurement lock applies ONLY when the
-     top-level browser tab is our own site, https://pear-platform.vercel.app.
-     Everywhere else — pear-web-demo.vercel.app, any real merchant storefront —
-     stays unlimited.
+     top-level browser tab is one of our own sites. Everywhere else —
+     pear-web-demo.vercel.app, any real merchant storefront — stays unlimited.
+
+     This is a LIST, not one string, for two reasons that were both silent
+     bugs when it was a single equality check against pear-platform.vercel.app:
+       · the site now also serves from platform.pear-ai.io, where the gate
+         was quietly off in production;
+       · local dev serves from localhost / 127.0.0.1, so the lock never
+         engaged while developing and local behaviour diverged from live.
      This script normally runs injected directly into the host page (not
      inside an iframe), so window.location.hostname is already the parent
      site's hostname. window.top / document.referrer are extra fallbacks in
      case it ever ends up loaded inside a framed context, where a cross-origin
      window.top.location read throws and has to be caught. */
-  var MAIN_PLATFORM_HOST = "pear-platform.vercel.app";
+  var MAIN_PLATFORM_HOSTS = [
+    "pear-platform.vercel.app",
+    "platform.pear-ai.io",
+    "localhost",
+    "127.0.0.1"
+  ];
 
   function detectTopHostname() {
     try {
@@ -78,7 +89,7 @@
     return w.location.hostname;
   }
 
-  var IS_MAIN_PLATFORM = detectTopHostname() === MAIN_PLATFORM_HOST;
+  var IS_MAIN_PLATFORM = MAIN_PLATFORM_HOSTS.indexOf(detectTopHostname()) !== -1;
 
   /* Garment-category keyword map (scanned against product name + page title). */
   var CATEGORY_KEYWORDS = {

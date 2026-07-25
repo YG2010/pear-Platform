@@ -5,21 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PEAR — Virtual Try-On · תא המדידה של העתיד</title>
 <meta name="description" content="PEAR Virtual Try-On — מדידה וירטואלית מבוססת AI לחנויות אופנה. מודדים בבית, קונים בביטחון.">
-<link rel="canonical" href="https://pear-platform.vercel.app/" />
+<link rel="canonical" href="https://platform.pear-ai.io/" />
 
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website" />
-<meta property="og:url" content="https://pear-platform.vercel.app/" />
+<meta property="og:url" content="https://platform.pear-ai.io/" />
 <meta property="og:title" content="PEAR — Virtual Try-On · תא המדידה של העתיד" />
 <meta property="og:description" content="PEAR Virtual Try-On — מדידה וירטואלית מבוססת AI לחנויות אופנה. מודדים בבית, קונים בביטחון." />
-<meta property="og:image" content="https://pear-platform.vercel.app/PEAR-logo.png" />
+<meta property="og:image" content="https://platform.pear-ai.io/PEAR-logo.png" />
 <meta property="og:locale" content="he_IL" />
 
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="PEAR — Virtual Try-On · תא המדידה של העתיד" />
 <meta name="twitter:description" content="PEAR Virtual Try-On — מדידה וירטואלית מבוססת AI לחנויות אופנה. מודדים בבית, קונים בביטחון." />
-<meta name="twitter:image" content="https://pear-platform.vercel.app/PEAR-logo.png" />
+<meta name="twitter:image" content="https://platform.pear-ai.io/PEAR-logo.png" />
 
 <meta name="keywords" content="pearvton, pear platform, pear virtual try-on, pear virtual try on, virtual try on, תא מדידה וירטואלי, PEAR">
 
@@ -29,7 +29,7 @@
   "@type": "WebApplication",
   "name": "PEAR Platform",
   "alternateName": ["pearvton", "PEAR Virtual Try-On", "pear Virtual Try On"],
-  "url": "https://pear-platform.vercel.app/",
+  "url": "https://platform.pear-ai.io/",
   "applicationCategory": "ShoppingApplication",
   "operatingSystem": "All",
   "description": "PEAR (pearvton) - Virtual Try-On technology for e-commerce and real-time sizing."
@@ -50,6 +50,15 @@
         ignored by every browser) — it only works as a real HTTP
         response header. See vercel.json for that; it's the same CSP
         plus frame-ancestors, delivered the way that actually works.
+     ════════════════════════════════════════════════════════════════
+     The ws:// entries in connect-src exist only for local dev servers
+     that inject a live-reload WebSocket client (VS Code Live Server,
+     and similar). They do NOT loosen production: when two policies are
+     present the browser enforces BOTH, and a resource has to pass every
+     one of them. Production also gets the vercel.json header policy,
+     which has no ws:// — so ws:// stays blocked there no matter what
+     this meta tag says. Locally the header is absent, so only this
+     policy applies and the reload socket connects.
      ════════════════════════════════════════════════════════════════ -->
 <meta http-equiv="Content-Security-Policy" content="
   default-src 'self';
@@ -58,7 +67,7 @@
   font-src 'self' https://fonts.gstatic.com;
   img-src 'self' data:;
   media-src 'self';
-  connect-src 'self' https://api.web3forms.com;
+  connect-src 'self' https://api.web3forms.com ws://127.0.0.1:* ws://localhost:*;
   frame-src 'self' https://pear-web-demo.vercel.app https://pear-five.vercel.app;
   form-action 'self' https://api.web3forms.com;
   object-src 'none';
@@ -915,6 +924,13 @@ const docsViewport  = document.getElementById('docs-secure-viewport');
 const docsGateStage = document.getElementById('docsGateStage');
 const docsGateForm  = document.getElementById('docsGateForm');
 
+/* api/get-docs.js is a Node serverless function. A plain static file server
+   (VS Code Live Server, `python -m http.server`, …) has no runtime to execute
+   it, so the POST below 404s and every passcode — including the correct one —
+   surfaces as "wrong code". Tell the truth in that case instead. Use
+   `vercel dev`, which runs the function and applies vercel.json headers. */
+const IS_LOCAL_HOST = ['localhost', '127.0.0.1', '[::1]', ''].includes(location.hostname);
+
 async function requestDocs(passcode) {
   const res = await fetch('/api/get-docs', {
     method: 'POST',
@@ -924,6 +940,14 @@ async function requestDocs(passcode) {
   if (!res.ok) {
     const err = new Error('docs_denied');
     err.status = res.status;
+    /* 404 = route absent (no runtime). 405 = a static server answered the
+       path but refuses POST. Either way it is the server, not the passcode —
+       and only worth claiming on a local host, since in production a 404 here
+       would be a genuine deploy fault. 500 means the function DID run but
+       DOCS_PASSCODE is unset (api/get-docs.js:334) — a config gap, also not
+       a wrong code. */
+    err.noRuntime = IS_LOCAL_HOST && (res.status === 404 || res.status === 405);
+    err.noPasscodeConfigured = res.status === 500;
     throw err;
   }
   const { html } = await res.json();
@@ -971,9 +995,11 @@ if (docsGateForm) {
       sessionStorage.setItem(DOCS_SESSION_KEY, code);
       mountDocs(html);
     } catch (err) {
-      docsGateError.textContent = err.status === 429
-        ? 'יותר מדי ניסיונות — נסו שוב בעוד 15 דקות.'
-        : 'קוד שגוי — נסו שוב.';
+      docsGateError.textContent =
+        err.noRuntime            ? 'סביבת פיתוח: אין ריצת שרת. הריצו vercel dev במקום Live Server.' :
+        err.noPasscodeConfigured ? 'תקלת הגדרה בשרת: DOCS_PASSCODE אינו מוגדר.' :
+        err.status === 429       ? 'יותר מדי ניסיונות — נסו שוב בעוד 15 דקות.' :
+                                   'קוד שגוי — נסו שוב.';
       docsGateError.classList.remove('hidden');
       docsAccessInput.classList.add('border-red-400');
       docsAccessInput.focus();

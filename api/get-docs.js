@@ -109,7 +109,7 @@ function sweep() {
 function allowedOrigins() {
   const fromEnv = (process.env.ALLOWED_ORIGIN || '')
     .split(',').map((s) => s.trim()).filter(Boolean);
-  const list = fromEnv.length ? fromEnv : ['https://pear-pi.vercel.app'];
+  const list = fromEnv.length ? fromEnv : ['https://platform.pear-ai.io'];
   // Trust this deployment's own URL too, so preview/branch deploys aren't
   // locked out without needing a matching env var set on every branch.
   if (process.env.VERCEL_URL) list.push('https://' + process.env.VERCEL_URL);

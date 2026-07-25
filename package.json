@@ -1,0 +1,14 @@
+{
+  "name": "pear-platform",
+  "private": true,
+  "version": "1.0.0",
+  "description": "PEAR platform landing page + server-gated implementation guide.",
+  "scripts": {
+    "dev": "vercel dev --listen 3000",
+    "pull-env": "vercel env pull .env.local",
+    "build:css": "tailwindcss -i input.css -o pear-tailwind.css --minify"
+  },
+  "devDependencies": {
+    "vercel": "^39.0.0"
+  }
+}
