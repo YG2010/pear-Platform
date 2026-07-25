@@ -1682,20 +1682,26 @@ try {
      the CSP's script-src / frame-src to allow this origin (see <head>
      + vercel.json).
 
-     data-pear-demo-gate="true" tells the fitting room to skip name/phone
-     registration for this public marketing-site demo (a live store still
-     needs it). It no longer controls the one-measurement-per-visit cap on
-     the "מדוד וירטואלית" button itself — pear-widget.js now derives that
-     independently, by checking whether the top-level browser tab's hostname
-     is pear-platform.vercel.app (see IS_MAIN_PLATFORM in widget/pear-widget.js).
-     So the cap applies only when this page is viewed on our own main site,
-     and stays off on pear-web-demo.vercel.app or any real merchant embed,
-     regardless of this attribute.
+     Two independent, coexisting opt-in flags on the live pear-five.vercel.app
+     widget both tell the fitting room to skip its normal registration step
+     for this public marketing-site demo (a live store embed omits both and
+     keeps the full, unlimited, server-backed flow):
+       data-pear-demo-gate="true" → sends &demo_gate=1, a strict one-time
+         measurement gate (one fit per browser, then a friendly "already
+         used" screen instead of the camera).
+       data-pear-demo="true"      → sends &pear_demo=1, an older, separate
+         one-time-lock mechanism that ALSO signals "skip registration".
+     Both were previously present in this widget version's source but only
+     demo-gate was wired into this embed, which left the name/email
+     "Personal Fit Engine" step showing instead of being skipped. Both flags
+     are set below so either code path that checks for a skip signal is
+     satisfied.
      ════════════════════════════════════════════════════════════════ -->
 <script
   src="https://pear-five.vercel.app/widget/pear-widget.js"
   data-pear-key="TEST"
-  data-pear-demo-gate="true"></script>
+  data-pear-demo-gate="true"
+  data-pear-demo="true"></script>
 
 </body>
 </html>
