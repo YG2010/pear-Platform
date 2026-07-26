@@ -335,6 +335,102 @@
     #scrollHud, #pearStage { display: none; }
     [data-split] .w { transform: none !important; opacity: 1 !important; }
   }
+
+  /* ══════════════════════════════════════════════════════════════
+     IMPLEMENTATION-GUIDE UTILITIES — read before editing the guide.
+
+     pear-tailwind.css is a static build with content: ["index.html"]
+     (see the note above the stylesheet link). The guide's markup is
+     NOT in index.html: it lives server-side in api/get-docs.js and is
+     injected into #docs-secure-viewport once the passcode checks out.
+     Tailwind therefore never sees those class names and emits no rules
+     for them — every class the guide uses that index.html does not is
+     simply absent from the build.
+
+     Left unhandled, that strips the code cards of their dark chrome,
+     syntax colours, padding and vertical rhythm: they render as
+     unstyled dark-on-white text with the Copy button jammed against
+     the filename. The rules below restore the intended design.
+
+     Adding a class to api/get-docs.js? Either declare it here too, or
+     rebuild the stylesheet with api/get-docs.js in the content glob:
+       npx tailwindcss -i input.css -o pear-tailwind.css --minify
+     Values below are stock Tailwind v3 defaults and the theme.extend
+     documented above the stylesheet link.
+     ══════════════════════════════════════════════════════════════ */
+
+  /* spacing + layout */
+  .p-5     { padding: 1.25rem; }
+  .pb-5    { padding-bottom: 1.25rem; }
+  .pb-8    { padding-bottom: 2rem; }
+  .px-1\.5 { padding-left: .375rem; padding-right: .375rem; }
+  .px-2    { padding-left: .5rem; padding-right: .5rem; }
+  .py-0\.5 { padding-top: .125rem; padding-bottom: .125rem; }
+  .py-6    { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+  .py-14   { padding-top: 3.5rem; padding-bottom: 3.5rem; }
+  .mx-7    { margin-left: 1.75rem; margin-right: 1.75rem; }
+  .ml-auto { margin-left: auto; }
+  .inline-block      { display: inline-block; }
+  .whitespace-nowrap { white-space: nowrap; }
+  .space-y-14 > :not([hidden]) ~ :not([hidden]) {
+    --tw-space-y-reverse: 0;
+    margin-top: calc(3.5rem * (1 - var(--tw-space-y-reverse)));
+    margin-bottom: calc(3.5rem * var(--tw-space-y-reverse));
+  }
+
+  /* radii */
+  .rounded    { border-radius: .25rem; }
+  .rounded-md { border-radius: .375rem; }
+
+  /* code-card chrome — GitHub-dark surface, hairline rim, window dots */
+  .bg-\[\#0d1117\] { background-color: #0d1117; }
+  .bg-\[\#161b22\] { background-color: #161b22; }
+  .bg-\[\#ff5f56\] { background-color: #ff5f56; }
+  .bg-\[\#ffbd2e\] { background-color: #ffbd2e; }
+  .bg-\[\#27c93f\] { background-color: #27c93f; }
+  .border-white\/5 { border-color: rgb(255 255 255 / .05); }
+
+  /* light surfaces used by the guide's callouts */
+  .bg-slate-100    { background-color: #f1f5f9; }
+  .bg-pear-50      { background-color: #ecfdf5; }
+  .border-pear-100 { border-color: #d1fae5; }
+
+  /* syntax highlighting inside the code cards */
+  .text-sky-300     { color: #7dd3fc; }
+  .text-emerald-300 { color: #6ee7b7; }
+  .text-amber-200   { color: #fde68a; }
+
+  /* type */
+  .tracking-wider     { letter-spacing: .05em; }
+  .underline-offset-2 { text-underline-offset: 2px; }
+
+  /* step-marker connector: pear-green fading to nothing */
+  .from-pear-400\/50 {
+    --tw-gradient-from: rgb(52 211 153 / 0.5) var(--tw-gradient-from-position);
+    --tw-gradient-to: rgb(52 211 153 / 0) var(--tw-gradient-to-position);
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+  }
+  .to-transparent { --tw-gradient-to: transparent var(--tw-gradient-to-position); }
+
+  /* step-number glow ring + code-card drop shadow */
+  .shadow-\[0_0_0_4px_rgb\(16_185_129\/0\.12\)\,0_8px_20px_-6px_rgb\(16_185_129\/0\.55\)\] {
+    box-shadow: 0 0 0 4px rgb(16 185 129 / .12), 0 8px 20px -6px rgb(16 185 129 / .55);
+  }
+  .shadow-\[0_20px_50px_-24px_rgb\(0_0_0\/0\.6\)\] {
+    box-shadow: 0 20px 50px -24px rgb(0 0 0 / .6);
+  }
+
+  /* CTA arrow nudge on hover */
+  .group:hover .group-hover\:-translate-x-1 {
+    --tw-translate-x: -0.25rem;
+    transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+  }
+
+  @media (min-width: 640px) {
+    .sm\:items-center { align-items: center; }
+    .sm\:py-16        { padding-top: 4rem; padding-bottom: 4rem; }
+    .sm\:text-2xl     { font-size: 1.5rem; line-height: 2rem; }
+  }
 </style>
 </head>
 
