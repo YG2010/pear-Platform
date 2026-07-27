@@ -3,36 +3,37 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PEAR — Virtual Try-On · תא המדידה של העתיד</title>
-<meta name="description" content="PEAR Virtual Try-On — מדידה וירטואלית מבוססת AI לחנויות אופנה. מודדים בבית, קונים בביטחון.">
+<title>PEAR Platform | PearVTON – Virtual Try-On &amp; Measurement</title>
+<meta name="description" content="PEAR Platform (PearVTON): AI-powered Virtual Try On and Virtual Measurement for fashion e-commerce. Reduce returns, boost conversion.">
 <link rel="canonical" href="https://platform.pear-ai.io/" />
 
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://platform.pear-ai.io/" />
-<meta property="og:title" content="PEAR — Virtual Try-On · תא המדידה של העתיד" />
-<meta property="og:description" content="PEAR Virtual Try-On — מדידה וירטואלית מבוססת AI לחנויות אופנה. מודדים בבית, קונים בביטחון." />
+<meta property="og:site_name" content="PEAR" />
+<meta property="og:title" content="PEAR Platform | PearVTON – AI Virtual Try-On &amp; Measurement" />
+<meta property="og:description" content="AI-powered Virtual Try On and Virtual Measurement platform for fashion e-commerce. Fewer returns, more confident purchases." />
 <meta property="og:image" content="https://platform.pear-ai.io/PEAR-logo.png" />
 <meta property="og:locale" content="he_IL" />
 
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="PEAR — Virtual Try-On · תא המדידה של העתיד" />
-<meta name="twitter:description" content="PEAR Virtual Try-On — מדידה וירטואלית מבוססת AI לחנויות אופנה. מודדים בבית, קונים בביטחון." />
+<meta name="twitter:title" content="PEAR Platform | PearVTON – Virtual Try-On &amp; Measurement" />
+<meta name="twitter:description" content="AI Virtual Try On &amp; Virtual Measurement for fashion e-commerce, powered by PearVTON." />
 <meta name="twitter:image" content="https://platform.pear-ai.io/PEAR-logo.png" />
 
-<meta name="keywords" content="pearvton, pear platform, pear virtual try-on, pear virtual try on, virtual try on, תא מדידה וירטואלי, PEAR">
+<meta name="keywords" content="pear, pear platform, pearvton, pear virtual measurement, pear virtual try on, virtual try-on, virtual measurement, AI virtual try-on, תא מדידה וירטואלי">
 
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "WebApplication",
   "name": "PEAR Platform",
-  "alternateName": ["pearvton", "PEAR Virtual Try-On", "pear Virtual Try On"],
+  "alternateName": ["pear", "pearvton", "PearVTON", "PEAR Virtual Try-On", "pear Virtual Try On", "pear Virtual Measurement"],
   "url": "https://platform.pear-ai.io/",
   "applicationCategory": "ShoppingApplication",
   "operatingSystem": "All",
-  "description": "PEAR (pearvton) - Virtual Try-On technology for e-commerce and real-time sizing."
+  "description": "PEAR Platform (PearVTON) - AI Virtual Try-On and Virtual Measurement technology for fashion e-commerce and real-time sizing."
 }
 </script>
 
@@ -62,13 +63,13 @@
      ════════════════════════════════════════════════════════════════ -->
 <meta http-equiv="Content-Security-Policy" content="
   default-src 'self';
-  script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://pear-web-demo.vercel.app https://pear-five.vercel.app;
+  script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://app.pear-ai.io https://pear-web-demo.vercel.app https://pear-five.vercel.app;
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   font-src 'self' https://fonts.gstatic.com;
   img-src 'self' data:;
   media-src 'self';
-  connect-src 'self' https://api.web3forms.com ws://127.0.0.1:* ws://localhost:*;
-  frame-src 'self' https://pear-web-demo.vercel.app https://pear-five.vercel.app;
+  connect-src 'self' https://app.pear-ai.io https://api.web3forms.com ws://127.0.0.1:* ws://localhost:*;
+  frame-src 'self' https://app.pear-ai.io https://pear-web-demo.vercel.app https://pear-five.vercel.app;
   form-action 'self' https://api.web3forms.com;
   object-src 'none';
   base-uri 'self';
@@ -314,6 +315,28 @@
   @keyframes spinReverse { to { transform: rotate(-360deg); } }
   .spin-reverse { animation: spinReverse 1.1s linear infinite; }
 
+  /* ── Direct one-time measurement modal (#pearDirectMeasureBtn) ──
+     Deliberately its own markup/classes, not pear-widget.js's injected
+     .pear-widget-* overlay — that CSS is a runtime implementation detail
+     of a script fetched from a separate origin, not something this page
+     should reach into. */
+  .pear-direct-overlay {
+    position: fixed; inset: 0; z-index: 999999;
+    background: rgba(15, 23, 42, 0.88);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pear-direct-frame {
+    width: min(480px, 100vw); height: min(820px, 100vh);
+    border: none; border-radius: 16px; background: #000;
+  }
+  .pear-direct-close {
+    position: absolute; top: 16px; right: 16px; width: 40px; height: 40px;
+    border-radius: 50%; background: rgba(255,255,255,0.15); color: #fff;
+    font-size: 20px; border: none; cursor: pointer; line-height: 40px;
+    padding: 0; text-align: center;
+  }
+  .pear-direct-close:hover { background: rgba(255,255,255,0.25); }
+
   /* ── Toast: spring/overshoot entrance (top-center — bottom-right is
        already occupied by the scroll HUD) ── */
   @keyframes toastSpring {
@@ -502,6 +525,7 @@
         </p>
 
         <h1 data-split class="text-4xl sm:text-5xl xl:text-6xl font-black text-slate-900 tracking-tight leading-[1.07] mb-6">
+          <span dir="ltr" class="block text-lg sm:text-xl font-bold text-pear-600 tracking-tight mb-2">PEAR Platform · AI Virtual Try-On &amp; Measurement</span>
           הלקוחות שלכם מודדים
           <span class="block mt-2 text-pear-600">בלי להגיע לחנות.</span>
         </h1>
@@ -574,18 +598,21 @@
 
   </section>
 
-  <!-- ══════════ TRY IT YOURSELF · the real PEAR widget, live on this page ══════════
-       This is not a mockup — pear-widget.js (loaded near the end of <body>) scans the
-       page for an Add-to-Cart button, then injects its own "מדוד וירטואלית" button
-       right after it, wired to the nearest [data-product-image]. The "הוסף לסל" button
-       below stands in for a store's real Add-to-Cart control, purely so the PEAR
-       button has one to anchor next to — exactly like it would on a live product page. -->
+  <!-- ══════════ TRY IT YOURSELF · the real PEAR fitting room, live on this page ══════════
+       This is not a mockup — #pearDirectMeasureBtn below opens the real fitting room
+       in a modal iframe, wired to the nearest [data-product-image]. The "הוסף לסל"
+       button stands in for a store's real Add-to-Cart control so the card reads like
+       a live product page.
+
+       pear-widget.js's own auto-injected black "מדוד וירטואלית" button is deliberately
+       NOT shown here: the always-on embed was removed, and the widget's injection is
+       suppressed when the button loads it on demand. See the end of <body>. -->
   <section id="playground" data-hud="נסו בעצמכם" class="border-b border-white/50">
     <div class="max-w-6xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
       <div class="max-w-2xl mx-auto text-center mb-12 reveal">
         <p class="text-xs font-mono font-semibold tracking-[0.2em] text-pear-600 uppercase mb-3">Live Widget · בלי הרשמה</p>
         <h2 data-split class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">זה הוויג'ט האמיתי. ממש כאן.</h2>
-        <p class="text-slate-500 text-lg">כך זה נראה בדף מוצר: לחצו "הוסף לסל"  ושימו לב לכפתור ה-Virtual Try-On שה-widget מזריק אוטומטית לצידו.</p>
+        <p class="text-slate-500 text-lg">כך זה נראה בדף מוצר: לחצו על "מדידה חד-פעמית מהירה" וקבלו מדידה וירטואלית אמיתית, בלי הרשמה.</p>
       </div>
 
       <div class="reveal rounded-3xl glass p-7 sm:p-10 max-w-md mx-auto text-center">
@@ -603,7 +630,17 @@
         <button type="button" class="w-full rounded-xl bg-slate-900 text-white font-bold px-6 py-3.5 hover:bg-slate-700 transition-colors">
           הוסף לסל
         </button>
-        <p class="text-xs text-slate-400 mt-4">👆 כפתור "הוסף לסל" לדוגמה  שימו לב לכפתור שמופיע מתחתיו.</p>
+        <p class="text-xs text-slate-400 mt-4">👆 כפתור "הוסף לסל" לדוגמה, בדיוק כמו בחנות אמיתית.</p>
+
+        <!-- Dedicated one-time direct-measurement CTA — skips the fitting-room's
+             registration step and allows exactly one open per browser session.
+             Click handler lives near the widget embed at the end of <body>. -->
+        <button id="pearDirectMeasureBtn" type="button"
+           aria-label="מדידה וירטואלית חד-פעמית, ללא שלב הרשמה, פעם אחת בביקור"
+           class="w-full mt-3 inline-flex items-center justify-center gap-2 rounded-xl bg-transparent border-2 border-slate-300 text-slate-700 font-bold px-6 py-3.5 hover:border-pear-500 hover:text-pear-600 hover:-translate-y-0.5 transition-all">
+          ⚡ מדידה חד-פעמית מהירה
+        </button>
+        <p class="text-xs text-slate-400 mt-2">דילוג על שלב ההרשמה  ישר למדידה, שימוש אחד בכל ביקור.</p>
       </div>
     </div>
   </section>
@@ -1796,41 +1833,163 @@ try {
 </script>
 
 <!-- ════════════════════════════════════════════════════════════════
-     PEAR WIDGET · real virtual try-on embed
-     Scans the page for an Add-to-Cart button (see the #playground
-     section's "הוסף לסל" stand-in above), injects a "מדוד וירטואלית"
-     button right after it wired to the nearest [data-product-image],
-     and opens the fitting room in a modal iframe on click.
+     PEAR WIDGET · loaded on demand, never on page load
+     The always-on <script> embed that used to sit here has been removed.
+     pear-widget.js boots itself the instant it lands and injects its own
+     black "מדוד וירטואלית" button (.pear-widget-btn, background #000)
+     next to every Add-to-Cart it finds — that is exactly the button this
+     page no longer wants.
 
-     ORIGIN: the widget resolves PEAR_BASE from its own script.src, so this
-     URL determines where BOTH the /api/classify-images call and the
-     /fitting-room/ modal iframe are loaded from. Three CSP directives in
-     vercel.json must therefore allow this exact origin, or the embed fails
-     silently with nothing rendered:
-       script-src  → the <script> below
+     The script is still fetched, but only when a visitor clicks
+     #pearDirectMeasureBtn, which injects it into <head> on first use (see
+     the block below). That handler stamps every cart button with the
+     widget's own data-pear-injected marker BEFORE the script runs, so its
+     boot() finds nothing left to decorate and adds no button at all.
+
+     ORIGIN / CSP: the widget resolves PEAR_BASE from its own script.src,
+     so app.pear-ai.io must stay allowed by three directives in
+     vercel.json, or the fetch and the fitting-room iframe both fail:
+       script-src  → the injected <script>
        connect-src → widget's POST /api/classify-images
-       frame-src   → the fitting-room modal iframe
-     It previously pointed at pear-five.vercel.app, which now 404s on
-     /widget/pear-widget.js — the script never loaded, so no button was ever
-     injected. app.pear-ai.io serves the current build.
-
-     NO DEMO FLAGS: this embed deliberately sets neither of the widget's two
-     opt-in demo restrictions, so the fitting room runs its full, unlimited,
-     server-backed flow — it opens on the normal first step (registration)
-     and can be reused as many times as a visitor likes. Re-adding either
-     attribute below re-enables a one-fit-per-browser lockout:
-       data-pear-demo-gate="true" → &demo_gate=1, strict one-time gate that
-         skips registration, then shows an "already used" screen instead of
-         the camera on every later attempt.
-       data-pear-demo="true"      → &pear_demo=1, an older separate one-time
-         lock that ALSO signals "skip registration".
-     Both are off by default in the widget, and both locks read as unset the
-     moment the attribute is gone, so removing them also frees any browser
-     that was already locked — no localStorage cleanup needed.
+       frame-src   → the fitting-room iframe
      ════════════════════════════════════════════════════════════════ -->
-<script
-  src="https://app.pear-ai.io/widget/pear-widget.js"
-  data-pear-key="TEST"></script>
+
+<!-- ════════════════════════════════════════════════════════════════
+     DIRECT ONE-TIME MEASUREMENT · #pearDirectMeasureBtn
+     The page's ONLY try-on entry point now that the always-on embed is
+     gone. Opens the same fitting room the widget would, but skips
+     registration and allows one open per browser session.
+
+     Why it drives the fitting room itself instead of pear-widget.js's
+     modal: the widget reads its demo flags from the <script> tag's
+     data-pear-* attributes and guards itself with
+     window.__pearWidgetLoaded, so only the first tag on a page ever takes
+     effect. Passing the flags straight through the iframe URL is
+     unambiguous and can't be no-opped by load order:
+       demo_gate=1 → fitting room skips its name/phone registration step
+       pear_demo=1 → caps the fitting room itself to one measurement
+     sessionStorage adds the per-visit lock on this side, so the button
+     shows the used state immediately and survives a reload.
+
+     The script injection below is still performed on click (per spec),
+     but its UI is suppressed — see suppressWidgetButtons().
+     ════════════════════════════════════════════════════════════════ -->
+<script>
+(() => {
+  const PEAR_BASE = 'https://app.pear-ai.io';
+  const PEAR_WIDGET_SRC = PEAR_BASE + '/widget/pear-widget.js';
+  const PEAR_KEY = 'TEST';
+  const USED_KEY = 'pearDirectMeasureUsed';
+
+  const btn = document.getElementById('pearDirectMeasureBtn');
+  if (!btn) return;
+  const idleLabel = btn.textContent;
+
+  function lock() {
+    btn.disabled = true;
+    btn.style.opacity = '0.55';
+    btn.style.cursor = 'not-allowed';
+    btn.style.pointerEvents = 'none';
+    btn.setAttribute('aria-disabled', 'true');
+    btn.title = 'כבר בוצעה מדידה חד-פעמית בביקור הזה';
+    btn.textContent = '✓ המדידה נוצלה לביקור הזה';
+  }
+
+  try {
+    if (sessionStorage.getItem(USED_KEY) === '1') lock();
+  } catch (_) {}
+
+  /* pear-widget.js boots the moment it lands and injects its own black
+     .pear-widget-btn ("מדוד וירטואלית") next to every Add-to-Cart it can find.
+     This page deliberately shows only the button above, so claim those cart
+     buttons with the widget's OWN idempotency marker before the script runs:
+     injectAfterButton() early-returns on data-pear-injected="true", and since
+     findAllAddToCartButtons() still matches them, it never falls back to
+     injecting under the <h1> either. Stamps persist, so the widget's internal
+     MutationObserver re-runs converge to the same no-op. The final sweep is a
+     belt-and-braces catch in case a future widget build changes that contract. */
+  const ATC_SELECTORS = '.product-form__submit,.btn-addtocart,' +
+    '.single_add_to_cart_button,#AddToCart,.add-to-cart,' +
+    '[data-button-action="add-to-cart"]';
+
+  function suppressWidgetButtons() {
+    const targets = new Set();
+    document.querySelectorAll('button').forEach((b) => targets.add(b));
+    document.querySelectorAll(ATC_SELECTORS).forEach((b) => targets.add(b));
+    document.querySelectorAll('form[action*="/cart"] button').forEach((b) => targets.add(b));
+    targets.forEach((b) => {
+      if (b !== btn) b.setAttribute('data-pear-injected', 'true');
+    });
+    document.querySelectorAll('.pear-widget-btn').forEach((el) => el.remove());
+  }
+
+  function ensureWidgetScript(done) {
+    suppressWidgetButtons();
+    if (window.__pearWidgetLoaded || document.querySelector(`script[src="${PEAR_WIDGET_SRC}"]`)) {
+      done();
+      return;
+    }
+    const s = document.createElement('script');
+    s.src = PEAR_WIDGET_SRC;
+    s.setAttribute('data-pear-key', PEAR_KEY);
+    s.onload = () => { suppressWidgetButtons(); done(); };
+    s.onerror = () => {
+      btn.disabled = false;
+      btn.textContent = idleLabel;
+      alert('לא הצלחנו לטעון את הוויג׳ט. נסו שוב בעוד רגע.');
+    };
+    document.head.appendChild(s);
+  }
+
+  function openDirectFittingRoom() {
+    const img = document.querySelector('[data-product-image]');
+    const params = new URLSearchParams({
+      garment_url: img ? (img.currentSrc || img.src) : '',
+      garment_type: 'shirt',
+      garment_name: 'PEAR T-Shirt',
+      pear_key: PEAR_KEY,
+      demo_gate: '1',  // skip the registration step …
+      pear_demo: '1',  // … and cap this fitting-room session to one use
+    });
+
+    const overlay = document.createElement('div');
+    overlay.className = 'pear-direct-overlay';
+
+    const iframe = document.createElement('iframe');
+    iframe.className = 'pear-direct-frame';
+    iframe.src = `${PEAR_BASE}/fitting-room/?${params.toString()}`;
+    iframe.title = 'PEAR  מדידה וירטואלית חד-פעמית';
+    iframe.setAttribute('allow', 'camera; microphone; fullscreen');
+
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'pear-direct-close';
+    close.setAttribute('aria-label', 'סגירה');
+    close.textContent = '×';
+
+    const closeModal = () => overlay.remove();
+    close.addEventListener('click', closeModal);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+    document.addEventListener('keydown', function onEsc(e) {
+      if (e.key === 'Escape') { closeModal(); document.removeEventListener('keydown', onEsc); }
+    });
+
+    overlay.append(iframe, close);
+    document.body.appendChild(overlay);
+  }
+
+  btn.addEventListener('click', () => {
+    if (btn.disabled) return;
+    btn.disabled = true;
+    btn.textContent = 'טוען…';
+    ensureWidgetScript(() => {
+      try { sessionStorage.setItem(USED_KEY, '1'); } catch (_) {}
+      openDirectFittingRoom();
+      lock();
+    });
+  });
+})();
+</script>
 
 </body>
 </html>
