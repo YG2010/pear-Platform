@@ -600,13 +600,14 @@
 
   <!-- ══════════ TRY IT YOURSELF · the real PEAR fitting room, live on this page ══════════
        This is not a mockup — #pearDirectMeasureBtn below opens the real fitting room
-       in a modal iframe, wired to the nearest [data-product-image]. The "הוסף לסל"
-       button stands in for a store's real Add-to-Cart control so the card reads like
-       a live product page.
+       in a modal iframe, wired to the nearest [data-product-image]. The card is a
+       pure try-on demo: the stand-in "הוסף לסל" button that used to sit above the
+       CTA has been removed, so that one button is the only control here.
 
        pear-widget.js's own auto-injected black "מדוד וירטואלית" button is deliberately
-       NOT shown here: the always-on embed was removed, and the widget's injection is
-       suppressed when the button loads it on demand. See the end of <body>. -->
+       NOT shown: the always-on embed was removed, and because no Add-to-Cart button
+       remains for it to anchor to, its fallback injection is stripped on sight. See
+       suppressWidgetButtons() at the end of <body>. -->
   <section id="playground" data-hud="נסו בעצמכם" class="border-b border-white/50">
     <div class="max-w-6xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
       <div class="max-w-2xl mx-auto text-center mb-12 reveal">
@@ -626,18 +627,19 @@
         <p class="text-sm font-bold text-slate-700 mb-1">חולצת <span class="brand-pear">PEAR</span> · Virtual Try-On</p>
         <p class="text-xs text-slate-400 mb-5">בז' · מידות S–XXL</p>
 
-        <!-- Stand-in Add-to-Cart button — see comment above the section. -->
-        <button type="button" class="w-full rounded-xl bg-slate-900 text-white font-bold px-6 py-3.5 hover:bg-slate-700 transition-colors">
-          הוסף לסל
-        </button>
-        <p class="text-xs text-slate-400 mt-4">👆 כפתור "הוסף לסל" לדוגמה, בדיוק כמו בחנות אמיתית.</p>
+        <!-- The stand-in "הוסף לסל" button and its caption were removed: this card
+             is now a pure try-on demo, so the one-time CTA below is the only
+             control. NOTE for anyone re-adding a cart button here — pear-widget.js
+             anchors its own injected button to Add-to-Cart controls, so putting one
+             back changes which code path runs; see suppressWidgetButtons() at the
+             end of <body>. -->
 
         <!-- Dedicated one-time direct-measurement CTA — skips the fitting-room's
              registration step and allows exactly one open per browser session.
-             Click handler lives near the widget embed at the end of <body>. -->
+             Click handler lives near the widget block at the end of <body>. -->
         <button id="pearDirectMeasureBtn" type="button"
            aria-label="מדידה וירטואלית חד-פעמית, ללא שלב הרשמה, פעם אחת בביקור"
-           class="w-full mt-3 inline-flex items-center justify-center gap-2 rounded-xl bg-transparent border-2 border-slate-300 text-slate-700 font-bold px-6 py-3.5 hover:border-pear-500 hover:text-pear-600 hover:-translate-y-0.5 transition-all">
+           class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-transparent border-2 border-slate-300 text-slate-700 font-bold px-6 py-3.5 hover:border-pear-500 hover:text-pear-600 hover:-translate-y-0.5 transition-all">
           ⚡ מדידה חד-פעמית מהירה
         </button>
         <p class="text-xs text-slate-400 mt-2">דילוג על שלב ההרשמה  ישר למדידה, שימוש אחד בכל ביקור.</p>
@@ -1899,28 +1901,50 @@ try {
     if (sessionStorage.getItem(USED_KEY) === '1') lock();
   } catch (_) {}
 
-  /* pear-widget.js boots the moment it lands and injects its own black
-     .pear-widget-btn ("מדוד וירטואלית") next to every Add-to-Cart it can find.
-     This page deliberately shows only the button above, so claim those cart
-     buttons with the widget's OWN idempotency marker before the script runs:
-     injectAfterButton() early-returns on data-pear-injected="true", and since
-     findAllAddToCartButtons() still matches them, it never falls back to
-     injecting under the <h1> either. Stamps persist, so the widget's internal
-     MutationObserver re-runs converge to the same no-op. The final sweep is a
-     belt-and-braces catch in case a future widget build changes that contract. */
+  /* pear-widget.js boots the instant it lands and always tries to place its own
+     black .pear-widget-btn ("מדוד וירטואלית") somewhere. Two different code paths
+     can produce it, so this page needs two defences:
+
+       1. When cart buttons exist, injectAfterButton() decorates each one — but it
+          early-returns on data-pear-injected="true", so stamp them first. Nothing
+          on this page matches today (the stand-in "הוסף לסל" button was removed),
+          but this keeps the card clean if one is ever added back.
+       2. With NO cart button found, injectAllButtons() takes its FALLBACK path and
+          injects the button straight after the hero <h1> instead. Stamping can't
+          stop that, so a MutationObserver installed BEFORE the script is appended
+          strips .pear-widget-btn the moment it appears. Observer callbacks run as
+          microtasks, so the node never survives to a paint — no visible flash.
+
+     These don't fight the widget's own observer: it guards the fallback with an
+     internal _fallbackDone flag, so nothing is re-injected after the first strip. */
+  const ATC_TEXTS = ['הוסף לסל', 'הוסף לעגלה', 'קנה עכשיו', 'add to cart', 'buy now'];
   const ATC_SELECTORS = '.product-form__submit,.btn-addtocart,' +
     '.single_add_to_cart_button,#AddToCart,.add-to-cart,' +
     '[data-button-action="add-to-cart"]';
 
+  let widgetBtnGuard = null;
+
+  function stripWidgetButtons() {
+    document.querySelectorAll('.pear-widget-btn').forEach((el) => el.remove());
+  }
+
   function suppressWidgetButtons() {
     const targets = new Set();
-    document.querySelectorAll('button').forEach((b) => targets.add(b));
     document.querySelectorAll(ATC_SELECTORS).forEach((b) => targets.add(b));
     document.querySelectorAll('form[action*="/cart"] button').forEach((b) => targets.add(b));
+    document.querySelectorAll('button').forEach((b) => {
+      const t = (b.textContent || '').trim().toLowerCase();
+      if (ATC_TEXTS.some((s) => t.includes(s))) targets.add(b);
+    });
     targets.forEach((b) => {
       if (b !== btn) b.setAttribute('data-pear-injected', 'true');
     });
-    document.querySelectorAll('.pear-widget-btn').forEach((el) => el.remove());
+
+    stripWidgetButtons();
+    if (!widgetBtnGuard && document.body) {
+      widgetBtnGuard = new MutationObserver(stripWidgetButtons);
+      widgetBtnGuard.observe(document.body, { childList: true, subtree: true });
+    }
   }
 
   function ensureWidgetScript(done) {
