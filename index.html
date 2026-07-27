@@ -1800,30 +1800,37 @@ try {
      Scans the page for an Add-to-Cart button (see the #playground
      section's "הוסף לסל" stand-in above), injects a "מדוד וירטואלית"
      button right after it wired to the nearest [data-product-image],
-     and opens the fitting room in a modal iframe on click. Requires
-     the CSP's script-src / frame-src to allow this origin (see <head>
-     + vercel.json).
+     and opens the fitting room in a modal iframe on click.
 
-     Two independent, coexisting opt-in flags on the live pear-five.vercel.app
-     widget both tell the fitting room to skip its normal registration step
-     for this public marketing-site demo (a live store embed omits both and
-     keeps the full, unlimited, server-backed flow):
-       data-pear-demo-gate="true" → sends &demo_gate=1, a strict one-time
-         measurement gate (one fit per browser, then a friendly "already
-         used" screen instead of the camera).
-       data-pear-demo="true"      → sends &pear_demo=1, an older, separate
-         one-time-lock mechanism that ALSO signals "skip registration".
-     Both were previously present in this widget version's source but only
-     demo-gate was wired into this embed, which left the name/email
-     "Personal Fit Engine" step showing instead of being skipped. Both flags
-     are set below so either code path that checks for a skip signal is
-     satisfied.
+     ORIGIN: the widget resolves PEAR_BASE from its own script.src, so this
+     URL determines where BOTH the /api/classify-images call and the
+     /fitting-room/ modal iframe are loaded from. Three CSP directives in
+     vercel.json must therefore allow this exact origin, or the embed fails
+     silently with nothing rendered:
+       script-src  → the <script> below
+       connect-src → widget's POST /api/classify-images
+       frame-src   → the fitting-room modal iframe
+     It previously pointed at pear-five.vercel.app, which now 404s on
+     /widget/pear-widget.js — the script never loaded, so no button was ever
+     injected. app.pear-ai.io serves the current build.
+
+     NO DEMO FLAGS: this embed deliberately sets neither of the widget's two
+     opt-in demo restrictions, so the fitting room runs its full, unlimited,
+     server-backed flow — it opens on the normal first step (registration)
+     and can be reused as many times as a visitor likes. Re-adding either
+     attribute below re-enables a one-fit-per-browser lockout:
+       data-pear-demo-gate="true" → &demo_gate=1, strict one-time gate that
+         skips registration, then shows an "already used" screen instead of
+         the camera on every later attempt.
+       data-pear-demo="true"      → &pear_demo=1, an older separate one-time
+         lock that ALSO signals "skip registration".
+     Both are off by default in the widget, and both locks read as unset the
+     moment the attribute is gone, so removing them also frees any browser
+     that was already locked — no localStorage cleanup needed.
      ════════════════════════════════════════════════════════════════ -->
 <script
-  src="https://pear-five.vercel.app/widget/pear-widget.js"
-  data-pear-key="TEST"
-  data-pear-demo-gate="true"
-  data-pear-demo="true"></script>
+  src="https://app.pear-ai.io/widget/pear-widget.js"
+  data-pear-key="TEST"></script>
 
 </body>
 </html>
