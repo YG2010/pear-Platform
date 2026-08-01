@@ -14,9 +14,15 @@
         no guessing at all. Governs ONLY this page load; it is
         deliberately NOT written to localStorage (see LANG_KEY below for
         why that used to happen and what it broke).
-     2. localStorage['app_lang'] — an explicit choice, written ONLY by an
-        actual click on the navbar [data-set-lang] toggle. A visitor who
-        picked a language is never overridden by anything below.
+     2. localStorage['app_lang'] — CONFIRMED by localStorage['app_lang_explicit']
+        (written together, only by an actual click on the navbar
+        [data-set-lang] toggle): never overridden by anything below, exactly
+        like before. An app_lang WITHOUT the explicit flag — a value left
+        over from before ?lang= stopped being auto-persisted, or from any
+        other pre-existing browser state — is used to render immediately
+        (still zero flicker) but is then verified once against step 3/4 in
+        the background; a disagreement silently corrects it live via
+        applyLanguage(), no reload, no prompt. See verifyStoredLanguage().
      3. localStorage['app_lang_geo'] — a cached country lookup (30 days),
         so only the very first visit ever pays for a network round trip.
      4. GEO_SOURCES, tried in order — country_code === 'IL' → Hebrew,
@@ -70,8 +76,9 @@
 
   var STAMP           = 'data-i18n-lang'; // language an element currently carries
 
-  var LANG_KEY        = 'app_lang';      // explicit visitor choice
-  var GEO_KEY         = 'app_lang_geo';  // cached auto-detection
+  var LANG_KEY         = 'app_lang';           // visitor's active language, confirmed or not
+  var LANG_EXPLICIT_KEY = 'app_lang_explicit'; // '1' iff LANG_KEY came from an actual toggle click
+  var GEO_KEY          = 'app_lang_geo';       // cached auto-detection
   var GEO_TTL_MS      = 30 * 24 * 60 * 60 * 1000;
 
   /* Three independent IP-geolocation providers, tried in order until one
@@ -533,6 +540,13 @@
     return normalise(readStore(LANG_KEY));
   }
 
+  /* True only when LANG_KEY was written by an actual toggle click (see
+     setLanguage's opts.persist branch) — the only case that skips
+     verifyStoredLanguage() below and is never re-checked against geo-IP. */
+  function isExplicitChoice() {
+    return readStore(LANG_EXPLICIT_KEY) === '1';
+  }
+
   function fromGeoCache() {
     var raw = readStore(GEO_KEY);
     if (!raw) return null;
@@ -823,6 +837,7 @@
 
     if (opts.persist) {
       writeStore(LANG_KEY, lang);
+      writeStore(LANG_EXPLICIT_KEY, '1');   // marks this as a real click — see isExplicitChoice()
       // eslint-disable-next-line no-console
       console.log('Active language source:', 'manual', lang);
     }
@@ -843,6 +858,44 @@
     return lang;
   }
 
+  /* A stored language that was never confirmed by an actual toggle click
+     gets ONE silent, best-effort verification against geo-IP, run in the
+     background AFTER the synchronous render already happened with zero
+     flicker (see the call site below). Reuses the same cache/lookup
+     machinery as a first-ever visit: a fresh geo cache answers instantly
+     with no network call; only an actually stale-or-missing cache reaches
+     out to GEO_SOURCES.
+
+     On a mismatch this corrects LIVE via applyLanguage() — no reload, no
+     prompt, exactly as requested — and rewrites LANG_KEY to the new
+     value, still WITHOUT the explicit flag: an auto-correction is not a
+     promise to never check again, so a later visit (or this browser
+     genuinely changing location) can still correct it once more. Only an
+     actual click ever earns the "never re-verify" guarantee tested
+     elsewhere in this file. */
+  function verifyStoredLanguage(storedLang) {
+    var cached = fromGeoCache();
+    var lookup = cached
+      ? Promise.resolve({ lang: cached, source: 'geoCache' })
+      : fromIpLookup().then(function (result) {
+          writeStore(GEO_KEY, JSON.stringify({ lang: result.lang, country: result.country, at: Date.now() }));
+          return { lang: result.lang, source: 'geoIP' };
+        });
+
+    lookup
+      .then(function (resolved) {
+        if (resolved.lang === storedLang) return;   // agrees — nothing to correct
+        // eslint-disable-next-line no-console
+        console.warn('[PearI18n] stale localStorage app_lang="' + storedLang + '" disagreed with ' +
+                     resolved.source + ' ("' + resolved.lang + '") — auto-correcting live, no reload');
+        writeStore(LANG_KEY, resolved.lang);   // corrected, but still unconfirmed — see comment above
+        // eslint-disable-next-line no-console
+        console.log('Active language source:', resolved.source + '-autocorrect', resolved.lang);
+        applyLanguage(resolved.lang, { force: true });
+      })
+      .catch(function () { /* best-effort: leave the synchronous render exactly as it is */ });
+  }
+
   /* Synchronous sources first — the fast path with no flicker at all.
      NOTE on ?lang=: it is read here to decide THIS load's language but,
      unlike the other two, deliberately NOT written to LANG_KEY. It used
@@ -859,7 +912,18 @@
      above) counts as an explicit, sticky choice now. */
   var immediate = fromUrl();
   var immediateSource = immediate ? 'url' : null;
-  if (!immediate) { immediate = fromStorage(); if (immediate) immediateSource = 'localStorage'; }
+  var unconfirmedStored = null;   // set below iff app_lang exists but was never an explicit click
+  if (!immediate) {
+    immediate = fromStorage();
+    if (immediate) {
+      if (isExplicitChoice()) {
+        immediateSource = 'localStorage';
+      } else {
+        immediateSource = 'localStorage-unconfirmed';
+        unconfirmedStored = immediate;
+      }
+    }
+  }
   if (!immediate) { immediate = fromGeoCache(); if (immediate) immediateSource = 'geoCache'; }
 
   if (immediate) {
@@ -868,6 +932,10 @@
     applyHead(immediate);
     // eslint-disable-next-line no-console
     console.log('Active language source:', immediateSource, immediate);
+    /* Fire-and-forget: the page is already rendered above with zero
+       flicker/cloak. This can only ever correct a stale guess forward,
+       live — see verifyStoredLanguage(). */
+    if (unconfirmedStored) verifyStoredLanguage(unconfirmedStored);
   } else {
     /* First visit ever: show nothing until the country lookup answers,
        so an English-speaking visitor never sees a frame of Hebrew RTL.
