@@ -5,53 +5,41 @@
    LOADING: this file is a CLASSIC, RENDER-BLOCKING <script> in <head>,
    deliberately not defer/async. It has to run before the browser paints
    the body, because it sets <html lang> / <html dir> and swaps the
-   document title + meta description. Deferring it would show a frame of
-   Hebrew RTL layout to an English visitor.
+   document title + meta description.
 
-   RESOLUTION ORDER (first hit wins):
+   STRICT RESOLUTION ORDER (first hit wins):
      1. ?lang=he|en in the URL — what the hreflang alternates point at,
         so a search engine landing on /?lang=en gets English markup with
         no guessing at all. Governs ONLY this page load; it is
-        deliberately NOT written to localStorage (see LANG_KEY below for
-        why that used to happen and what it broke).
-     2. localStorage['app_lang'] — an explicit choice, written ONLY by an
-        actual click on the navbar [data-set-lang] toggle. A visitor who
-        picked a language is never overridden by anything below.
-     3. localStorage['app_lang_geo'] — a cached country lookup (30 days),
-        so only the very first visit ever pays for a network round trip.
-     4. GEO_SOURCES, tried in order — country_code === 'IL' → Hebrew,
-        everything else (US included) → English. ipapi.co is asked
-        first; ip-api.com and ipinfo.io only get a request if the one
-        before them failed, errored, or timed out. A single provider is
-        not reliable enough on its own: VPNs and privacy extensions
-        commonly block ipapi.co by name (it is a known entry on several
-        tracker blocklists), and a visitor testing over a VPN in
-        Incognito is exactly the visitor most likely to have both. Three
-        independent providers falling over at once is far less likely
-        than one. The three share ONE wall-clock budget (GEO_BUDGET_MS)
-        rather than each getting a small fixed slot — VPN-routed traffic
-        regularly adds real latency on top of a normal geo-IP round
-        trip, and a too-tight per-provider timeout aborts a genuine,
-        still-in-flight response before it can ever arrive.
-     5. DEFAULT_LANG ('en') — used ONLY if every source in step 4 failed
-        or the whole cascade ran out of budget. This does NOT consult
-        navigator.language: an unresolved visitor is a safe default for
-        an internationally-facing site, and OS/browser locale is not a
-        reliable signal of WHERE someone is browsing from (that is the
-        whole reason VPN testing exists). Hebrew is only ever reached
-        through a confirmed 'IL' IP match (step 4) or a deliberate toggle
-        click (step 2) — never inferred.
+        deliberately NOT written to localStorage — see setLanguage()'s
+        callers for why a shared link must never permanently pin a
+        visitor's language.
+     2. localStorage['app_lang'], but ONLY if localStorage['app_lang_explicit']
+        is '1' — meaning it was written by an actual click on the navbar
+        [data-set-lang] toggle (see setLanguage). This is the ONLY thing
+        that ever beats geo-IP: a deliberate choice is respected across
+        reloads until the visitor toggles again.
+     3. Geo-IP. Anything else — no explicit choice on file, or the flag
+        without a usable value — runs a FRESH geo-IP lookup on every
+        single boot, no cache, no stale reuse. GEO_SOURCES are tried in
+        order (ipapi.co, then ip-api.com, then ipinfo.io — see the block
+        below for why three) until one answers; only an exact 'IL' match
+        resolves to Hebrew, everything else (US via VPN included)
+        resolves to DEFAULT_LANG. This is what makes the boot "strict":
+        a stale or pre-existing app_lang value that was never confirmed
+        by a real click is never trusted — it is overwritten with
+        whatever geo-IP says, live, no reload required.
 
-   THE CLOAK: steps 1–3 are synchronous, so the common case resolves
-   before first paint with zero flicker and no cloak at all. Only a
-   first-ever visit reaches step 4, which is async — for that case only,
-   <html> gets .i18n-cloak (a CSS rule fades the body out) until the
-   lookup settles or CLOAK_MAX_MS elapses, whichever comes first. The
-   failsafe timer matters: it guarantees the page can never be left
-   invisible by a hanging request — and CLOAK_MAX_MS is sized to
-   comfortably exceed GEO_BUDGET_MS so it fires only once the whole
-   cascade is genuinely exhausted, not while a real answer is still
-   in flight (see the constants below for the exact numbers).
+   NO CLOAK: the page always paints DEFAULT_LANG ('en') immediately for
+   case 3, then swaps to Hebrew live if geo-IP confirms 'IL'. There is
+   nothing to hide behind a cloak for — Hebrew is only ever reached
+   through a confirmed 'IL' match or a real toggle click, so the async
+   window can only ever produce a possible EN→HE flip, never the
+   HE→EN "wrong language for a VPN visitor" flicker this used to guard
+   against with a background-verification cloak. That old machinery
+   (shared timing budgets, an "unconfirmed" cache, a fade-out cloak) is
+   gone; geo-IP is just run straight, every boot, and the result is
+   applied directly.
 
    SECURITY NOTE: values under the `html:` namespace are injected with
    innerHTML. Everything in DICT below is an author-written literal that
@@ -70,9 +58,8 @@
 
   var STAMP           = 'data-i18n-lang'; // language an element currently carries
 
-  var LANG_KEY        = 'app_lang';      // explicit visitor choice
-  var GEO_KEY         = 'app_lang_geo';  // cached auto-detection
-  var GEO_TTL_MS      = 30 * 24 * 60 * 60 * 1000;
+  var LANG_KEY          = 'app_lang';          // visitor's active language
+  var LANG_EXPLICIT_KEY = 'app_lang_explicit'; // '1' iff LANG_KEY came from an actual toggle click
 
   /* Three independent IP-geolocation providers, tried in order until one
      answers. Each has its own response shape, hence its own `extract`.
@@ -117,26 +104,15 @@
     }
   ];
 
-  /* ONE shared wall-clock budget for the whole GEO_SOURCES cascade —
-     see fromIpLookup(). The first attempt gets nearly the entire budget
-     (so a slow-but-genuine VPN response has real room to land instead
-     of being aborted); if it fails outright rather than timing out, the
-     next attempt still gets almost all of it too. Only a provider that
-     actually burns time via its own timeout squeezes what is left for
-     the next one.
-
-     700ms (the previous per-provider figure) was diagnosed in production
-     as too aggressive: every one of the three providers was failing with
-     "signal is aborted without reason" — the fetches were being aborted
-     before a real, working response could arrive, not because anything
-     was actually down. 4 seconds is generous enough to absorb typical
-     VPN-added latency on top of a normal geo-IP round trip. */
-  var GEO_BUDGET_MS   = 4000;
-  /* Comfortably above GEO_BUDGET_MS so the cloak's failsafe fires only
-     once the cascade has genuinely exhausted its budget, plus headroom
-     for normal JS/timer scheduling slop — not a moment before a real
-     answer could still land. */
-  var CLOAK_MAX_MS    = 4600;   // hard ceiling on the first-visit cloak
+  /* Fixed per-provider timeout, tried one at a time — see fromIpLookup().
+     700ms was diagnosed in production as too aggressive: every one of
+     the three providers was failing with "signal is aborted without
+     reason", the fetches being aborted before a real, working response
+     could arrive, not because anything was actually down. 3 seconds is
+     generous enough to absorb typical VPN-added latency on top of a
+     normal geo-IP round trip, for each provider that actually gets
+     tried. */
+  var GEO_TIMEOUT_MS  = 3000;
 
   var SITE_ORIGIN     = 'https://platform.pear-ai.io';
   var OG_LOCALE       = { he: 'he_IL', en: 'en_US' };
@@ -484,8 +460,7 @@
 
   var state = {
     lang: DEFAULT_LANG,
-    resolved: false,     // false while an async lookup is still in flight
-    cloaked: false
+    resolved: false     // false while an async geo-IP lookup is still in flight
   };
   var listeners = [];
 
@@ -529,29 +504,25 @@
     return match ? normalise(decodeURIComponent(match[1])) : null;
   }
 
+  /* Only ever consulted together with isExplicitChoice() — a stored
+     value with no explicit-click flag next to it is not trusted, see
+     the boot section below. */
   function fromStorage() {
     return normalise(readStore(LANG_KEY));
   }
 
-  function fromGeoCache() {
-    var raw = readStore(GEO_KEY);
-    if (!raw) return null;
-    try {
-      var rec = JSON.parse(raw);
-      if (!rec || typeof rec.at !== 'number') return null;
-      if (Date.now() - rec.at > GEO_TTL_MS) return null;       // stale — look it up again
-      return normalise(rec.lang);
-    } catch (e) {
-      return null;
-    }
+  /* True only when LANG_KEY was written by an actual toggle click (see
+     setLanguage's opts.persist branch). This is the ONLY thing that ever
+     skips a fresh geo-IP lookup on boot. */
+  function isExplicitChoice() {
+    return readStore(LANG_EXPLICIT_KEY) === '1';
   }
 
-  /* One provider, one attempt, given `timeoutMs` to answer in — the
-     caller (fromIpLookup) decides that per-attempt, based on how much of
-     the shared GEO_BUDGET_MS is left. Resolves to an UPPERCASE country
-     code; rejects on anything that isn't a usable answer — bad HTTP
-     status, timeout/abort, network/CORS failure, or a body extract()
-     can't read — so the caller can move on to the next provider. */
+  /* One provider, one attempt, given a fixed GEO_TIMEOUT_MS to answer in.
+     Resolves to an UPPERCASE country code; rejects on anything that
+     isn't a usable answer — bad HTTP status, timeout/abort, network/CORS
+     failure, or a body extract() can't read — so the caller can move on
+     to the next provider. */
   function fetchCountryCode(source, timeoutMs) {
     if (typeof window.fetch !== 'function') {
       return Promise.reject(new Error('fetch unavailable'));
@@ -581,13 +552,12 @@
       });
   }
 
-  /* Country lookup. Tries GEO_SOURCES in order, sharing ONE deadline
-     (now = GEO_BUDGET_MS from when this was first called) across all of
-     them, and resolves to a language from the first one that answers
-     with a usable country code — falling through to the next source
-     immediately on any failure. Rejects once every source has failed OR
-     the shared budget runs out, either of which is the caller's (see
-     boot, below) signal to fall back to DEFAULT_LANG.
+  /* Country lookup. Tries GEO_SOURCES in order, each getting its own
+     fixed GEO_TIMEOUT_MS, and resolves to a language from the first one
+     that answers with a usable country code — falling through to the
+     next source immediately on any failure. Rejects once every source
+     has failed, which is the caller's (see boot, below) signal to fall
+     back to DEFAULT_LANG.
 
      STRICT DEFAULTING: whichever source answers, only an exact 'IL' match
      resolves to Hebrew — every other code (US, DE, an unrecognised one,
@@ -596,15 +566,12 @@
      happens to be Hebrew still gets English the moment any provider
      confirms a non-IL exit location. */
   function fromIpLookup() {
-    var i = 0;
-    var deadline = Date.now() + GEO_BUDGET_MS;
-    function tryNext() {
-      var remaining = deadline - Date.now();
-      if (i >= GEO_SOURCES.length || remaining <= 0) {
+    function tryAt(i) {
+      if (i >= GEO_SOURCES.length) {
         return Promise.reject(new Error('all geolocation sources failed'));
       }
-      var source = GEO_SOURCES[i++];
-      return fetchCountryCode(source, remaining)
+      var source = GEO_SOURCES[i];
+      return fetchCountryCode(source, GEO_TIMEOUT_MS)
         .then(function (cc) {
           var lang = cc === GEO_COUNTRY ? GEO_LANG : DEFAULT_LANG;
           // eslint-disable-next-line no-console
@@ -614,10 +581,10 @@
         .catch(function (err) {
           // eslint-disable-next-line no-console
           console.warn('[PearI18n] ' + source.label + ' geo lookup failed:', err && err.message ? err.message : err);
-          return tryNext();
+          return tryAt(i + 1);
         });
     }
-    return tryNext();
+    return tryAt(0);
   }
 
   /* ── DOM helpers ─────────────────────────────────────────────── */
@@ -743,19 +710,6 @@
     }
   }
 
-  /* ── The first-visit cloak ───────────────────────────────────── */
-
-  function cloak() {
-    state.cloaked = true;
-    document.documentElement.classList.add('i18n-cloak');
-    window.setTimeout(uncloak, CLOAK_MAX_MS);   // failsafe: never stay hidden
-  }
-  function uncloak() {
-    if (!state.cloaked) return;
-    state.cloaked = false;
-    document.documentElement.classList.remove('i18n-cloak');
-  }
-
   /* ── Boot ────────────────────────────────────────────────────── */
 
   /* Makes <head> AND <body> actually reflect `lang`, right now — this is
@@ -816,13 +770,17 @@
 
   /* The persisted/manual-switch entry point: applyLanguage() plus the
      bookkeeping that only a deliberate visitor choice needs — writing
-     localStorage and keeping the address bar in step with it. */
+     localStorage and keeping the address bar in step with it. The
+     explicit flag is what makes this choice survive future reloads
+     without being re-checked against (and possibly overwritten by)
+     geo-IP — see isExplicitChoice() and the boot section below. */
   function setLanguage(lang, opts) {
     opts = opts || {};
     lang = normalise(lang) || DEFAULT_LANG;
 
     if (opts.persist) {
       writeStore(LANG_KEY, lang);
+      writeStore(LANG_EXPLICIT_KEY, '1');
       // eslint-disable-next-line no-console
       console.log('Active language source:', 'manual', lang);
     }
@@ -843,64 +801,64 @@
     return lang;
   }
 
-  /* Synchronous sources first — the fast path with no flicker at all.
-     NOTE on ?lang=: it is read here to decide THIS load's language but,
-     unlike the other two, deliberately NOT written to LANG_KEY. It used
-     to be ("a shared ?lang= link is a choice, also persisted so it
-     sticks") — but that meant one visit via an old marketing link, a
+  /* ?lang= is read here to decide THIS load's language only — unlike an
+     explicit toggle choice it is deliberately NOT written to LANG_KEY.
+     It used to be ("a shared ?lang= link is a choice, also persisted so
+     it sticks") — but that meant one visit via an old marketing link, a
      search-engine crawl, or a developer previewing a language during
      testing silently and permanently pinned that browser's language,
      indistinguishable afterward from a real click on the toggle, and
      overriding geo-IP detection on every future visit forever after.
      That is precisely the "IP resolves to US but the page keeps showing
      Hebrew" report this was diagnosed from: a stale, accidental
-     app_lang='he' outliving whatever visit actually wrote it. Only an
-     actual click on [data-set-lang] (setLanguage's opts.persist path,
-     above) counts as an explicit, sticky choice now. */
-  var immediate = fromUrl();
-  var immediateSource = immediate ? 'url' : null;
-  if (!immediate) { immediate = fromStorage(); if (immediate) immediateSource = 'localStorage'; }
-  if (!immediate) { immediate = fromGeoCache(); if (immediate) immediateSource = 'geoCache'; }
+     app_lang outliving whatever visit actually wrote it. Only an actual
+     click on [data-set-lang] (setLanguage's opts.persist path, above)
+     counts as an explicit, sticky choice now — and even that is only
+     ever read back via isExplicitChoice() below, never a bare
+     fromStorage() on its own. */
+  var urlLang = fromUrl();
 
-  if (immediate) {
-    state.lang = immediate;
+  if (urlLang) {
+    state.lang = urlLang;
     state.resolved = true;
-    applyHead(immediate);
+    applyHead(urlLang);
     // eslint-disable-next-line no-console
-    console.log('Active language source:', immediateSource, immediate);
+    console.log('Active language source:', 'url', urlLang);
+  } else if (isExplicitChoice() && fromStorage()) {
+    /* A real toggle click, on a previous load — respected across
+       reloads, no geo-IP check at all. This is the only path that
+       bypasses geo-IP entirely. */
+    var explicitLang = fromStorage();
+    state.lang = explicitLang;
+    state.resolved = true;
+    applyHead(explicitLang);
+    // eslint-disable-next-line no-console
+    console.log('Active language source:', 'localStorage-explicit', explicitLang);
   } else {
-    /* First visit ever: show nothing until the country lookup answers,
-       so an English-speaking visitor never sees a frame of Hebrew RTL.
-       The provisional guess is DEFAULT_LANG, not a browser-locale guess
-       — see the RESOLUTION ORDER note at the top of this file for why
-       navigator.language is not consulted anywhere in this file. */
+    /* No URL override, no confirmed manual choice: paint DEFAULT_LANG
+       immediately (the safe, non-Hebrew default — see the header
+       comment for why this needs no cloak), then run a FRESH geo-IP
+       lookup right now, every boot, no cache. Whatever it resolves to
+       — including DEFAULT_LANG again if every provider fails — is
+       written straight to LANG_KEY (without the explicit flag, so the
+       next boot still re-checks) and applied live to the DOM. This is
+       what strictly resets a non-Israel visitor to English even if some
+       older, unconfirmed app_lang value was sitting in their browser. */
     state.lang = DEFAULT_LANG;
     applyHead(state.lang);
-    cloak();
 
     fromIpLookup()
-      .then(function (result) {
-        writeStore(GEO_KEY, JSON.stringify({ lang: result.lang, country: result.country, at: Date.now() }));
-        return { lang: result.lang, source: 'geoIP' };
-      })
       .catch(function () {
         // eslint-disable-next-line no-console
         console.warn('[PearI18n] all IP geolocation sources failed — defaulting to', DEFAULT_LANG);
-        return { lang: DEFAULT_LANG, source: 'fallback' };   // every GEO_SOURCES provider was blocked, offline, or ran out of budget
+        return { lang: DEFAULT_LANG, country: null };   // every GEO_SOURCES provider was blocked, offline, or timed out
       })
       .then(function (resolved) {
         state.resolved = true;
+        writeStore(LANG_KEY, resolved.lang);
         // eslint-disable-next-line no-console
-        console.log('Active language source:', resolved.source, resolved.lang);
+        console.log('Active language source:', 'geoIP', resolved.lang);
         applyLanguage(resolved.lang, { force: true });
-        /* Uncloak only once the body actually carries the final copy.
-           applyLanguage() above may already have committed synchronously
-           (if <body> existed and the document was no longer loading) or
-           only scheduled its DOMContentLoaded follow-up — either way,
-           registering this listener AFTER that call, not before, is what
-           keeps the two in order: a still-cloaked page never becomes
-           visible carrying the language it's about to replace. */
-        whenDomReady(uncloak);
       });
   }
 

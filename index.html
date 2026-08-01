@@ -122,21 +122,13 @@
      fetch to ipapi.co is governed by the policy, which is why
      connect-src above lists that origin).
 
-     The cloak rule below is only ever active on a visitor's FIRST EVER
-     page view, while the country lookup is in flight — every later
-     visit resolves synchronously from localStorage and never cloaks.
-     i18n.js caps it with a hard timer, so a hanging request cannot
-     leave the page blank.
+     No cloak: i18n.js always paints English immediately and swaps to
+     Hebrew live only once geo-IP confirms an Israeli IP, so there is
+     nothing to hide behind a cloak for — see the header comment in
+     i18n.js for why.
      ════════════════════════════════════════════════════════════════ -->
 <style>
-  /* #pageBg (the page's gradient backdrop) lives INSIDE <body>, so it is
-     hidden along with everything else while cloaked. Without this the
-     first-visit cloak would flash white; matching the gradient's top
-     stop makes it read as the page simply not having painted yet. */
   html { background-color: #f7f9fc; }
-  html.i18n-cloak body { opacity: 0; }
-  body { transition: opacity .18s ease-out; }
-  @media (prefers-reduced-motion: reduce) { body { transition: none; } }
 </style>
 <script src="i18n.js"></script>
 
@@ -1106,7 +1098,7 @@
      and everything above is still the Hebrew baked into the markup. A
      slow or blocked jsDelivr therefore showed English visitors a Hebrew
      page for as long as the CDN took, which is exactly the flash the
-     <head> cloak exists to prevent.
+     render-blocking i18n.js script in <head> exists to prevent.
 
      Body markup effectively ends here (the footer closed a few lines
      up), so this single call translates the whole visible page. The
