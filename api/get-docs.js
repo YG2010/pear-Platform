@@ -138,6 +138,20 @@ function passesOriginCheck(req) {
 
 /* ════════════════════════════════════════════════════════════════════
    THE GUIDE — everything below is what gets sent on success.
+
+   LOCALISATION: the guide ships ONE copy of the markup carrying Hebrew
+   defaults plus data-i18n / data-i18n-html keys. The client translates
+   it on arrival — index.html's mountDocs() calls PearI18n.apply() on the
+   injected subtree — so this endpoint stays language-agnostic and its
+   response contract does not change. The English copy for every key
+   below lives in i18n.js under the `guide.*` namespace; adding a string
+   here means adding the same key there, in both languages.
+
+   Deliberately NOT done here: reading Accept-Language or a ?lang= param
+   and returning pre-translated HTML. That would make the response vary
+   by request while the route sends `Cache-Control: no-store` and is
+   gated on a passcode — extra server-side surface for something the
+   client already does correctly for the rest of the page.
    ════════════════════════════════════════════════════════════════════ */
 const GUIDE_HTML = `
 <div class="max-w-3xl mx-auto px-5 sm:px-8 py-14 sm:py-16 space-y-14">
@@ -146,10 +160,10 @@ const GUIDE_HTML = `
   <section>
     <div class="flex items-center gap-3 mb-5">
       <span class="font-mono text-xs font-bold text-pear-600 bg-pear-50 border border-pear-100 rounded-md px-2 py-1">01</span>
-      <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">הקדמה ודרישות מערכת</h2>
+      <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" data-i18n="guide.reqTitle">הקדמה ודרישות מערכת</h2>
     </div>
     <div class="rounded-2xl glass p-7">
-      <p class="text-slate-600 mb-6">
+      <p class="text-slate-600 mb-6" data-i18n="guide.reqBody">
         הוויג'ט הוא סקריפט JavaScript קל-משקל שנטען אסינכרונית ואינו משפיע על מהירות האתר.
         אין תלות בפלטפורמה — הוא עובד עם כל פלטפורמות האיקומרס:
       </p>
@@ -157,7 +171,7 @@ const GUIDE_HTML = `
         <span class="font-mono text-xs px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-600">Shopify</span>
         <span class="font-mono text-xs px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-600">WooCommerce</span>
         <span class="font-mono text-xs px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-600">Magento</span>
-        <span class="font-mono text-xs px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-600">Custom / פיתוח מותאם</span>
+        <span class="font-mono text-xs px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-600" data-i18n="guide.reqCustom">Custom / פיתוח מותאם</span>
       </div>
     </div>
   </section>
@@ -166,7 +180,7 @@ const GUIDE_HTML = `
   <section>
     <div class="flex items-center gap-3 mb-5">
       <span class="font-mono text-xs font-bold text-pear-600 bg-pear-50 border border-pear-100 rounded-md px-2 py-1">02</span>
-      <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">שלבי ההטמעה</h2>
+      <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" data-i18n="guide.stepsTitle">שלבי ההטמעה</h2>
     </div>
 
     <div>
@@ -179,8 +193,8 @@ const GUIDE_HTML = `
         <div class="flex-1 min-w-0 pb-8">
           <div class="rounded-2xl glass overflow-hidden">
             <div class="p-7 pb-5">
-              <h3 class="font-bold text-slate-900 text-lg mb-1.5">שלב 1 · הוספת סקריפט המערכת (CDN)</h3>
-              <p class="text-sm text-slate-500">הדביקו את השורה הבאה לפני תג <code class="font-mono text-xs bg-slate-100 border border-slate-200 rounded px-1.5 py-0.5 text-slate-700" dir="ltr">&lt;/body&gt;</code> — פעם אחת, בכל עמודי המוצר.</p>
+              <h3 class="font-bold text-slate-900 text-lg mb-1.5" data-i18n="guide.step1Title">שלב 1 · הוספת סקריפט המערכת (CDN)</h3>
+              <p class="text-sm text-slate-500" data-i18n-html="guide.step1Body">הדביקו את השורה הבאה לפני תג <code class="font-mono text-xs bg-slate-100 border border-slate-200 rounded px-1.5 py-0.5 text-slate-700" dir="ltr">&lt;/body&gt;</code> — פעם אחת, בכל עמודי המוצר.</p>
             </div>
             <div class="mx-7 mb-7 rounded-xl overflow-hidden border border-white/5 bg-[#0d1117] shadow-[0_20px_50px_-24px_rgb(0_0_0/0.6)]">
               <div class="flex items-center gap-4 px-4 py-3 bg-[#161b22] border-b border-white/5" dir="ltr">
@@ -212,8 +226,8 @@ const GUIDE_HTML = `
         <div class="flex-1 min-w-0 pb-8">
           <div class="rounded-2xl glass overflow-hidden">
             <div class="p-7 pb-5">
-              <h3 class="font-bold text-slate-900 text-lg mb-1.5">שלב 2 · מיקום כפתור המדידה בדף המוצר</h3>
-              <p class="text-sm text-slate-500">הניחו את הקונטיינר בכל מקום בעמוד המוצר — לרוב מתחת לבורר המידות. הוויג'ט יעצב את עצמו בהתאם למקום.</p>
+              <h3 class="font-bold text-slate-900 text-lg mb-1.5" data-i18n="guide.step2Title">שלב 2 · מיקום כפתור המדידה בדף המוצר</h3>
+              <p class="text-sm text-slate-500" data-i18n="guide.step2Body">הניחו את הקונטיינר בכל מקום בעמוד המוצר — לרוב מתחת לבורר המידות. הוויג'ט יעצב את עצמו בהתאם למקום.</p>
             </div>
             <div class="mx-7 mb-7 rounded-xl overflow-hidden border border-white/5 bg-[#0d1117] shadow-[0_20px_50px_-24px_rgb(0_0_0/0.6)]">
               <div class="flex items-center gap-4 px-4 py-3 bg-[#161b22] border-b border-white/5" dir="ltr">
@@ -247,8 +261,8 @@ const GUIDE_HTML = `
         <div class="flex-1 min-w-0">
           <div class="rounded-2xl glass overflow-hidden">
             <div class="p-7 pb-5">
-              <h3 class="font-bold text-slate-900 text-lg mb-1.5">שלב 3 · אתחול והגדרות מותאמות אישית</h3>
-              <p class="text-sm text-slate-500">שליטה מלאה על שפה, ערכת נושא, טקסט הכפתור ו-callbacks — הכל מאובייקט קונפיגורציה אחד.</p>
+              <h3 class="font-bold text-slate-900 text-lg mb-1.5" data-i18n="guide.step3Title">שלב 3 · אתחול והגדרות מותאמות אישית</h3>
+              <p class="text-sm text-slate-500" data-i18n="guide.step3Body">שליטה מלאה על שפה, ערכת נושא, טקסט הכפתור ו-callbacks — הכל מאובייקט קונפיגורציה אחד.</p>
             </div>
             <div class="mx-7 mb-7 rounded-xl overflow-hidden border border-white/5 bg-[#0d1117] shadow-[0_20px_50px_-24px_rgb(0_0_0/0.6)]">
               <div class="flex items-center gap-4 px-4 py-3 bg-[#161b22] border-b border-white/5" dir="ltr">
@@ -267,12 +281,12 @@ const GUIDE_HTML = `
               <pre class="code-scroll p-5 text-[13px] leading-relaxed font-mono"><code id="snippet-init"><span class="text-slate-300">window</span><span class="text-slate-400">.</span><span class="text-slate-300">PearWidget</span><span class="text-slate-400">.</span><span class="text-sky-300">init</span><span class="text-slate-400">({</span>
   <span class="text-emerald-300">storeId</span><span class="text-slate-400">:</span> <span class="text-amber-200">'YOUR_STORE_ID'</span><span class="text-slate-400">,</span>
   <span class="text-emerald-300">theme</span><span class="text-slate-400">:</span> <span class="text-amber-200">'light'</span><span class="text-slate-400">,</span>          <span class="text-slate-500">// 'light' | 'dark'</span>
-  <span class="text-emerald-300">locale</span><span class="text-slate-400">:</span> <span class="text-amber-200">'he'</span><span class="text-slate-400">,</span>
-  <span class="text-emerald-300">buttonText</span><span class="text-slate-400">:</span> <span class="text-amber-200">'מדוד עכשיו עם AI'</span><span class="text-slate-400">,</span>
+  <span class="text-emerald-300">locale</span><span class="text-slate-400">:</span> <span class="text-amber-200" data-i18n="guide.snipLocale">'he'</span><span class="text-slate-400">,</span>
+  <span class="text-emerald-300">buttonText</span><span class="text-slate-400">:</span> <span class="text-amber-200" data-i18n="guide.snipButton">'מדוד עכשיו עם AI'</span><span class="text-slate-400">,</span>
 
-  <span class="text-slate-500">// נקרא כשהאלגוריתם מסיים לחשב מידה מומלצת</span>
+  <span class="text-slate-500" data-i18n="guide.snipComment">// נקרא כשהאלגוריתם מסיים לחשב מידה מומלצת</span>
   <span class="text-sky-300">onSizeRecommended</span><span class="text-slate-400">:</span> <span class="text-slate-400">(</span><span class="text-slate-300">result</span><span class="text-slate-400">) =&gt; {</span>
-    <span class="text-slate-300">console</span><span class="text-slate-400">.</span><span class="text-sky-300">log</span><span class="text-slate-400">(</span><span class="text-amber-200">'המידה המומלצת:'</span><span class="text-slate-400">,</span> <span class="text-slate-300">result</span><span class="text-slate-400">.</span><span class="text-slate-300">size</span><span class="text-slate-400">);</span>
+    <span class="text-slate-300">console</span><span class="text-slate-400">.</span><span class="text-sky-300">log</span><span class="text-slate-400">(</span><span class="text-amber-200" data-i18n="guide.snipLog">'המידה המומלצת:'</span><span class="text-slate-400">,</span> <span class="text-slate-300">result</span><span class="text-slate-400">.</span><span class="text-slate-300">size</span><span class="text-slate-400">);</span>
   <span class="text-slate-400">},</span>
 <span class="text-slate-400">});</span></code></pre>
             </div>
@@ -290,13 +304,15 @@ const GUIDE_HTML = `
              radial-gradient(420px 220px at 15% 0%, rgb(16 185 129 / .22), transparent 65%),
              radial-gradient(360px 200px at 100% 100%, rgb(56 189 248 / .16), transparent 65%);"></div>
       <div class="relative flex-1">
-        <h3 class="font-bold text-lg mb-1">צריכים עזרה טכנית בהטמעה?</h3>
-        <p class="text-sm text-slate-300 leading-relaxed">צוות הפיתוח של PEAR זמין לעזור לכם לחבר את הווידג'ט לחנות שלכם במהירות ובקלות.</p>
+        <h3 class="font-bold text-lg mb-1" data-i18n="guide.helpTitle">צריכים עזרה טכנית בהטמעה?</h3>
+        <p class="text-sm text-slate-300 leading-relaxed" data-i18n="guide.helpBody">צוות הפיתוח של PEAR זמין לעזור לכם לחבר את הווידג'ט לחנות שלכם במהירות ובקלות.</p>
       </div>
       <button data-scroll="contact-section" data-view="contact" data-prefill="integration"
          class="group relative shrink-0 cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl bg-pear-600 text-white font-bold px-6 py-3 shadow-btn hover:bg-pear-700 hover:-translate-y-0.5 transition-all whitespace-nowrap">
-        <span>דברו איתנו עכשיו</span>
-        <span class="inline-block transition-transform duration-300 group-hover:-translate-x-1">←</span>
+        <span data-i18n="guide.helpCta">דברו איתנו עכשיו</span>
+        <!-- The glyph flips with the language; the hover nudge that moves it
+             is corrected for LTR by a rule in index.html's <style> block. -->
+        <span class="inline-block transition-transform duration-300 group-hover:-translate-x-1" data-i18n="guide.helpArrow">←</span>
       </button>
     </div>
   </section>
@@ -305,7 +321,7 @@ const GUIDE_HTML = `
   <section>
     <div class="rounded-2xl bg-pear-50 border border-pear-100 px-7 py-6 flex items-start gap-4">
       <span class="text-xl leading-none mt-0.5">💡</span>
-      <p class="text-sm text-slate-600 leading-relaxed">
+      <p class="text-sm text-slate-600 leading-relaxed" data-i18n-html="guide.note">
         אין לכם עדיין <span class="font-mono text-xs bg-white border border-pear-100 rounded px-1.5 py-0.5" dir="ltr">STORE_ID</span>?
         <a href="mailto:pearytrank@gmail.com" class="font-semibold text-pear-700 underline underline-offset-2 hover:text-pear-600">צרו קשר</a>
         ונקים לכם חשבון תוך יום עסקים.

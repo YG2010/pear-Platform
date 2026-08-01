@@ -3,9 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- ════════════════════════════════════════════════════════════════
+     TITLE / DESCRIPTION · the values below are the HEBREW defaults that
+     ship in the static file. i18n.js rewrites both (plus og:*, twitter:*,
+     keywords, canonical and the JSON-LD block) before first paint when
+     the visitor resolves to English. Edit the copy in i18n.js, not here —
+     these literals only ever survive with JavaScript disabled.
+     ════════════════════════════════════════════════════════════════ -->
 <title>PEAR Platform | PearVTON – Virtual Try-On &amp; Measurement</title>
 <meta name="description" content="PEAR Platform (PearVTON): AI-powered Virtual Try On and Virtual Measurement for fashion e-commerce. Reduce returns, boost conversion.">
 <link rel="canonical" href="https://platform.pear-ai.io/" />
+
+<!-- ════════════════════════════════════════════════════════════════
+     HREFLANG · both languages live at ONE URL and are swapped client
+     side, so the alternates need a URL that actually serves each one:
+     ?lang=he / ?lang=en are read by i18n.js before anything renders,
+     which makes them genuinely distinct documents to a crawler. The
+     bare root is x-default — it auto-detects, which is exactly what
+     "no language matched" should do. Each alternate is self-canonical
+     (see applyHead in i18n.js); pointing them all back at / would make
+     Google collapse the set and ignore the annotations.
+     ════════════════════════════════════════════════════════════════ -->
+<link rel="alternate" hreflang="he" href="https://platform.pear-ai.io/?lang=he" />
+<link rel="alternate" hreflang="en" href="https://platform.pear-ai.io/?lang=en" />
+<link rel="alternate" hreflang="x-default" href="https://platform.pear-ai.io/" />
+
+<!-- Favicons · generated from pear-logo-w.png, cropped to the mark.
+     favicon.ico carries 16/32/48 for browser tabs and Google Search (which
+     re-renders whatever it finds at 48x48); favicon-96x96.png is the
+     high-DPI tab icon; the manifest PNGs cover Android home screens. -->
+<link rel="icon" href="/favicon.ico" sizes="32x32" />
+<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+<link rel="manifest" href="/site.webmanifest" />
 
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website" />
@@ -24,7 +54,8 @@
 
 <meta name="keywords" content="pear, pear platform, pearvton, pear virtual measurement, pear virtual try on, virtual try-on, virtual measurement, AI virtual try-on, תא מדידה וירטואלי">
 
-<script type="application/ld+json">
+<!-- id is required: i18n.js rewrites description + inLanguage in place. -->
+<script type="application/ld+json" id="ld-webapp">
 {
   "@context": "https://schema.org",
   "@type": "WebApplication",
@@ -68,12 +99,43 @@
   font-src 'self' https://fonts.gstatic.com;
   img-src 'self' data:;
   media-src 'self';
-  connect-src 'self' https://app.pear-ai.io https://api.web3forms.com ws://127.0.0.1:* ws://localhost:*;
+  connect-src 'self' https://app.pear-ai.io https://api.web3forms.com https://ipapi.co ws://127.0.0.1:* ws://localhost:*;
   frame-src 'self' https://app.pear-ai.io https://pear-web-demo.vercel.app https://pear-five.vercel.app;
   form-action 'self' https://api.web3forms.com;
   object-src 'none';
   base-uri 'self';
 ">
+
+<!-- ════════════════════════════════════════════════════════════════
+     I18N · automatic Hebrew / English. Must load HERE and must stay a
+     plain blocking <script> — no defer, no async, nothing above it that
+     renders. i18n.js sets <html lang>/<html dir> and rewrites the title
+     and meta description before the browser paints, so an English
+     visitor never sees a frame of RTL Hebrew. Adding defer to this tag
+     is the one change that visibly breaks localisation.
+
+     It sits AFTER the meta tags it rewrites (they have to be parsed for
+     querySelector to find them) and AFTER the CSP meta (so its own
+     fetch to ipapi.co is governed by the policy, which is why
+     connect-src above lists that origin).
+
+     The cloak rule below is only ever active on a visitor's FIRST EVER
+     page view, while the country lookup is in flight — every later
+     visit resolves synchronously from localStorage and never cloaks.
+     i18n.js caps it with a hard timer, so a hanging request cannot
+     leave the page blank.
+     ════════════════════════════════════════════════════════════════ -->
+<style>
+  /* #pageBg (the page's gradient backdrop) lives INSIDE <body>, so it is
+     hidden along with everything else while cloaked. Without this the
+     first-visit cloak would flash white; matching the gradient's top
+     stop makes it read as the page simply not having painted yet. */
+  html { background-color: #f7f9fc; }
+  html.i18n-cloak body { opacity: 0; }
+  body { transition: opacity .18s ease-out; }
+  @media (prefers-reduced-motion: reduce) { body { transition: none; } }
+</style>
+<script src="i18n.js"></script>
 
 <!-- ════════════════════════════════════════════════════════════════
      FONTS · Heebo (Hebrew UI) + JetBrains Mono (code, numerals)
@@ -154,6 +216,53 @@
      font, so Windows/Android visitors fall back to Georgia — add an @font-face if
      you want it identical everywhere. */
   .brand-pear { font-family: 'Didot', 'Didot LT STD', 'GFSDidot', 'Georgia', serif; font-weight: bold; }
+
+  /* ── Language switch (HE / EN) ──
+     Hand-written rather than Tailwind utilities on purpose: pear-tailwind.css
+     is a STATIC build (see the note above the stylesheet link), so any class
+     added here after the last `npx tailwindcss` run would emit no rules at
+     all and the control would render unstyled. Custom CSS always ships.
+     The active option is driven by aria-pressed, which i18n.js keeps in sync
+     — so the visual state and the screen-reader state can never disagree. */
+  .lang-switch {
+    display: inline-flex; align-items: center; gap: 2px;
+    padding: 2px; border-radius: 10px;
+    background: rgb(255 255 255 / .55);
+    border: 1px solid rgb(226 232 240 / .9);
+  }
+  .lang-opt {
+    appearance: none; -webkit-appearance: none; border: 0; cursor: pointer;
+    font: inherit; font-size: 11px; font-weight: 700; line-height: 1;
+    letter-spacing: .02em;
+    padding: 6px 9px; border-radius: 8px;
+    background: transparent; color: #64748b;
+    transition: background-color .2s ease, color .2s ease;
+  }
+  .lang-opt:hover { color: #0f172a; background: rgb(15 23 42 / .05); }
+  .lang-opt[aria-pressed="true"] { background: #0f172a; color: #fff; }
+  .lang-opt:focus-visible { outline: 2px solid #10b981; outline-offset: 2px; }
+
+  /* ── LTR layout corrections ──
+     Nearly everything on this page is already direction-agnostic: the
+     layout is flex/grid, and the few offsets that matter use logical
+     properties (inset-inline, text-start). The exception is the hero
+     mockup's decorative nudge — translate-x is a TRANSFORM, and CSS
+     transforms ignore direction entirely, so `lg:translate-x-20` pushes
+     the card the same physical way in both languages. In RTL that moves
+     it inward, toward the copy; in LTR the mockup is already on the
+     right, so the same shove pushes it toward the viewport edge.
+     Overriding Tailwind's own custom property is enough — the utility
+     reads --tw-translate-x rather than hard-coding a value. */
+  html[dir="ltr"] .hero-mockup { --tw-translate-x: 0px; }
+
+  /* The contact-form send arrow is drawn pointing LEFT, which reads as
+     "forward" in RTL only. Mirroring beats shipping a second icon. */
+  html[dir="ltr"] #contactSendIcon { transform: scaleX(-1); }
+
+  /* Same idea for the guide's CTA arrow nudge: the glyph itself is
+     translated (← / →), but the hover slide is a physical -0.25rem, so
+     in LTR it would pull the arrow backwards, against where it points. */
+  html[dir="ltr"] .group:hover .group-hover\:-translate-x-1 { --tw-translate-x: 0.25rem; }
 
   /* ── Active nav tab underline ── */
   .nav-tab { position: relative; }
@@ -472,7 +581,12 @@
   </svg>
   <div class="leading-tight">
     <div class="font-mono text-[13px] font-bold text-slate-900"><span id="hudPct">0</span>%</div>
-    <div class="text-[10px] font-bold text-pear-700 max-w-[9rem] truncate" id="hudLabel" dir="rtl">פתיחה</div>
+    <!-- dir="auto" rather than a hard-coded rtl: the label is a translated
+         chapter name, so the browser infers direction from the copy itself
+         and stays correct in both languages. data-i18n is rewritten by the
+         ScrollTrigger below as chapters change, which is what lets a
+         language switch re-translate whatever chapter is on screen. -->
+    <div class="text-[10px] font-bold text-pear-700 max-w-[9rem] truncate" id="hudLabel" dir="auto" data-i18n="hud.intro">פתיחה</div>
   </div>
 </div>
 
@@ -484,7 +598,7 @@
      NAVBAR · frosted, sticky. Tabs switch the two views (SPA).
      ════════════════════════════════════════════════════════════════ -->
 <header class="sticky top-0 z-50 bg-white/55 backdrop-blur-2xl border-b border-white/50" style="box-shadow: inset 0 -1px 0 rgba(255,255,255,0.4), 0 4px 24px -12px rgba(15,23,42,0.15);">
-  <nav class="max-w-6xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between" aria-label="ניווט ראשי">
+  <nav class="max-w-6xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between" data-i18n-aria-label="a11y.mainNav" aria-label="ניווט ראשי">
     <a href="#overview" data-nav="overview" class="nav-link flex items-center gap-2 font-mono font-bold text-lg tracking-tight text-slate-900">
       <img src="PEAR-logo.png" alt="" aria-hidden="true" width="1110" height="1586"
            class="brand-logo h-9 sm:h-10 w-auto" />
@@ -493,24 +607,38 @@
 
     <div class="flex items-center gap-1 sm:gap-2 h-full">
       <a href="#overview" data-nav="overview" data-scroll="hero"
-         class="nav-link nav-tab cursor-pointer h-full inline-flex items-center px-3 sm:px-4 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">על המיזם</a>
-      <a href="#docs" data-nav="docs" data-scroll="docsGate" data-view="docs" class="nav-link nav-tab cursor-pointer h-full inline-flex items-center px-3 sm:px-4 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">מדריך הטמעה</a>
+         class="nav-link nav-tab cursor-pointer h-full inline-flex items-center px-3 sm:px-4 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors" data-i18n="nav.about">על המיזם</a>
+      <a href="#docs" data-nav="docs" data-scroll="docsGate" data-view="docs" class="nav-link nav-tab cursor-pointer h-full inline-flex items-center px-3 sm:px-4 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors" data-i18n="nav.docs">מדריך הטמעה</a>
     </div>
 
-    <a href="#contact" data-nav="contact" data-scroll="contact-section" data-view="contact"
-       class="nav-link cursor-pointer inline-flex items-center gap-1.5 rounded-lg bg-slate-900 text-white text-sm font-semibold px-4 py-2 hover:bg-slate-700 transition-colors">
-      דברו איתנו
-    </a>
+    <div class="flex items-center gap-2 sm:gap-3">
+      <!-- Language switch · an explicit pick here wins over IP detection
+           forever after (i18n.js writes it to localStorage['app_lang']).
+           The option labels are language NAMES, so they are deliberately
+           identical in both dictionaries and stay hard-coded. -->
+      <div class="lang-switch" role="group" data-i18n-aria-label="a11y.langSwitch" aria-label="בחירת שפה">
+        <button type="button" class="lang-opt" data-set-lang="he" lang="he" aria-pressed="true">עב</button>
+        <button type="button" class="lang-opt" data-set-lang="en" lang="en" aria-pressed="false">EN</button>
+      </div>
+
+      <a href="#contact" data-nav="contact" data-scroll="contact-section" data-view="contact"
+         class="nav-link cursor-pointer inline-flex items-center gap-1.5 rounded-lg bg-slate-900 text-white text-sm font-semibold px-4 py-2 hover:bg-slate-700 transition-colors" data-i18n="nav.contact">
+        דברו איתנו
+      </a>
+    </div>
   </nav>
 </header>
 
 <!-- ════════════════════════════════════════════════════════════════
      VIEW 1 · LANDING (high-converting overview)
      ════════════════════════════════════════════════════════════════ -->
-<main id="view-overview" class="view active" aria-label="אודות המיזם והפתרון">
+<main id="view-overview" class="view active" data-i18n-aria-label="a11y.viewOverview" aria-label="אודות המיזם והפתרון">
 
-  <!-- ══════════ HERO · copy + social proof + 3D-tilt product mockup ══════════ -->
-  <section id="hero" data-hud="פתיחה" class="relative overflow-hidden">
+  <!-- ══════════ HERO · copy + social proof + 3D-tilt product mockup ══════════
+       data-hud holds a TRANSLATION KEY, not a label: the HUD chapter tracker
+       resolves it through PearI18n.t() so the chapter name follows the
+       active language. -->
+  <section id="hero" data-hud="hud.intro" class="relative overflow-hidden">
     <!-- quiet top aura (drifts on scroll — parallax depth layer) -->
     <div class="parallax-blob pointer-events-none absolute inset-x-0 -top-40 h-96 bg-[radial-gradient(ellipse_50%_100%_at_50%_0%,rgb(16_185_129/0.08),transparent_70%)]" data-speed=".35"></div>
 
@@ -524,13 +652,19 @@
           Virtual Try-On · AI for Fashion E-commerce
         </p>
 
-        <h1 data-split class="text-4xl sm:text-5xl xl:text-6xl font-black text-slate-900 tracking-tight leading-[1.07] mb-6">
+        <!-- data-i18n-html (not data-i18n): the headline carries inline
+             markup — the LTR product kicker and the coloured second line —
+             so the whole thing has to stay one translatable unit. Order
+             matters at boot: index.html's main script calls
+             PearI18n.apply() BEFORE the GSAP word-splitter runs, so the
+             splitter always sees the translated copy. -->
+        <h1 data-split data-i18n-html="hero.title" class="text-4xl sm:text-5xl xl:text-6xl font-black text-slate-900 tracking-tight leading-[1.07] mb-6">
           <span dir="ltr" class="block text-lg sm:text-xl font-bold text-pear-600 tracking-tight mb-2">PEAR Platform · AI Virtual Try-On &amp; Measurement</span>
           הלקוחות שלכם מודדים
           <span class="block mt-2 text-pear-600">בלי להגיע לחנות.</span>
         </h1>
 
-        <p class="max-w-xl mx-auto lg:mx-0 text-lg sm:text-xl text-slate-500 leading-relaxed mb-8">
+        <p data-i18n-html="hero.sub" class="max-w-xl mx-auto lg:mx-0 text-lg sm:text-xl text-slate-500 leading-relaxed mb-8">
           <span class="brand-pear">PEAR</span> מלביש את הבגד על הלקוח בזמן אמת, ממליץ מידה מדויקת ומוריד החזרות.
           <span class="font-semibold text-slate-700"><br> מודדים בבית, קונים בביטחון.</span>
         </p>
@@ -538,11 +672,11 @@
         
         <!-- Frictionless CTAs -->
         <div class="flex flex-wrap items-center justify-center lg:justify-start gap-3 mb-4">
-          <button data-scroll="playground"
+          <button data-scroll="playground" data-i18n="hero.ctaPrimary"
              class="cta-glow inline-flex items-center gap-2 rounded-xl bg-pear-600 text-white font-bold px-7 py-3.5 shadow-btn hover:bg-pear-700 hover:-translate-y-0.5 transition-all">
-            ✨ נסו את הוויג'ט האמיתי  30 שניות
+            ✨ נסו את הוויג'ט האמיתי · 30 שניות
           </button>
-          <button data-scroll="demo"
+          <button data-scroll="demo" data-i18n="hero.ctaSecondary"
              class="inline-flex items-center gap-2 rounded-xl glass text-slate-700 font-bold px-7 py-3.5 hover:-translate-y-0.5 transition-all">
             ▶ איך זה עובד? ב-17 שניות
           </button>
@@ -550,11 +684,11 @@
 
         <!-- Above the fold: industry research + product capability (no client claims) -->
         <div class="flex flex-wrap items-center justify-center lg:justify-start gap-x-5 gap-y-2">
-          <span class="text-sm text-slate-500">מחקרי שוק: <span class="font-bold text-slate-700">עד ~25% מהזמנות האופנה מוחזרות</span></span>
+          <span class="text-sm text-slate-500" data-i18n-html="hero.proof1">מחקרי שוק: <span class="font-bold text-slate-700">עד ~25% מהזמנות האופנה מוחזרות</span></span>
           <span class="w-px h-4 bg-slate-200 hidden sm:block"></span>
-          <span class="text-sm text-slate-500">אי-התאמת מידה <span class="font-bold text-slate-700">סיבת ההחזרה מס' 1</span></span>
+          <span class="text-sm text-slate-500" data-i18n-html="hero.proof2">אי-התאמת מידה <span class="font-bold text-slate-700">סיבת ההחזרה מס' 1</span></span>
           <span class="w-px h-4 bg-slate-200 hidden sm:block"></span>
-          <span class="text-sm text-slate-500">הטמעה ב<span class="font-bold text-slate-700">שורת קוד אחת</span></span>
+          <span class="text-sm text-slate-500" data-i18n-html="hero.proof3">הטמעה ב<span class="font-bold text-slate-700">שורת קוד אחת</span></span>
         </div>
       </div>
 
@@ -564,7 +698,7 @@
            same glass card the brand animation used, adapted to its 464×832 portrait.
            object-contain keeps the whole phone visible; a warm backdrop matching
            the clip's own background fills any gap so it reads as intentional. -->
-      <div class="tilt-scene relative z-10 order-first lg:order-none lg:translate-x-20">
+      <div class="tilt-scene hero-mockup relative z-10 order-first lg:order-none lg:translate-x-20">
         <div class="parallax-blob pointer-events-none absolute -inset-10 bg-[radial-gradient(ellipse_at_center,rgb(16_185_129/0.12),transparent_65%)] blur-2xl" data-speed="-.25" aria-hidden="true"></div>
 
         <div id="tiltCard" class="tilt-card vton-frame relative mx-auto w-[248px] sm:w-[280px] lg:w-[312px] rounded-3xl glass p-3">
@@ -572,9 +706,12 @@
           <div class="relative aspect-[464/832] rounded-2xl overflow-hidden bg-[#f1efe9]">
             <video id="vtonVideo" class="absolute inset-0 w-full h-full object-contain"
                    src="pear-VTon.mp4" muted loop playsinline preload="auto"
-                   aria-label="הדגמת מדידה וירטואלית של PEAR  לולאה ללא קול"></video>
+                   data-i18n-aria-label="a11y.heroVideo"
+                   aria-label="הדגמת מדידה וירטואלית של PEAR — לולאה ללא קול"></video>
 
-            <!-- the only control on the clip: a single minimal play/pause toggle -->
+            <!-- the only control on the clip: a single minimal play/pause toggle.
+                 No data-i18n-aria-label here — the label alternates with playback
+                 state, so block 7b owns it and re-reads it on language change. -->
             <button id="vtonToggle" type="button"
                     class="vton-toggle absolute bottom-2.5 left-2.5 inline-flex items-center justify-center w-9 h-9 rounded-full bg-black/45 backdrop-blur-md text-white/95 hover:bg-black/70 transition-colors"
                     aria-label="השהיית ההדגמה">
@@ -587,10 +724,10 @@
           <!-- floating chips: hover above the card in 3D space -->
           <div class="tilt-float absolute -top-4 -left-3 sm:-left-6 rounded-xl glass px-4 py-2.5 flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-pear-500 animate-pulse"></span>
-            <span class="text-xs font-bold text-slate-700">מידה מומלצת: <span class="font-mono text-pear-600">M</span></span>
+            <span class="text-xs font-bold text-slate-700" data-i18n-html="hero.badgeSize">מידה מומלצת: <span class="font-mono text-pear-600">M</span></span>
           </div>
           <div class="tilt-float absolute -bottom-4 -right-3 sm:-right-6 rounded-xl glass-dark text-white px-4 py-2.5">
-            <span class="text-xs font-bold">התאמה בזמן אמת ✨</span>
+            <span class="text-xs font-bold" data-i18n="hero.badgeRealtime">התאמה בזמן אמת ✨</span>
           </div>
         </div>
       </div>
@@ -608,12 +745,12 @@
        NOT shown: the always-on embed was removed, and because no Add-to-Cart button
        remains for it to anchor to, its fallback injection is stripped on sight. See
        suppressWidgetButtons() at the end of <body>. -->
-  <section id="playground" data-hud="נסו בעצמכם" class="border-b border-white/50">
+  <section id="playground" data-hud="hud.playground" class="border-b border-white/50">
     <div class="max-w-6xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
       <div class="max-w-2xl mx-auto text-center mb-12 reveal">
-        <p class="text-xs font-mono font-semibold tracking-[0.2em] text-pear-600 uppercase mb-3">Live Widget · בלי הרשמה</p>
-        <h2 data-split class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">זה הוויג'ט האמיתי. ממש כאן.</h2>
-        <p class="text-slate-500 text-lg">כך זה נראה בדף מוצר: לחצו על "מדידה חד-פעמית מהירה" וקבלו מדידה וירטואלית אמיתית, בלי הרשמה.</p>
+        <p class="text-xs font-mono font-semibold tracking-[0.2em] text-pear-600 uppercase mb-3" data-i18n="play.eyebrow">Live Widget · בלי הרשמה</p>
+        <h2 data-split data-i18n="play.title" class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">זה הוויג'ט האמיתי. ממש כאן.</h2>
+        <p class="text-slate-500 text-lg" data-i18n="play.sub">כך זה נראה בדף מוצר: לחצו על "מדידה חד-פעמית מהירה" וקבלו מדידה וירטואלית אמיתית, בלי הרשמה.</p>
       </div>
 
       <div class="reveal rounded-3xl glass p-7 sm:p-10 max-w-md mx-auto text-center">
@@ -621,11 +758,12 @@
           <img
             data-product-image
             src="pear-tshirt.jpg"
+            data-i18n-alt="play.productAlt"
             alt="חולצה בעיצוב PEAR Virtual Try-On, גזרת אוברסייז, בז'"
             class="absolute inset-0 w-full h-full object-contain">
         </div>
-        <p class="text-sm font-bold text-slate-700 mb-1">חולצת <span class="brand-pear">PEAR</span> · Virtual Try-On</p>
-        <p class="text-xs text-slate-400 mb-5">בז' · מידות S–XXL</p>
+        <p class="text-sm font-bold text-slate-700 mb-1" data-i18n-html="play.productName">חולצת <span class="brand-pear">PEAR</span> · Virtual Try-On</p>
+        <p class="text-xs text-slate-400 mb-5" data-i18n="play.productMeta">בז' · מידות S–XXL</p>
 
         <!-- The stand-in "הוסף לסל" button and its caption were removed: this card
              is now a pure try-on demo, so the one-time CTA below is the only
@@ -637,86 +775,91 @@
         <!-- Dedicated one-time direct-measurement CTA — skips the fitting-room's
              registration step and allows exactly one open per browser session.
              Click handler lives near the widget block at the end of <body>. -->
+        <!-- No data-i18n on the label: this button swaps between idle /
+             loading / used states, so the block at the end of <body> owns
+             its text and re-applies the right one on language change. -->
         <button id="pearDirectMeasureBtn" type="button"
+           data-i18n-aria-label="a11y.directMeasure"
            aria-label="מדידה וירטואלית חד-פעמית, ללא שלב הרשמה, פעם אחת בביקור"
            class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-transparent border-2 border-slate-300 text-slate-700 font-bold px-6 py-3.5 hover:border-pear-500 hover:text-pear-600 hover:-translate-y-0.5 transition-all">
           ⚡ מדידה חד-פעמית מהירה
         </button>
-        <p class="text-xs text-slate-400 mt-2">דילוג על שלב ההרשמה  ישר למדידה, שימוש אחד בכל ביקור.</p>
+        <p class="text-xs text-slate-400 mt-2" data-i18n="play.ctaNote">דילוג על שלב ההרשמה — ישר למדידה, שימוש אחד בכל ביקור.</p>
       </div>
     </div>
   </section>
 
   <!-- ══════════ DEMO · 17-second before/after (dark band) ══════════ -->
-  <section id="demo" data-hud="הדגמה חיה" class="glass-dark">
+  <section id="demo" data-hud="hud.demo" class="glass-dark">
     <div class="max-w-4xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
       <div class="max-w-2xl mb-12 reveal">
-        <p class="text-xs font-mono font-semibold tracking-[0.2em] text-pear-400 uppercase mb-3">17 שניות · לפני/אחרי</p>
-        <h2 data-split class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-4">כך זה נראה ללקוח שלכם</h2>
-        <p class="text-slate-400 text-lg">מהעמוד מוצר ועד תמונת לבוש חוויה חלקה, ישירות בדפדפן, ללא אפליקציה.</p>
+        <p class="text-xs font-mono font-semibold tracking-[0.2em] text-pear-400 uppercase mb-3" data-i18n="demo.eyebrow">17 שניות · לפני/אחרי</p>
+        <h2 data-split data-i18n="demo.title" class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-4">כך זה נראה ללקוח שלכם</h2>
+        <p class="text-slate-400 text-lg" data-i18n="demo.sub">מהעמוד מוצר ועד תמונת לבוש — חוויה חלקה, ישירות בדפדפן, ללא אפליקציה.</p>
       </div>
       <div class="reveal relative">
         <div class="parallax-blob pointer-events-none absolute -inset-6 bg-[radial-gradient(ellipse_at_center,rgb(16_185_129/0.14),transparent_70%)] blur-2xl" data-speed="-.15" aria-hidden="true"></div>
         <video class="relative w-full rounded-2xl ring-1 ring-white/10 shadow-lift bg-slate-950"
-               src="pear-ad.mp4" controls playsinline preload="metadata" aria-label="סרטון הדגמה של PEAR"></video>
+               src="pear-ad.mp4" controls playsinline preload="metadata"
+               data-i18n-aria-label="a11y.demoVideo" aria-label="סרטון הדגמה של PEAR"></video>
       </div>
     </div>
   </section>
 
   <!-- ══════════ MARKET RESEARCH · industry data + product potential ══════════ -->
-  <section id="market-section" data-hud="נתוני שוק" class="max-w-6xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
+  <section id="market-section" data-hud="hud.market" class="max-w-6xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
     <div class="max-w-2xl mx-auto text-center mb-14 reveal">
-      <p class="text-xs font-mono font-semibold tracking-[0.2em] text-pear-600 uppercase mb-3">נתוני שוק</p>
-      <h2 data-split class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">מה שמחקרי השוק מראים</h2>
-      <p class="text-slate-500 text-lg">הפער בין המסך למציאות עולה למותגי אופנה ביוקר וזו בדיוק הבעיה ש-<span class="brand-pear">PEAR</span> נבנתה כדי לפתור.</p>
+      <p class="text-xs font-mono font-semibold tracking-[0.2em] text-pear-600 uppercase mb-3" data-i18n="market.eyebrow">נתוני שוק</p>
+      <h2 data-split data-i18n="market.title" class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">מה שמחקרי השוק מראים</h2>
+      <p class="text-slate-500 text-lg" data-i18n-html="market.sub">הפער בין המסך למציאות עולה למותגי אופנה ביוקר — וזו בדיוק הבעיה ש-<span class="brand-pear">PEAR</span> נבנתה כדי לפתור.</p>
     </div>
 
     <!-- Industry-research stat cards (findings, not client results) -->
     <div class="grid sm:grid-cols-3 gap-5 mb-8">
       <div class="reveal rounded-2xl glass-dark text-white p-7 text-center">
         <p class="font-mono text-4xl font-black text-pear-400 mb-2"><span class="stat-num" data-to="25" data-prefix="~" data-suffix="%">~25%</span></p>
-        <p class="text-sm text-slate-300">שיעור ההחזרות באופנה מקוונת מהגבוהים באיקומרס</p>
+        <p class="text-sm text-slate-300" data-i18n="market.stat1">שיעור ההחזרות באופנה מקוונת מהגבוהים באיקומרס</p>
       </div>
       <div class="reveal rounded-2xl glass-dark text-white p-7 text-center">
         <p class="font-mono text-4xl font-black text-pear-400 mb-2">#1</p>
-        <p class="text-sm text-slate-300">אי-התאמת מידה היא סיבת ההחזרה המובילה בהלבשה</p>
+        <p class="text-sm text-slate-300" data-i18n="market.stat2">אי-התאמת מידה היא סיבת ההחזרה המובילה בהלבשה</p>
       </div>
       <div class="reveal rounded-2xl glass-dark text-white p-7 text-center">
         <p class="font-mono text-2xl font-black text-pear-400 mb-2 mt-3">Bracketing</p>
-        <p class="text-sm text-slate-300">קונים מזמינים כמה מידות ומחזירים את העודף ונועלים מלאי מבוקש</p>
+        <p class="text-sm text-slate-300" data-i18n="market.stat3">קונים מזמינים כמה מידות ומחזירים את העודף — ונועלים מלאי מבוקש</p>
       </div>
     </div>
 
     <!-- Product potential — forward-looking, focused on capability (no clients) -->
     <div class="reveal rounded-3xl glass p-8 sm:p-10 text-center max-w-3xl mx-auto">
-      <p class="text-lg sm:text-xl text-slate-700 leading-relaxed font-medium">
+      <p class="text-lg sm:text-xl text-slate-700 leading-relaxed font-medium" data-i18n-html="market.potential">
         <span class="brand-pear">PEAR</span> הופכת את חוסר הוודאות הזה לביטחון:
         <span class="text-pear-700 font-bold">מדידה חזותית מבוססת AI</span>
         שמאפשרת לכל קונה לראות את הבגד על עצמו ולקבל את המידה המדויקת עוד לפני התשלום.
       </p>
-      <p class="text-xs font-mono tracking-widest text-slate-400 uppercase mt-6">הפוטנציאל · פחות החזרות · יותר המרות · קונים בטוחים</p>
+      <p class="text-xs font-mono tracking-widest text-slate-400 uppercase mt-6" data-i18n="market.potentialTag">הפוטנציאל · פחות החזרות · יותר המרות · קונים בטוחים</p>
     </div>
 
-    <p class="text-center text-xs text-slate-400 mt-6 reveal">
+    <p class="text-center text-xs text-slate-400 mt-6 reveal" data-i18n="market.footnote">
       * הנתונים לעיל מבוססים על מחקרי אופנה ואיקומרס מקובלים בתעשייה, לא על ביצועי לקוח.
     </p>
   </section>
 
   <!-- ══════════ FINAL CTA ══════════ -->
-  <section id="cta" data-hud="סיום" class="relative overflow-hidden">
+  <section id="cta" data-hud="hud.cta" class="relative overflow-hidden">
     <!-- z-30 keeps the CTA copy ABOVE the fixed 3D layer: the pear parks centered
          behind this headline for the finale -->
     <div class="max-w-3xl mx-auto px-5 sm:px-8 py-20 sm:py-28 text-center relative z-30">
-      <h2 data-split class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight mb-4 reveal">מוכנים להוריד את אחוז ההחזרות?</h2>
-      <p class="text-slate-500 text-lg mb-9 reveal">שורת קוד אחת. חמש דקות. והלקוחות שלכם מודדים בבית.</p>
+      <h2 data-split data-i18n="cta.title" class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight mb-4 reveal">מוכנים להוריד את אחוז ההחזרות?</h2>
+      <p class="text-slate-500 text-lg mb-9 reveal" data-i18n="cta.sub">שורת קוד אחת. חמש דקות. והלקוחות שלכם מודדים בבית.</p>
       <div class="flex flex-wrap justify-center gap-3 reveal">
-        <button data-scroll="playground" class="cta-glow inline-flex items-center gap-2 rounded-xl bg-pear-600 text-white font-bold px-8 py-4 shadow-btn hover:bg-pear-700 hover:-translate-y-0.5 transition-all">
+        <button data-scroll="playground" data-i18n="cta.primary" class="cta-glow inline-flex items-center gap-2 rounded-xl bg-pear-600 text-white font-bold px-8 py-4 shadow-btn hover:bg-pear-700 hover:-translate-y-0.5 transition-all">
           ✨ נסו את הוויג'ט
         </button>
-        <a href="#docs" data-nav="docs" class="nav-link inline-flex items-center rounded-xl glass text-slate-700 font-bold px-8 py-4 hover:-translate-y-0.5 transition-all">
+        <a href="#docs" data-nav="docs" data-i18n="cta.docs" class="nav-link inline-flex items-center rounded-xl glass text-slate-700 font-bold px-8 py-4 hover:-translate-y-0.5 transition-all">
           למדריך ההטמעה ←
         </a>
-        <button data-scroll="contact-section" data-view="contact"
+        <button data-scroll="contact-section" data-view="contact" data-i18n="cta.contact"
            class="cursor-pointer inline-flex items-center gap-2 rounded-xl bg-transparent border-2 border-slate-300 text-slate-700 font-bold px-8 py-4 hover:border-pear-500 hover:text-pear-600 hover:-translate-y-0.5 transition-all">
           דברו איתנו 💬
         </button>
@@ -728,14 +871,14 @@
 <!-- ════════════════════════════════════════════════════════════════
      VIEW 2 · WIDGET INTEGRATION GUIDE (developer docs)
      ════════════════════════════════════════════════════════════════ -->
-<main id="view-docs" class="view" aria-label="מדריך הטמעת הוויג'ט">
+<main id="view-docs" class="view" data-i18n-aria-label="a11y.viewDocs" aria-label="מדריך הטמעת הוויג'ט">
 
   <!-- Docs hero -->
   <section class="border-b border-white/50">
     <div class="max-w-3xl mx-auto px-5 sm:px-8 pt-20 pb-14 sm:pt-24 sm:pb-16">
       <p class="text-xs font-mono font-semibold tracking-[0.2em] text-pear-600 uppercase mb-3">Developer Docs</p>
-      <h1 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight mb-5">מדריך הטמעת הוויג'ט</h1>
-      <p class="text-lg text-slate-500 leading-relaxed">
+      <h1 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight mb-5" data-i18n="docs.title">מדריך הטמעת הוויג'ט</h1>
+      <p class="text-lg text-slate-500 leading-relaxed" data-i18n-html="docs.sub">
         הטמעת הוויג'ט של <span class="brand-pear">PEAR</span> לוקחת <span class="font-semibold text-slate-700">פחות מ-5 דקות</span> ולא דורשת
         שינויים בארכיטקטורת האתר. שלושה שלבים והלקוחות שלכם מודדים.
       </p>
@@ -760,22 +903,27 @@
             <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
           </svg>
         </div>
-        <h2 class="text-xl font-extrabold text-white tracking-tight mb-2">המדריך נעול לקהל הרחב</h2>
-        <p class="text-sm text-slate-300 leading-relaxed mb-7">
+        <h2 class="text-xl font-extrabold text-white tracking-tight mb-2" data-i18n="docs.gateTitle">המדריך נעול לקהל הרחב</h2>
+        <p class="text-sm text-slate-300 leading-relaxed mb-7" data-i18n="docs.gateSub">
           גישה למדריך ההטמעה הטכני ניתנת באישור ידני של צוות הפיתוח.
         </p>
 
         <form id="docsGateForm" class="flex flex-col sm:flex-row gap-2 mb-3">
-          <input id="docsAccessInput" type="text" dir="ltr" autocomplete="off" placeholder="קוד גישה"
+          <input id="docsAccessInput" type="text" dir="ltr" autocomplete="off"
+                 data-i18n-placeholder="docs.gatePlaceholder" placeholder="קוד גישה"
                  class="flex-1 rounded-xl border border-white/15 bg-white/10 px-4 py-3.5 text-sm text-center font-mono tracking-[0.15em] text-white placeholder:text-slate-400 placeholder:tracking-normal placeholder:font-sans transition-all hover:border-white/25 focus:outline-none focus:border-pear-400 focus:ring-2 focus:ring-pear-500/50">
-          <button id="docsGateSubmit" type="submit"
+          <!-- data-i18n holds the IDLE label; the submit handler swaps in
+               "checking…" while the request is in flight and restores it. -->
+          <button id="docsGateSubmit" type="submit" data-i18n="docs.gateSubmit"
              class="cta-glow cursor-pointer shrink-0 rounded-xl bg-gradient-to-r from-pear-600 to-pear-500 bg-[length:200%_100%] bg-left hover:bg-right text-white font-bold px-6 py-3.5 shadow-btn transition-[background-position] duration-500 disabled:opacity-70 disabled:cursor-wait">
             אימות
           </button>
         </form>
-        <p id="docsGateError" class="hidden text-xs font-bold text-red-400 mb-3">קוד שגוי נסו שוב.</p>
+        <!-- Same story: the message depends on WHICH failure occurred. -->
+        <p id="docsGateError" class="hidden text-xs font-bold text-red-400 mb-3">קוד שגוי — נסו שוב.</p>
 
         <a href="#contact" data-scroll="contact-section" data-view="contact" data-prefill="docsAccess"
+           data-i18n="docs.gateRequest"
            class="inline-flex items-center gap-1.5 text-sm font-semibold text-pear-400 hover:text-pear-300 transition-colors cursor-pointer">
           אין לכם קוד גישה? מלאו את הטופס למטה ונשלח לכם מיידית ←
         </a>
@@ -791,14 +939,14 @@
 <!-- ════════════════════════════════════════════════════════════════
      VIEW 3 · CONTACT
      ════════════════════════════════════════════════════════════════ -->
-<main id="view-contact" class="view" aria-label="צור קשר">
+<main id="view-contact" class="view" data-i18n-aria-label="a11y.viewContact" aria-label="צור קשר">
 
   <!-- Contact hero -->
   <section id="contact-section" class="border-b border-white/50">
     <div class="max-w-3xl mx-auto px-5 sm:px-8 pt-20 pb-14 sm:pt-24 sm:pb-16 text-center">
       <p class="text-xs font-mono font-semibold tracking-[0.2em] text-pear-600 uppercase mb-3">Get In Touch</p>
-      <h1 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight mb-5">בואו נדבר</h1>
-      <p class="text-lg text-slate-500 leading-relaxed max-w-xl mx-auto">
+      <h1 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight mb-5" data-i18n="contact.title">בואו נדבר</h1>
+      <p class="text-lg text-slate-500 leading-relaxed max-w-xl mx-auto" data-i18n="contact.sub">
         שאלה על הטמעה, בקשת דמו למותג שלכם, או סתם רוצים להכיר?
         מלאו את הטופס או פנו אלינו ישירות.
       </p>
@@ -824,59 +972,59 @@
 
           <div class="grid sm:grid-cols-2 gap-6">
             <label class="relative block">
-              <span class="block text-sm font-bold text-slate-700 mb-2">שם מלא</span>
+              <span class="block text-sm font-bold text-slate-700 mb-2" data-i18n="contact.fieldName">שם מלא</span>
               <input type="text" name="name" required autocomplete="name"
                      class="peer w-full border-0 border-b-2 border-slate-200 bg-transparent px-1 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none transition-colors"
-                     placeholder="ישראל ישראלי">
+                     data-i18n-placeholder="contact.phName" placeholder="ישראל ישראלי">
               <span class="pointer-events-none absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-pear-400 to-pear-600 scale-x-0 peer-focus:scale-x-100 transition-transform duration-300 origin-center"></span>
             </label>
             <label class="relative block">
-              <span class="block text-sm font-bold text-slate-700 mb-2">אימייל</span>
+              <span class="block text-sm font-bold text-slate-700 mb-2" data-i18n="contact.fieldEmail">אימייל</span>
               <input type="email" name="email" dir="ltr" required autocomplete="email"
                      class="peer w-full border-0 border-b-2 border-slate-200 bg-transparent px-1 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none transition-colors"
-                     placeholder="you@brand.com">
+                     data-i18n-placeholder="contact.phEmail" placeholder="you@brand.com">
               <span class="pointer-events-none absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-pear-400 to-pear-600 scale-x-0 peer-focus:scale-x-100 transition-transform duration-300 origin-center"></span>
             </label>
           </div>
 
           <div class="grid sm:grid-cols-2 gap-6">
             <label class="relative block">
-              <span class="block text-sm font-bold text-slate-700 mb-2">טלפון</span>
+              <span class="block text-sm font-bold text-slate-700 mb-2" data-i18n="contact.fieldPhone">טלפון</span>
               <input type="tel" name="phone" dir="ltr" autocomplete="tel"
                      class="peer w-full border-0 border-b-2 border-slate-200 bg-transparent px-1 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none transition-colors"
-                     placeholder="050-1234567">
+                     data-i18n-placeholder="contact.phPhone" placeholder="050-1234567">
               <span class="pointer-events-none absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-pear-400 to-pear-600 scale-x-0 peer-focus:scale-x-100 transition-transform duration-300 origin-center"></span>
             </label>
             <label class="relative block">
-              <span class="block text-sm font-bold text-slate-700 mb-2">שם החברה</span>
+              <span class="block text-sm font-bold text-slate-700 mb-2" data-i18n="contact.fieldCompany">שם החברה</span>
               <input type="text" name="company" autocomplete="organization"
                      class="peer w-full border-0 border-b-2 border-slate-200 bg-transparent px-1 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none transition-colors"
-                     placeholder="שם המותג / החברה">
+                     data-i18n-placeholder="contact.phCompany" placeholder="שם המותג / החברה">
               <span class="pointer-events-none absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-pear-400 to-pear-600 scale-x-0 peer-focus:scale-x-100 transition-transform duration-300 origin-center"></span>
             </label>
           </div>
 
           <label class="relative block">
-            <span class="block text-sm font-bold text-slate-700 mb-2">תפקיד</span>
+            <span class="block text-sm font-bold text-slate-700 mb-2" data-i18n="contact.fieldRole">תפקיד</span>
             <input type="text" name="role" autocomplete="organization-title"
                    class="peer w-full border-0 border-b-2 border-slate-200 bg-transparent px-1 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none transition-colors"
-                   placeholder="למשל: מנהל/ת דיגיטל">
+                   data-i18n-placeholder="contact.phRole" placeholder="למשל: מנהל/ת דיגיטל">
             <span class="pointer-events-none absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-pear-400 to-pear-600 scale-x-0 peer-focus:scale-x-100 transition-transform duration-300 origin-center"></span>
           </label>
 
           <label class="relative block">
-            <span class="block text-sm font-bold text-slate-700 mb-2">נושא</span>
+            <span class="block text-sm font-bold text-slate-700 mb-2" data-i18n="contact.fieldSubject">נושא</span>
             <input type="text" name="subject" required
                    class="peer w-full border-0 border-b-2 border-slate-200 bg-transparent px-1 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none transition-colors"
-                   placeholder="למשל: בקשת דמו למותג אופנה">
+                   data-i18n-placeholder="contact.phSubject" placeholder="למשל: בקשת דמו למותג אופנה">
             <span class="pointer-events-none absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-pear-400 to-pear-600 scale-x-0 peer-focus:scale-x-100 transition-transform duration-300 origin-center"></span>
           </label>
 
           <label class="block">
-            <span class="block text-sm font-bold text-slate-700 mb-2">הודעה</span>
+            <span class="block text-sm font-bold text-slate-700 mb-2" data-i18n="contact.fieldMessage">הודעה</span>
             <textarea name="message" rows="5" required
                       class="w-full rounded-2xl border border-slate-200 bg-white/60 px-4 py-3.5 text-sm text-slate-800 placeholder:text-slate-400 resize-none shadow-sm transition-all hover:border-slate-300 focus:outline-none focus:border-pear-500 focus:ring-4 focus:ring-pear-500/15 focus:bg-white"
-                      placeholder="ספרו לנו קצת על הפרויקט..."></textarea>
+                      data-i18n-placeholder="contact.phMessage" placeholder="ספרו לנו קצת על הפרויקט..."></textarea>
           </label>
 
           <button id="contactSubmit" type="submit"
@@ -893,7 +1041,9 @@
             <svg id="contactSendIcon" viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M19 12H5"/><path d="m11 6-6 6 6 6"/>
             </svg>
-            <span id="contactSubmitLabel">שליחת הודעה</span>
+            <!-- data-i18n carries the IDLE label; the submit handler overwrites
+                 it with the sending/sent states and restores this one after. -->
+            <span id="contactSubmitLabel" data-i18n="contact.submit">שליחת הודעה</span>
           </button>
         </form>
       </div>
@@ -901,11 +1051,11 @@
       <!-- ── Direct contact info ── -->
       <div class="reveal lg:col-span-2 space-y-5">
         <div class="rounded-3xl glass-dark text-white p-7 sm:p-8">
-          <h2 class="text-lg font-extrabold mb-1.5">פנייה ישירה</h2>
-          <p class="text-sm text-slate-300 mb-7 leading-relaxed">מעדיפים לדבר ישירות? אנחנו זמינים באימייל ובטלפון.</p>
+          <h2 class="text-lg font-extrabold mb-1.5" data-i18n="contact.directTitle">פנייה ישירה</h2>
+          <p class="text-sm text-slate-300 mb-7 leading-relaxed" data-i18n="contact.directSub">מעדיפים לדבר ישירות? אנחנו זמינים באימייל.</p>
 
-          <a href="mailto:pearytrank@gmail.com"
-             class="flex items-center gap-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-pear-400/40 px-4 py-3.5 mb-3 transition-all duration-200 hover:-translate-y-0.5">
+          <a href="mailto:support@pear-ai.io"
+             class="flex items-center gap-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-pear-400/40 px-4 py-3.5 transition-all duration-200 hover:-translate-y-0.5">
             <span class="shrink-0 w-10 h-10 rounded-xl bg-pear-500/20 text-pear-400 flex items-center justify-center">
               <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 6.5 8.5 7 8.5-7"/>
@@ -913,27 +1063,14 @@
             </span>
             <span class="min-w-0">
               <span class="block text-[11px] font-mono uppercase tracking-widest text-slate-400 mb-0.5">Email</span>
-              <span class="block text-sm font-bold truncate" dir="ltr">pearytrank@gmail.com</span>
-            </span>
-          </a>
-
-          <a href="tel:0527067006"
-             class="flex items-center gap-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-pear-400/40 px-4 py-3.5 transition-all duration-200 hover:-translate-y-0.5">
-            <span class="shrink-0 w-10 h-10 rounded-xl bg-pear-500/20 text-pear-400 flex items-center justify-center">
-              <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/>
-              </svg>
-            </span>
-            <span class="min-w-0">
-              <span class="block text-[11px] font-mono uppercase tracking-widest text-slate-400 mb-0.5">Phone</span>
-              <span class="block text-sm font-bold" dir="ltr">052-706-7006</span>
+              <span class="block text-sm font-bold truncate" dir="ltr">support@pear-ai.io</span>
             </span>
           </a>
         </div>
 
         <div class="rounded-3xl glass p-6 flex items-start gap-3">
           <span class="text-xl leading-none mt-0.5">🍐</span>
-          <p class="text-sm text-slate-600 leading-relaxed">
+          <p class="text-sm text-slate-600 leading-relaxed" data-i18n-html="contact.teamNote">
             צוות <span class="brand-pear">PEAR</span> זמין לשאלות טכניות, הדגמות למותגים ותמיכה בהטמעה.
           </p>
         </div>
@@ -950,7 +1087,7 @@
            class="brand-logo h-7 w-auto opacity-90" />
       <span class="brand-pear">PEAR</span>
     </span>
-    <p class="text-xs text-slate-400">© 2026 <span class="brand-pear">PEAR</span> Platform (pearvton) — Virtual Try-On · כל הזכויות שמורות</p>
+    <p class="text-xs text-slate-400" data-i18n-html="footer.rights">© 2026 <span class="brand-pear">PEAR</span> Platform (pearvton) — Virtual Try-On · כל הזכויות שמורות</p>
   </div>
 </footer>
 
@@ -964,11 +1101,29 @@
 <script>
 /* ════════════════════════════════════════════════════════════════
    PEAR landing · vanilla JS
-   Blocks: 1) view routing  2) smooth-scroll CTAs  3) clipboard
-           4) toast  5) contact form
+   Blocks: 0) i18n bootstrap  1) view routing  2) smooth-scroll CTAs
+           3) clipboard  4) toast  5) contact form
            7) 3D tilt  7b) VTon loop  8) scroll HUD  9) scroll reveal
            9.5) GSAP cinematics  10) boot
    ════════════════════════════════════════════════════════════════ */
+
+/* ── 0 · i18n bootstrap ───────────────────────────────────────────
+   THIS MUST STAY FIRST. Two blocks below read the DOM's text as data
+   rather than just displaying it, and both break if they run against
+   untranslated markup:
+     • 9.5 shreds every [data-split] headline into per-word <span>s —
+       run before translation and it splits Hebrew that is about to be
+       replaced, throwing the spans away;
+     • the widget block at the end of <body> captures the direct-measure
+       button's idle label to restore later.
+   PearI18n itself resolved the language back in <head> (see i18n.js);
+   this call is what pushes it into the body.
+
+   The optional-chaining guard is not decoration: if i18n.js ever fails
+   to load, every block below still runs and the page falls back to the
+   Hebrew literals baked into the markup. */
+window.PearI18n?.apply();
+const t = (key) => (window.PearI18n ? window.PearI18n.t(key) : key);
 
 /* ── 1 · View routing (#overview / #docs / #contact) ──────────── */
 const VIEWS = ['overview', 'docs', 'contact'];
@@ -994,30 +1149,39 @@ function renderView(view, { scroll = true } = {}) {
 
 /* ── 2 · Smooth-scroll CTA buttons (data-scroll="sectionId", optional
    data-view="overview|docs|contact" — defaults to overview, optional
-   data-prefill="key" — see PREFILLS below) ────────────────────────
+   data-prefill="key" — see PREFILL_KEYS below) ────────────────────
    If the target section's view isn't on screen, switch to it first
    (which jumps to top), then smooth-scroll down to the section once
    the new view has rendered. The cross-view delay is 220ms, not the
    old 60ms: renderView() schedules its own ScrollTrigger.refresh()
    60ms after the hashchange, and refresh() briefly yanks scroll back
    to measure pinned sections (the "demo" video is pin:true) — firing
-   our scrollIntoView before that settles gets it cancelled mid-flight. */
-const PREFILLS = {
-  integration: {
-    subject: 'עזרה בהטמעת PEAR באתר',
-    message: 'היי, אני מנסה להטמיע את PEAR באתר שלי ואשמח לקבל עזרה קלה מהצוות הטכני שלכם.',
-  },
-  docsAccess: {
-    subject: 'בקשת גישה למדריך ההטמעה',
-    message: '🔐 בקשת גישה למדריך ההטמעה\n\nהיי, אשמח לקבל קוד גישה למדריך ההטמעה הטכני של PEAR.\n\n(לאישור: השיבו לכתובת המייל הזו עם קוד הגישה)',
-    requestType: 'בקשת גישה למדריך ההטמעה 🔐',
-  },
+   our scrollIntoView before that settles gets it cancelled mid-flight.
+
+   PREFILL COPY IS RESOLVED AT CLICK TIME, not here: a visitor who
+   switches language before reaching the CTA must get the form filled in
+   the language they are now reading. Building the strings once at boot
+   would freeze whatever language happened to be active then. */
+const PREFILL_KEYS = {
+  integration: { subject: 'prefill.integration.subject', message: 'prefill.integration.message' },
+  docsAccess:  { subject: 'prefill.docsAccess.subject',  message: 'prefill.docsAccess.message',
+                 requestType: 'prefill.docsAccess.type' },
 };
+
+function prefillFor(name) {
+  const keys = PREFILL_KEYS[name];
+  if (!keys) return null;
+  return {
+    subject: t(keys.subject),
+    message: t(keys.message),
+    requestType: keys.requestType ? t(keys.requestType) : '',
+  };
+}
 
 function bindScrollButtons(root = document) {
   root.querySelectorAll('[data-scroll]').forEach((btn) => {
   btn.addEventListener('click', () => {
-    const preset = PREFILLS[btn.dataset.prefill];
+    const preset = prefillFor(btn.dataset.prefill);
     const targetForm = btn.dataset.scroll === 'contact-section' && document.getElementById('contactForm');
     if (targetForm) {
       // request_type is a hidden field the visitor never edits, so it's always
@@ -1095,6 +1259,10 @@ function mountDocs(html) {
   docsGateStage?.classList.add('hidden');
   // The guide arrived after page load, so the delegated-at-boot listeners
   // never saw it — bind its copy buttons and CTAs now.
+  // Same for i18n: api/get-docs.js ships the guide marked up with data-i18n
+  // keys and Hebrew defaults, so this subtree has to be translated on
+  // arrival. Passing the root scopes the sweep to just the new nodes.
+  window.PearI18n?.apply(docsViewport);
   bindCopyButtons(docsViewport);
   bindScrollButtons(docsViewport);
   if (window.ScrollTrigger) setTimeout(() => ScrollTrigger.refresh(), 80);
@@ -1122,7 +1290,7 @@ if (docsGateForm) {
     if (!code || docsGateSubmit.disabled) return;
 
     docsGateSubmit.disabled = true;
-    docsGateSubmit.textContent = 'בודק…';
+    docsGateSubmit.textContent = t('docs.gateChecking');
     docsGateError.classList.add('hidden');
 
     try {
@@ -1130,16 +1298,22 @@ if (docsGateForm) {
       sessionStorage.setItem(DOCS_SESSION_KEY, code);
       mountDocs(html);
     } catch (err) {
-      docsGateError.textContent =
-        err.noRuntime            ? 'סביבת פיתוח: אין ריצת שרת. הריצו vercel dev במקום Live Server.' :
-        err.noPasscodeConfigured ? 'תקלת הגדרה בשרת: DOCS_PASSCODE אינו מוגדר.' :
-        err.status === 429       ? 'יותר מדי ניסיונות — נסו שוב בעוד 15 דקות.' :
-                                   'קוד שגוי — נסו שוב.';
+      /* The key is stashed on the element as well as rendered, so a
+         language switch while the error is still on screen re-translates
+         it through the normal data-i18n sweep instead of stranding the
+         message in the previous language. */
+      const errKey =
+        err.noRuntime            ? 'docs.errNoRuntime' :
+        err.noPasscodeConfigured ? 'docs.errNoPasscode' :
+        err.status === 429       ? 'docs.errRateLimit' :
+                                   'docs.errWrong';
+      docsGateError.dataset.i18n = errKey;
+      docsGateError.textContent = t(errKey);
       docsGateError.classList.remove('hidden');
       docsAccessInput.classList.add('border-red-400');
       docsAccessInput.focus();
       docsGateSubmit.disabled = false;
-      docsGateSubmit.textContent = 'אימות';
+      docsGateSubmit.textContent = t('docs.gateSubmit');
     }
   });
   docsAccessInput.addEventListener('input', () => {
@@ -1165,7 +1339,7 @@ function bindCopyButtons(root = document) {
       checkIcon.classList.remove('hidden');
       label.textContent = 'Copied';
       btn.classList.add('copy-flash');
-      showToast('הקוד הועתק ללוח ✓');
+      showToast(t('toast.copied'));
       setTimeout(() => {
         copyIcon.classList.remove('hidden');
         checkIcon.classList.add('hidden');
@@ -1173,7 +1347,7 @@ function bindCopyButtons(root = document) {
         btn.classList.remove('copy-flash');
       }, 2000);
     } catch {
-      showToast('ההעתקה נכשלה — העתיקו ידנית', 'error');
+      showToast(t('toast.copyFailed'), 'error');
     }
   });
   });
@@ -1183,7 +1357,9 @@ bindCopyButtons();
 /* ── 4 · Toast ────────────────────────────────────────────────────
    type: 'default' | 'success' | 'error'. `msg` must stay a literal we
    wrote — it's injected via innerHTML for the icon, so never pass
-   user- or API-supplied text through here. */
+   user- or API-supplied text through here. Values from PearI18n.t()
+   qualify: the dictionary in i18n.js is author-written and ships with
+   the site, exactly like the literals it replaced. */
 let toastTimer = null;
 const TOAST_ICONS = {
   success: '<svg viewBox="0 0 24 24" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',
@@ -1226,7 +1402,7 @@ if (contactForm) {
     submitBtn.disabled = true;
     spinner.classList.remove('hidden');
     sendIcon.classList.add('hidden');
-    label.textContent = 'שולח…';
+    label.textContent = t('contact.sending');
 
     const payload = {
       access_key: data.get('access_key'),
@@ -1235,7 +1411,7 @@ if (contactForm) {
       phone: data.get('phone'),
       company: data.get('company'),
       role: data.get('role'),
-      subject: data.get('subject') || 'פנייה חדשה מאתר PEAR',
+      subject: data.get('subject') || t('contact.defaultSubject'),
       message: data.get('message'),
       ...(data.get('request_type') ? { request_type: data.get('request_type') } : {}),
     };
@@ -1256,23 +1432,23 @@ if (contactForm) {
       }
 
       spinner.classList.add('hidden');
-      label.textContent = 'נשלח בהצלחה ✓';
-      showToast('הודעתך נשלחה בהצלחה! נחזור אליכם בהקדם', 'success');
+      label.textContent = t('contact.sent');
+      showToast(t('contact.toastSuccess'), 'success');
       contactForm.reset();
 
       setTimeout(() => {
         submitBtn.disabled = false;
         sendIcon.classList.remove('hidden');
-        label.textContent = 'שליחת הודעה';
+        label.textContent = t('contact.submit');
       }, 1800);
 
     } catch (err) {
       console.error('[Web3Forms] fetch failed:', err);
       spinner.classList.add('hidden');
       sendIcon.classList.remove('hidden');
-      label.textContent = 'שליחת הודעה';
+      label.textContent = t('contact.submit');
       submitBtn.disabled = false;
-      showToast('השליחה נכשלה — נסו שוב או כתבו לנו ישירות למייל', 'error');
+      showToast(t('contact.toastError'), 'error');
     }
   });
 }
@@ -1311,12 +1487,16 @@ if (vton) {
   let wantsPlay = !REDUCED;
   let onScreen  = true;
 
+  /* The label alternates with playback state, so it can't be a static
+     data-i18n attribute — sync() is the single place that owns it, and
+     the language-change listener at block 10 simply calls sync() again. */
   const sync = () => {
     const playing = !vton.paused;
     path.setAttribute('d', playing ? D_PAUSE : D_PLAY);
-    btn.setAttribute('aria-label', playing ? 'השהיית ההדגמה' : 'הפעלת ההדגמה');
+    btn.setAttribute('aria-label', t(playing ? 'a11y.vtonPause' : 'a11y.vtonPlay'));
     frame.classList.toggle('is-paused', !playing);
   };
+  window.PearI18n?.onChange(sync);
   // A blocked autoplay rejects here; the still frame is a fine resting state.
   const apply = () => { (wantsPlay && onScreen) ? vton.play().catch(() => {}) : vton.pause(); };
 
@@ -1386,8 +1566,15 @@ try {
 
     /* Split every [data-split] headline into word spans (nested colored
        spans survive — we walk text nodes recursively), then unfold each
-       word as the headline scrolls in. */
-    document.querySelectorAll('#view-overview [data-split]').forEach((el) => {
+       word as the headline scrolls in.
+
+       Extracted into a named function and exposed on window because a
+       language change replaces these headlines' innerHTML wholesale,
+       which throws every word span (and the triggers pointing at them)
+       away. Block 10 re-runs it afterwards so the effect survives the
+       swap. Re-running is safe: it always operates on the freshly
+       written plain text, never on already-split markup. */
+    function splitHeadline(el) {
       (function walk(node) {
         [...node.childNodes].forEach((n) => {
           if (n.nodeType === 3 && n.textContent.trim()) {
@@ -1421,7 +1608,13 @@ try {
           { yPercent: 45, opacity: 0, clipPath: 'inset(0% 0% 100% 0%)' },
           { yPercent: 0, opacity: 1, clipPath: 'inset(0% 0% 0% 0%)',
             duration: 1.05, ease: 'power3.out', delay: .28, scrollTrigger: trig });
-    });
+    }
+
+    function splitHeadlines() {
+      document.querySelectorAll('#view-overview [data-split]').forEach(splitHeadline);
+    }
+    splitHeadlines();
+    window.__pearSplitHeadlines = splitHeadlines;
 
     /* Glowing stat counters — numbers count up when they enter view. */
     document.querySelectorAll('.stat-num').forEach((el) => {
@@ -1476,11 +1669,18 @@ try {
                            scrub: .4, pin: true } });
     }
 
-    /* HUD chapter label follows the section under the viewport center. */
+    /* HUD chapter label follows the section under the viewport center.
+       data-hud holds a TRANSLATION KEY, so it is resolved here and the
+       key is also written onto the label as data-i18n — that way a
+       language switch re-translates whatever chapter is currently
+       showing through the ordinary i18n sweep, with no extra wiring. */
     document.querySelectorAll('#view-overview [data-hud]').forEach((sec) => {
       ScrollTrigger.create({ trigger: sec, start: 'top 55%', end: 'bottom 55%',
         onToggle: (self) => {
-          if (self.isActive) document.getElementById('hudLabel').textContent = sec.dataset.hud;
+          if (!self.isActive) return;
+          const label = document.getElementById('hudLabel');
+          label.dataset.i18n = sec.dataset.hud;
+          label.textContent = t(sec.dataset.hud);
         } });
     });
 
@@ -1492,6 +1692,27 @@ try {
 } catch (e) { console.warn('[PEAR] cinematics skipped:', e?.message || e); }
 
 /* ── 10 · Boot — after ALL definitions above ──────────────────── */
+
+/* Language switch. Delegated from the document so it keeps working no
+   matter which view is mounted, and so the same handler covers any
+   [data-set-lang] control added later (a footer switch, a menu item).
+   PearI18n.setLang persists the pick to localStorage['app_lang'], which
+   is what stops IP detection from ever overriding it again. */
+document.addEventListener('click', (e) => {
+  const opt = e.target.closest('[data-set-lang]');
+  if (!opt || !window.PearI18n) return;
+  window.PearI18n.setLang(opt.dataset.setLang);
+});
+
+/* Everything that has to be re-run AFTER the copy changes. i18n.js only
+   fires this once the new text is in the DOM, so the split below always
+   operates on the language the visitor is about to read. */
+window.PearI18n?.onChange(() => {
+  window.__pearSplitHeadlines?.();  // re-split: applyDOM replaced the headlines
+  revealAll();                      // …and nothing may be left mid-animation
+  if (window.ScrollTrigger) setTimeout(() => ScrollTrigger.refresh(), 80);
+});
+
 window.addEventListener('hashchange', () => renderView(currentView()));
 renderView(currentView(), { scroll: false });
 setTimeout(revealAll, 1500);          // safety net — nothing may remain invisible
@@ -1885,21 +2106,43 @@ try {
 
   const btn = document.getElementById('pearDirectMeasureBtn');
   if (!btn) return;
-  const idleLabel = btn.textContent;
+
+  const t = (key) => (window.PearI18n ? window.PearI18n.t(key) : key);
+
+  /* This button has three labels (idle / loading / already-used), so it
+     cannot carry a plain data-i18n attribute — the sweep would clobber
+     whichever state it is in. renderState() is the one place that knows
+     which label is correct, and it is re-run on every language change.
+     NOTE: the idle label is read from the dictionary, NOT captured from
+     btn.textContent at boot as it used to be — a captured string would
+     freeze the language that happened to be active at load and reappear
+     later, in the wrong language, when the widget script fails. */
+  let used = false;
+
+  function renderState() {
+    btn.textContent = used ? t('play.ctaUsed') : t('play.cta');
+    if (used) btn.title = t('play.ctaUsedTitle');
+    else btn.removeAttribute('title');
+  }
 
   function lock() {
+    used = true;
     btn.disabled = true;
     btn.style.opacity = '0.55';
     btn.style.cursor = 'not-allowed';
     btn.style.pointerEvents = 'none';
     btn.setAttribute('aria-disabled', 'true');
-    btn.title = 'כבר בוצעה מדידה חד-פעמית בביקור הזה';
-    btn.textContent = '✓ המדידה נוצלה לביקור הזה';
+    renderState();
   }
 
   try {
     if (sessionStorage.getItem(USED_KEY) === '1') lock();
-  } catch (_) {}
+    else renderState();
+  } catch (_) {
+    renderState();
+  }
+
+  window.PearI18n?.onChange(renderState);
 
   /* pear-widget.js boots the instant it lands and always tries to place its own
      black .pear-widget-btn ("מדוד וירטואלית") somewhere. Two different code paths
@@ -1959,8 +2202,8 @@ try {
     s.onload = () => { suppressWidgetButtons(); done(); };
     s.onerror = () => {
       btn.disabled = false;
-      btn.textContent = idleLabel;
-      alert('לא הצלחנו לטעון את הוויג׳ט. נסו שוב בעוד רגע.');
+      renderState();
+      alert(t('play.loadError'));
     };
     document.head.appendChild(s);
   }
@@ -1982,13 +2225,13 @@ try {
     const iframe = document.createElement('iframe');
     iframe.className = 'pear-direct-frame';
     iframe.src = `${PEAR_BASE}/fitting-room/?${params.toString()}`;
-    iframe.title = 'PEAR  מדידה וירטואלית חד-פעמית';
+    iframe.title = t('a11y.fittingRoom');
     iframe.setAttribute('allow', 'camera; microphone; fullscreen');
 
     const close = document.createElement('button');
     close.type = 'button';
     close.className = 'pear-direct-close';
-    close.setAttribute('aria-label', 'סגירה');
+    close.setAttribute('aria-label', t('a11y.closeModal'));
     close.textContent = '×';
 
     const closeModal = () => overlay.remove();
@@ -2005,7 +2248,7 @@ try {
   btn.addEventListener('click', () => {
     if (btn.disabled) return;
     btn.disabled = true;
-    btn.textContent = 'טוען…';
+    btn.textContent = t('play.ctaLoading');
     ensureWidgetScript(() => {
       try { sessionStorage.setItem(USED_KEY, '1'); } catch (_) {}
       openDirectFittingRoom();

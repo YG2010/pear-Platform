@@ -1,8 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<!--
+  Language annotations, matching the <link rel="alternate"> tags in
+  index.html's <head>. Google treats sitemap hreflang and in-page
+  hreflang as equivalent, but the two must not disagree — and every URL
+  in a set has to list the WHOLE set including itself (the "return
+  link"), or the annotations are dropped without a warning.
+
+  The bare root is x-default: it is the URL that auto-detects, which is
+  exactly the right behaviour for "none of the declared languages
+  matched the user".
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://platform.pear-ai.io/</loc>
-    <lastmod>2026-07-25</lastmod>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://platform.pear-ai.io/"/>
+    <xhtml:link rel="alternate" hreflang="he" href="https://platform.pear-ai.io/?lang=he"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://platform.pear-ai.io/?lang=en"/>
+    <lastmod>2026-08-01</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://platform.pear-ai.io/?lang=he</loc>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://platform.pear-ai.io/"/>
+    <xhtml:link rel="alternate" hreflang="he" href="https://platform.pear-ai.io/?lang=he"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://platform.pear-ai.io/?lang=en"/>
+    <lastmod>2026-08-01</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://platform.pear-ai.io/?lang=en</loc>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://platform.pear-ai.io/"/>
+    <xhtml:link rel="alternate" hreflang="he" href="https://platform.pear-ai.io/?lang=he"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://platform.pear-ai.io/?lang=en"/>
+    <lastmod>2026-08-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
