@@ -9,11 +9,14 @@
    Hebrew RTL layout to an English visitor.
 
    RESOLUTION ORDER (first hit wins):
-     1. ?lang=he|en in the URL  — what the hreflang alternates point at,
+     1. ?lang=he|en in the URL — what the hreflang alternates point at,
         so a search engine landing on /?lang=en gets English markup with
-        no guessing at all. Also persisted, so the choice sticks.
-     2. localStorage['app_lang'] — an explicit choice from the navbar
-        switch. A visitor who picked a language is never overridden.
+        no guessing at all. Governs ONLY this page load; it is
+        deliberately NOT written to localStorage (see LANG_KEY below for
+        why that used to happen and what it broke).
+     2. localStorage['app_lang'] — an explicit choice, written ONLY by an
+        actual click on the navbar [data-set-lang] toggle. A visitor who
+        picked a language is never overridden by anything below.
      3. localStorage['app_lang_geo'] — a cached country lookup (30 days),
         so only the very first visit ever pays for a network round trip.
      4. GEO_SOURCES, tried in order — country_code === 'IL' → Hebrew,
@@ -25,13 +28,19 @@
         tracker blocklists), and a visitor testing over a VPN in
         Incognito is exactly the visitor most likely to have both. Three
         independent providers falling over at once is far less likely
-        than one.
-     5. navigator.language(s) — used ONLY if every source in step 4
-        failed. It never gets a vote while a GEO_SOURCES answer is still
-        possible, because navigator.language reflects the visitor's
-        BROWSER locale, not their VPN exit location — trusting it over a
-        successful IP lookup would defeat the point of testing through a
-        VPN in the first place. Starts with 'he' → Hebrew, else English.
+        than one. The three share ONE wall-clock budget (GEO_BUDGET_MS)
+        rather than each getting a small fixed slot — VPN-routed traffic
+        regularly adds real latency on top of a normal geo-IP round
+        trip, and a too-tight per-provider timeout aborts a genuine,
+        still-in-flight response before it can ever arrive.
+     5. DEFAULT_LANG ('en') — used ONLY if every source in step 4 failed
+        or the whole cascade ran out of budget. This does NOT consult
+        navigator.language: an unresolved visitor is a safe default for
+        an internationally-facing site, and OS/browser locale is not a
+        reliable signal of WHERE someone is browsing from (that is the
+        whole reason VPN testing exists). Hebrew is only ever reached
+        through a confirmed 'IL' IP match (step 4) or a deliberate toggle
+        click (step 2) — never inferred.
 
    THE CLOAK: steps 1–3 are synchronous, so the common case resolves
    before first paint with zero flicker and no cloak at all. Only a
@@ -39,10 +48,10 @@
    <html> gets .i18n-cloak (a CSS rule fades the body out) until the
    lookup settles or CLOAK_MAX_MS elapses, whichever comes first. The
    failsafe timer matters: it guarantees the page can never be left
-   invisible by a hanging request — and because step 4 can now make up
-   to three sequential attempts, CLOAK_MAX_MS is sized to comfortably
-   cover all three before it would ever fire ahead of a real answer (see
-   the constants below for the exact budget).
+   invisible by a hanging request — and CLOAK_MAX_MS is sized to
+   comfortably exceed GEO_BUDGET_MS so it fires only once the whole
+   cascade is genuinely exhausted, not while a real answer is still
+   in flight (see the constants below for the exact numbers).
 
    SECURITY NOTE: values under the `html:` namespace are injected with
    innerHTML. Everything in DICT below is an author-written literal that
@@ -77,7 +86,7 @@
      fine and deliberate: it costs one fast local failure, then falls
      through to ipinfo.io exactly like any other provider outage. It
      stays in the list because when it DOES answer it is one more
-     independent source between a visitor and the navigator.language
+     independent source between a visitor and the DEFAULT_LANG
      fallback. */
   var GEO_SOURCES = [
     {
@@ -108,13 +117,26 @@
     }
   ];
 
-  var GEO_TIMEOUT_MS  = 700;    // per-provider — abort a slow one rather than stall on it
-  /* Worst case is all three providers hanging to their individual
-     timeouts back to back (3 × GEO_TIMEOUT_MS = 2100ms); this leaves
-     comfortable headroom above that so the cloak's failsafe fires only
-     when the whole cascade is genuinely stuck, not while a real answer
-     is still in flight from the second or third provider. */
-  var CLOAK_MAX_MS    = 2400;   // hard ceiling on the first-visit cloak
+  /* ONE shared wall-clock budget for the whole GEO_SOURCES cascade —
+     see fromIpLookup(). The first attempt gets nearly the entire budget
+     (so a slow-but-genuine VPN response has real room to land instead
+     of being aborted); if it fails outright rather than timing out, the
+     next attempt still gets almost all of it too. Only a provider that
+     actually burns time via its own timeout squeezes what is left for
+     the next one.
+
+     700ms (the previous per-provider figure) was diagnosed in production
+     as too aggressive: every one of the three providers was failing with
+     "signal is aborted without reason" — the fetches were being aborted
+     before a real, working response could arrive, not because anything
+     was actually down. 4 seconds is generous enough to absorb typical
+     VPN-added latency on top of a normal geo-IP round trip. */
+  var GEO_BUDGET_MS   = 4000;
+  /* Comfortably above GEO_BUDGET_MS so the cloak's failsafe fires only
+     once the cascade has genuinely exhausted its budget, plus headroom
+     for normal JS/timer scheduling slop — not a moment before a real
+     answer could still land. */
+  var CLOAK_MAX_MS    = 4600;   // hard ceiling on the first-visit cloak
 
   var SITE_ORIGIN     = 'https://platform.pear-ai.io';
   var OG_LOCALE       = { he: 'he_IL', en: 'en_US' };
@@ -524,24 +546,13 @@
     }
   }
 
-  /* Browser-language fallback. The spec is navigator.language, but we
-     also scan navigator.languages: a visitor whose primary UI language
-     is English while Hebrew sits second is still a Hebrew reader. */
-  function fromNavigator() {
-    var primary = String(window.navigator.language || '').toLowerCase();
-    if (primary.indexOf('he') === 0) return 'he';
-    var list = window.navigator.languages || [];
-    for (var i = 0; i < list.length; i++) {
-      if (String(list[i] || '').toLowerCase().indexOf('he') === 0) return 'he';
-    }
-    return DEFAULT_LANG;
-  }
-
-  /* One provider, one attempt. Resolves to an UPPERCASE country code;
-     rejects on anything that isn't a usable answer — bad HTTP status,
-     timeout/abort, network/CORS failure, or a body extract() can't read
-     — so the caller (fromIpLookup) can move on to the next provider. */
-  function fetchCountryCode(source) {
+  /* One provider, one attempt, given `timeoutMs` to answer in — the
+     caller (fromIpLookup) decides that per-attempt, based on how much of
+     the shared GEO_BUDGET_MS is left. Resolves to an UPPERCASE country
+     code; rejects on anything that isn't a usable answer — bad HTTP
+     status, timeout/abort, network/CORS failure, or a body extract()
+     can't read — so the caller can move on to the next provider. */
+  function fetchCountryCode(source, timeoutMs) {
     if (typeof window.fetch !== 'function') {
       return Promise.reject(new Error('fetch unavailable'));
     }
@@ -549,7 +560,7 @@
     var controller = typeof window.AbortController === 'function' ? new window.AbortController() : null;
     var timer = window.setTimeout(function () {
       if (controller) controller.abort();
-    }, GEO_TIMEOUT_MS);
+    }, timeoutMs);
 
     var opts = { headers: { Accept: 'application/json' }, cache: 'no-store' };
     if (controller) opts.signal = controller.signal;
@@ -570,26 +581,30 @@
       });
   }
 
-  /* Country lookup. Tries GEO_SOURCES in order and resolves to a language
-     from the first one that answers with a usable country code — falling
-     through to the next source immediately on any failure. Rejects only
-     once every source has failed, which is the caller's (see boot, below)
-     signal to fall back to navigator.language.
+  /* Country lookup. Tries GEO_SOURCES in order, sharing ONE deadline
+     (now = GEO_BUDGET_MS from when this was first called) across all of
+     them, and resolves to a language from the first one that answers
+     with a usable country code — falling through to the next source
+     immediately on any failure. Rejects once every source has failed OR
+     the shared budget runs out, either of which is the caller's (see
+     boot, below) signal to fall back to DEFAULT_LANG.
 
      STRICT DEFAULTING: whichever source answers, only an exact 'IL' match
      resolves to Hebrew — every other code (US, DE, an unrecognised one,
      anything) resolves to English. There is no path from a successful IP
-     lookup to navigator.language: a VPN visitor whose browser locale
+     lookup to a browser-locale guess: a VPN visitor whose browser locale
      happens to be Hebrew still gets English the moment any provider
      confirms a non-IL exit location. */
   function fromIpLookup() {
     var i = 0;
+    var deadline = Date.now() + GEO_BUDGET_MS;
     function tryNext() {
-      if (i >= GEO_SOURCES.length) {
+      var remaining = deadline - Date.now();
+      if (i >= GEO_SOURCES.length || remaining <= 0) {
         return Promise.reject(new Error('all geolocation sources failed'));
       }
       var source = GEO_SOURCES[i++];
-      return fetchCountryCode(source)
+      return fetchCountryCode(source, remaining)
         .then(function (cc) {
           var lang = cc === GEO_COUNTRY ? GEO_LANG : DEFAULT_LANG;
           // eslint-disable-next-line no-console
@@ -806,7 +821,11 @@
     opts = opts || {};
     lang = normalise(lang) || DEFAULT_LANG;
 
-    if (opts.persist) writeStore(LANG_KEY, lang);
+    if (opts.persist) {
+      writeStore(LANG_KEY, lang);
+      // eslint-disable-next-line no-console
+      console.log('Active language source:', 'manual', lang);
+    }
 
     applyLanguage(lang, { force: opts.force, explicitUrl: opts.persist ? true : undefined });
 
@@ -824,36 +843,56 @@
     return lang;
   }
 
-  /* Synchronous sources first — the fast path with no flicker at all. */
+  /* Synchronous sources first — the fast path with no flicker at all.
+     NOTE on ?lang=: it is read here to decide THIS load's language but,
+     unlike the other two, deliberately NOT written to LANG_KEY. It used
+     to be ("a shared ?lang= link is a choice, also persisted so it
+     sticks") — but that meant one visit via an old marketing link, a
+     search-engine crawl, or a developer previewing a language during
+     testing silently and permanently pinned that browser's language,
+     indistinguishable afterward from a real click on the toggle, and
+     overriding geo-IP detection on every future visit forever after.
+     That is precisely the "IP resolves to US but the page keeps showing
+     Hebrew" report this was diagnosed from: a stale, accidental
+     app_lang='he' outliving whatever visit actually wrote it. Only an
+     actual click on [data-set-lang] (setLanguage's opts.persist path,
+     above) counts as an explicit, sticky choice now. */
   var immediate = fromUrl();
-  if (immediate) writeStore(LANG_KEY, immediate);        // a shared ?lang= link is a choice
-  if (!immediate) immediate = fromStorage();
-  if (!immediate) immediate = fromGeoCache();
+  var immediateSource = immediate ? 'url' : null;
+  if (!immediate) { immediate = fromStorage(); if (immediate) immediateSource = 'localStorage'; }
+  if (!immediate) { immediate = fromGeoCache(); if (immediate) immediateSource = 'geoCache'; }
 
   if (immediate) {
     state.lang = immediate;
     state.resolved = true;
     applyHead(immediate);
+    // eslint-disable-next-line no-console
+    console.log('Active language source:', immediateSource, immediate);
   } else {
     /* First visit ever: show nothing until the country lookup answers,
-       so an English-speaking visitor never sees a frame of Hebrew RTL. */
-    state.lang = fromNavigator();     // provisional, in case the lookup dies
+       so an English-speaking visitor never sees a frame of Hebrew RTL.
+       The provisional guess is DEFAULT_LANG, not a browser-locale guess
+       — see the RESOLUTION ORDER note at the top of this file for why
+       navigator.language is not consulted anywhere in this file. */
+    state.lang = DEFAULT_LANG;
     applyHead(state.lang);
     cloak();
 
     fromIpLookup()
       .then(function (result) {
         writeStore(GEO_KEY, JSON.stringify({ lang: result.lang, country: result.country, at: Date.now() }));
-        return result.lang;
+        return { lang: result.lang, source: 'geoIP' };
       })
       .catch(function () {
         // eslint-disable-next-line no-console
-        console.warn('[PearI18n] all IP geolocation sources failed — falling back to navigator.language');
-        return fromNavigator();       // every GEO_SOURCES provider was blocked, offline, or timed out
+        console.warn('[PearI18n] all IP geolocation sources failed — defaulting to', DEFAULT_LANG);
+        return { lang: DEFAULT_LANG, source: 'fallback' };   // every GEO_SOURCES provider was blocked, offline, or ran out of budget
       })
-      .then(function (lang) {
+      .then(function (resolved) {
         state.resolved = true;
-        applyLanguage(lang, { force: true });
+        // eslint-disable-next-line no-console
+        console.log('Active language source:', resolved.source, resolved.lang);
+        applyLanguage(resolved.lang, { force: true });
         /* Uncloak only once the body actually carries the final copy.
            applyLanguage() above may already have committed synchronously
            (if <body> existed and the document was no longer loading) or
