@@ -45,6 +45,8 @@
   var GEO_COUNTRY     = 'IL';
   var RTL_LANGS       = ['he'];
 
+  var STAMP           = 'data-i18n-lang'; // language an element currently carries
+
   var LANG_KEY        = 'app_lang';      // explicit visitor choice
   var GEO_KEY         = 'app_lang_geo';  // cached auto-detection
   var GEO_TTL_MS      = 30 * 24 * 60 * 60 * 1000;
@@ -537,7 +539,7 @@
   /* ── Applying a language ─────────────────────────────────────── */
 
   /* <head>: everything a crawler reads before it looks at the body. */
-  function applyHead(lang) {
+  function applyHead(lang, explicit) {
     var root = document.documentElement;
     root.setAttribute('lang', lang);
     root.setAttribute('dir', dirFor(lang));
@@ -556,7 +558,11 @@
        x-default. Pointing ?lang=en back at / would make Google drop the
        alternate set entirely. */
     var langUrl = SITE_ORIGIN + '/?lang=' + lang;
-    var explicit = fromUrl() !== null;
+    /* Callers that are about to WRITE ?lang= into the address bar say so,
+       because reading it back here would still see the old URL and leave
+       canonical pointing at the x-default root while the visitor sits on
+       a language-specific URL. */
+    if (explicit === undefined) explicit = fromUrl() !== null;
     var canonicalHref = explicit ? langUrl : SITE_ORIGIN + '/';
     var canonical = document.head && document.head.querySelector('link[rel="canonical"]');
     if (canonical) canonical.setAttribute('href', canonicalHref);
@@ -583,13 +589,28 @@
     lang = lang || state.lang;
     if (!root) return;
 
+    /* Rewriting text/innerHTML throws away whatever the page has built on
+       top of it — most visibly the GSAP word-splitter's per-word spans,
+       and the ScrollTrigger instances pointing at them. Each element
+       therefore records the language it currently carries, and a pass
+       that would rewrite it in that same language is skipped.
+
+       This is what makes the DOM-ready sweep at the bottom of this file
+       safe: it re-visits elements the in-body bootstrap already
+       translated, and must leave them exactly as it found them. A
+       genuine language change stamps a different value, so everything is
+       rewritten and listeners re-split the fresh copy as before. */
     collect(root, 'data-i18n').forEach(function (el) {
+      if (el.getAttribute(STAMP) === lang) return;
       el.textContent = t(el.getAttribute('data-i18n'), lang);
+      el.setAttribute(STAMP, lang);
     });
 
     /* innerHTML, by design — see the security note at the top of the file. */
     collect(root, 'data-i18n-html').forEach(function (el) {
+      if (el.getAttribute(STAMP) === lang) return;
       el.innerHTML = t(el.getAttribute('data-i18n-html'), lang);
+      el.setAttribute(STAMP, lang);
     });
 
     [['data-i18n-placeholder', 'placeholder'],
@@ -649,7 +670,7 @@
       if (changed || opts.force) notify(lang);
     }
 
-    applyHead(lang);
+    applyHead(lang, opts.persist ? true : undefined);
     if (opts.deferDom && document.readyState === 'loading') whenDomReady(commit);
     else commit();
 

@@ -29,11 +29,14 @@
 <link rel="alternate" hreflang="x-default" href="https://platform.pear-ai.io/" />
 
 <!-- Favicons · generated from pear-logo-w.png, cropped to the mark.
-     favicon.ico carries 16/32/48 for browser tabs and Google Search (which
-     re-renders whatever it finds at 48x48); favicon-96x96.png is the
-     high-DPI tab icon; the manifest PNGs cover Android home screens. -->
+     Google renders favicons at 48x48 and asks for a square that is a multiple
+     of 48, so every size it can pick here is one: favicon.ico carries 16/32/48,
+     and the PNGs are 96 (48x2) and 192 (48x4). The 192 file is shared with the
+     manifest rather than duplicated. apple-touch-icon stays 180 because that is
+     Apple's required size — iOS, not Google, decides that one. -->
 <link rel="icon" href="/favicon.ico" sizes="32x32" />
 <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/png" href="/web-app-manifest-192x192.png" sizes="192x192" />
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
 <link rel="manifest" href="/site.webmanifest" />
 
@@ -1094,6 +1097,26 @@
 <!-- Toast (copy feedback etc.) -->
 <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 w-max max-w-[90vw] z-[60] rounded-xl bg-slate-900 text-white text-sm font-semibold px-5 py-3 shadow-lift opacity-0 pointer-events-none" role="status"></div>
 
+<!-- ════════════════════════════════════════════════════════════════
+     I18N · push the resolved language into the body, HERE.
+
+     This has to happen BEFORE the two GSAP tags below, not after them.
+     They are parser-blocking external scripts: while they are in flight
+     the browser has a fully parsed body and loaded CSS, so it paints —
+     and everything above is still the Hebrew baked into the markup. A
+     slow or blocked jsDelivr therefore showed English visitors a Hebrew
+     page for as long as the CDN took, which is exactly the flash the
+     <head> cloak exists to prevent.
+
+     Body markup effectively ends here (the footer closed a few lines
+     up), so this single call translates the whole visible page. The
+     bootstrap call in the main script below is now a cheap no-op —
+     i18n.js stamps each translated element and skips re-writing one that
+     already carries the active language — and is kept because it also
+     guards the case where this tag is ever moved or removed.
+     ════════════════════════════════════════════════════════════════ -->
+<script>window.PearI18n?.apply();</script>
+
 <!-- GSAP + ScrollTrigger — the cinematic scroll engine -->
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
@@ -1116,8 +1139,12 @@
        replaced, throwing the spans away;
      • the widget block at the end of <body> captures the direct-measure
        button's idle label to restore later.
-   PearI18n itself resolved the language back in <head> (see i18n.js);
-   this call is what pushes it into the body.
+   PearI18n itself resolved the language back in <head> (see i18n.js).
+   The tag just above the GSAP scripts is what actually pushes it into
+   the body — deliberately ahead of them, so a slow CDN cannot leave an
+   English visitor staring at Hebrew. This call repeats it as a cheap
+   no-op (i18n.js skips elements already stamped with the active
+   language) so the invariant holds even if that tag moves.
 
    The optional-chaining guard is not decoration: if i18n.js ever fails
    to load, every block below still runs and the page falls back to the
@@ -1575,6 +1602,13 @@ try {
        swap. Re-running is safe: it always operates on the freshly
        written plain text, never on already-split markup. */
     function splitHeadline(el) {
+      /* Only ever split plain text. Block 10 re-runs this on every
+         language change, but a change that resolves to the language
+         already on screen leaves the headline untouched (i18n.js skips
+         same-language rewrites) — and walking already-split markup would
+         nest a .w span inside every existing one, doubling the transform
+         on each word. */
+      if (el.querySelector('.w')) return;
       (function walk(node) {
         [...node.childNodes].forEach((n) => {
           if (n.nodeType === 3 && n.textContent.trim()) {
