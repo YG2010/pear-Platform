@@ -16,11 +16,22 @@
         switch. A visitor who picked a language is never overridden.
      3. localStorage['app_lang_geo'] — a cached country lookup (30 days),
         so only the very first visit ever pays for a network round trip.
-     4. https://ipapi.co/json/  — country_code === 'IL' → Hebrew,
-        everything else (US included) → English.
-     5. navigator.language(s) — the fallback when the lookup fails, is
-        blocked by an ad blocker, rate-limits, or times out. Starts with
-        'he' → Hebrew, otherwise English.
+     4. GEO_SOURCES, tried in order — country_code === 'IL' → Hebrew,
+        everything else (US included) → English. ipapi.co is asked
+        first; ip-api.com and ipinfo.io only get a request if the one
+        before them failed, errored, or timed out. A single provider is
+        not reliable enough on its own: VPNs and privacy extensions
+        commonly block ipapi.co by name (it is a known entry on several
+        tracker blocklists), and a visitor testing over a VPN in
+        Incognito is exactly the visitor most likely to have both. Three
+        independent providers falling over at once is far less likely
+        than one.
+     5. navigator.language(s) — used ONLY if every source in step 4
+        failed. It never gets a vote while a GEO_SOURCES answer is still
+        possible, because navigator.language reflects the visitor's
+        BROWSER locale, not their VPN exit location — trusting it over a
+        successful IP lookup would defeat the point of testing through a
+        VPN in the first place. Starts with 'he' → Hebrew, else English.
 
    THE CLOAK: steps 1–3 are synchronous, so the common case resolves
    before first paint with zero flicker and no cloak at all. Only a
@@ -28,7 +39,10 @@
    <html> gets .i18n-cloak (a CSS rule fades the body out) until the
    lookup settles or CLOAK_MAX_MS elapses, whichever comes first. The
    failsafe timer matters: it guarantees the page can never be left
-   invisible by a hanging request.
+   invisible by a hanging request — and because step 4 can now make up
+   to three sequential attempts, CLOAK_MAX_MS is sized to comfortably
+   cover all three before it would ever fire ahead of a real answer (see
+   the constants below for the exact budget).
 
    SECURITY NOTE: values under the `html:` namespace are injected with
    innerHTML. Everything in DICT below is an author-written literal that
@@ -51,9 +65,56 @@
   var GEO_KEY         = 'app_lang_geo';  // cached auto-detection
   var GEO_TTL_MS      = 30 * 24 * 60 * 60 * 1000;
 
-  var GEO_ENDPOINT    = 'https://ipapi.co/json/';
-  var GEO_TIMEOUT_MS  = 1000;   // abort the lookup rather than stall the page
-  var CLOAK_MAX_MS    = 1200;   // hard ceiling on the first-visit cloak
+  /* Three independent IP-geolocation providers, tried in order until one
+     answers. Each has its own response shape, hence its own `extract`.
+     A provider that 400s, times out, CORS-blocks, or returns a body that
+     `extract` can't make sense of is treated as a failure and the next
+     one is tried immediately — see fromIpLookup().
+
+     ip-api.com's free-tier JSON endpoint has historically not sent CORS
+     headers for direct browser calls, so it may fail every time with an
+     opaque network error depending on the visitor's browser. That is
+     fine and deliberate: it costs one fast local failure, then falls
+     through to ipinfo.io exactly like any other provider outage. It
+     stays in the list because when it DOES answer it is one more
+     independent source between a visitor and the navigator.language
+     fallback. */
+  var GEO_SOURCES = [
+    {
+      label: 'ipapi.co',
+      url: 'https://ipapi.co/json/',
+      /* Rate limiting comes back as HTTP 200 + {"error":true}, so `ok`
+         alone is not a strong enough success signal. */
+      extract: function (data) {
+        if (!data || data.error) throw new Error(data && data.reason || 'error');
+        return data.country_code;
+      }
+    },
+    {
+      label: 'ip-api.com',
+      url: 'https://ip-api.com/json',
+      extract: function (data) {
+        if (!data || data.status !== 'success') throw new Error(data && data.message || 'error');
+        return data.countryCode;
+      }
+    },
+    {
+      label: 'ipinfo.io',
+      url: 'https://ipinfo.io/json',
+      extract: function (data) {
+        if (!data || !data.country) throw new Error('no country field');
+        return data.country;
+      }
+    }
+  ];
+
+  var GEO_TIMEOUT_MS  = 700;    // per-provider — abort a slow one rather than stall on it
+  /* Worst case is all three providers hanging to their individual
+     timeouts back to back (3 × GEO_TIMEOUT_MS = 2100ms); this leaves
+     comfortable headroom above that so the cloak's failsafe fires only
+     when the whole cascade is genuinely stuck, not while a real answer
+     is still in flight from the second or third provider. */
+  var CLOAK_MAX_MS    = 2400;   // hard ceiling on the first-visit cloak
 
   var SITE_ORIGIN     = 'https://platform.pear-ai.io';
   var OG_LOCALE       = { he: 'he_IL', en: 'en_US' };
@@ -476,11 +537,11 @@
     return DEFAULT_LANG;
   }
 
-  /* Country lookup. Resolves to a language; rejects on anything that
-     is not a usable answer so the caller can fall back cleanly.
-     ipapi.co signals rate limiting with HTTP 200 + {"error":true}, so
-     an ok status is not enough — the body has to be checked too. */
-  function fromIpLookup() {
+  /* One provider, one attempt. Resolves to an UPPERCASE country code;
+     rejects on anything that isn't a usable answer — bad HTTP status,
+     timeout/abort, network/CORS failure, or a body extract() can't read
+     — so the caller (fromIpLookup) can move on to the next provider. */
+  function fetchCountryCode(source) {
     if (typeof window.fetch !== 'function') {
       return Promise.reject(new Error('fetch unavailable'));
     }
@@ -493,24 +554,55 @@
     var opts = { headers: { Accept: 'application/json' }, cache: 'no-store' };
     if (controller) opts.signal = controller.signal;
 
-    return window.fetch(GEO_ENDPOINT, opts)
-      .then(function (res) {
-        if (!res.ok) throw new Error('ipapi HTTP ' + res.status);
+    function settle(fn) {
+      return function (arg) { window.clearTimeout(timer); return fn(arg); };
+    }
+
+    return window.fetch(source.url, opts)
+      .then(settle(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
         return res.json();
-      })
+      }), settle(function (err) { throw err; }))
       .then(function (data) {
-        if (!data || data.error) throw new Error('ipapi: ' + ((data && data.reason) || 'error'));
-        var cc = String(data.country_code || '').toUpperCase();
-        if (!cc) throw new Error('ipapi: no country_code');
-        return { lang: cc === GEO_COUNTRY ? GEO_LANG : DEFAULT_LANG, country: cc };
-      })
-      .then(function (result) {
-        window.clearTimeout(timer);
-        return result;
-      }, function (err) {
-        window.clearTimeout(timer);
-        throw err;
+        var cc = String(source.extract(data) || '').toUpperCase();
+        if (!cc) throw new Error('no country code in response');
+        return cc;
       });
+  }
+
+  /* Country lookup. Tries GEO_SOURCES in order and resolves to a language
+     from the first one that answers with a usable country code — falling
+     through to the next source immediately on any failure. Rejects only
+     once every source has failed, which is the caller's (see boot, below)
+     signal to fall back to navigator.language.
+
+     STRICT DEFAULTING: whichever source answers, only an exact 'IL' match
+     resolves to Hebrew — every other code (US, DE, an unrecognised one,
+     anything) resolves to English. There is no path from a successful IP
+     lookup to navigator.language: a VPN visitor whose browser locale
+     happens to be Hebrew still gets English the moment any provider
+     confirms a non-IL exit location. */
+  function fromIpLookup() {
+    var i = 0;
+    function tryNext() {
+      if (i >= GEO_SOURCES.length) {
+        return Promise.reject(new Error('all geolocation sources failed'));
+      }
+      var source = GEO_SOURCES[i++];
+      return fetchCountryCode(source)
+        .then(function (cc) {
+          var lang = cc === GEO_COUNTRY ? GEO_LANG : DEFAULT_LANG;
+          // eslint-disable-next-line no-console
+          console.log('Detected Country:', cc, '(via ' + source.label + ') → lang:', lang);
+          return { lang: lang, country: cc };
+        })
+        .catch(function (err) {
+          // eslint-disable-next-line no-console
+          console.warn('[PearI18n] ' + source.label + ' geo lookup failed:', err && err.message ? err.message : err);
+          return tryNext();
+        });
+    }
+    return tryNext();
   }
 
   /* ── DOM helpers ─────────────────────────────────────────────── */
@@ -711,7 +803,9 @@
         return result.lang;
       })
       .catch(function () {
-        return fromNavigator();       // blocked, offline, rate-limited or slow
+        // eslint-disable-next-line no-console
+        console.warn('[PearI18n] all IP geolocation sources failed — falling back to navigator.language');
+        return fromNavigator();       // every GEO_SOURCES provider was blocked, offline, or timed out
       })
       .then(function (lang) {
         state.resolved = true;
