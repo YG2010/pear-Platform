@@ -743,14 +743,43 @@
 
   /* ── Boot ────────────────────────────────────────────────────── */
 
-  function setLanguage(lang, opts) {
-    opts = opts || {};
-    lang = normalise(lang) || DEFAULT_LANG;
+  /* Makes <head> AND <body> actually reflect `lang`, right now — this is
+     the one place that turns a resolved language into a rendered page.
 
+     WHY BOTH AN IMMEDIATE PASS AND A DEFERRED ONE: the old version chose
+     ONE of "apply now" or "apply once at DOMContentLoaded" based on
+     `document.readyState` at the instant this ran, decided by the
+     CALLER via an opt-in `deferDom` flag. That left a real gap for the
+     async IP lookup specifically: a fast answer (an already-warm
+     connection, a cached response, ipapi.co replying in a handful of
+     milliseconds) can resolve its promise while the document is still
+     mid-parse — `document.body` already exists (the parser is somewhere
+     inside it) but `readyState` is still 'loading'. The either/or logic
+     had no case that both applies to what already exists in the DOM
+     *and* guarantees a follow-up for what the parser hasn't reached yet;
+     depending on exactly which branch fired, a result could apply to a
+     body that didn't fully exist yet with nothing left to re-run it.
+
+     The fix is to stop choosing: apply immediately whenever there is a
+     body to apply to, AND separately, unconditionally, schedule a
+     follow-up whenever the document is still loading. Both is always
+     safe — applyDOM's per-element language stamp (see STAMP above) makes
+     a repeat call with the same lang a costless no-op, so running commit
+     twice never double-translates or re-shreds an already-split
+     headline. This is what actually closes the race the old code had,
+     not just papers over one branch of it. */
+  function applyLanguage(lang, opts) {
+    opts = opts || {};
     var changed = lang !== state.lang;
     state.lang = lang;
 
-    if (opts.persist) writeStore(LANG_KEY, lang);
+    applyHead(lang, opts.explicitUrl);
+    /* Belt-and-suspenders alongside the setAttribute('dir', …) inside
+       applyHead: the IDL property and the content attribute reflect each
+       other, so this is a no-op in every real browser — but it means
+       anything reading `documentElement.dir` directly (rather than via
+       getAttribute) is served just as immediately as the CSS is. */
+    document.documentElement.dir = dirFor(lang);
 
     /* Order is load-bearing: listeners must not fire until the DOM
        actually carries the new copy. index.html's listener re-splits the
@@ -758,13 +787,28 @@
        been replaced yet would shred the OLD language and then have it
        overwritten a moment later. */
     function commit() {
+      // eslint-disable-next-line no-console
+      console.log('Applying language:', lang);
       applyDOM(document.body, lang);
       if (changed || opts.force) notify(lang);
     }
 
-    applyHead(lang, opts.persist ? true : undefined);
-    if (opts.deferDom && document.readyState === 'loading') whenDomReady(commit);
-    else commit();
+    if (document.body) commit();
+    if (document.readyState === 'loading') whenDomReady(commit);
+
+    return lang;
+  }
+
+  /* The persisted/manual-switch entry point: applyLanguage() plus the
+     bookkeeping that only a deliberate visitor choice needs — writing
+     localStorage and keeping the address bar in step with it. */
+  function setLanguage(lang, opts) {
+    opts = opts || {};
+    lang = normalise(lang) || DEFAULT_LANG;
+
+    if (opts.persist) writeStore(LANG_KEY, lang);
+
+    applyLanguage(lang, { force: opts.force, explicitUrl: opts.persist ? true : undefined });
 
     /* Keep the address bar in step with an explicit choice, so the URL
        stays copy-pasteable and reloads in the same language. History is
@@ -809,8 +853,14 @@
       })
       .then(function (lang) {
         state.resolved = true;
-        setLanguage(lang, { deferDom: true, force: true });
-        /* Uncloak only once the body actually carries the final copy. */
+        applyLanguage(lang, { force: true });
+        /* Uncloak only once the body actually carries the final copy.
+           applyLanguage() above may already have committed synchronously
+           (if <body> existed and the document was no longer loading) or
+           only scheduled its DOMContentLoaded follow-up — either way,
+           registering this listener AFTER that call, not before, is what
+           keeps the two in order: a still-cloaked page never becomes
+           visible carrying the language it's about to replace. */
         whenDomReady(uncloak);
       });
   }
