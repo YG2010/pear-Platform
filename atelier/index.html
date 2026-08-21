@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>PEAR Atelier | The Virtual Fitting Room — Real-Time AI Try-On</title>
+<meta name="description" content="PEAR (PearVTON) puts garments directly onto your shoppers in real time — instant fit certainty, zero bracketing and up to ~25% fewer returns, from a single line of code on your product page." />
+<meta name="robots" content="index, follow, max-image-preview:large" />
+<link rel="canonical" href="https://platform.pear-ai.io/atelier/" />
+
+<meta property="og:type" content="website" />
+<meta property="og:title" content="PEAR Atelier | The Virtual Fitting Room" />
+<meta property="og:description" content="Real-time AI Virtual Try-On for fashion e-commerce. They try it on at home. They buy with confidence." />
+<meta property="og:image" content="https://platform.pear-ai.io/og-cover.png" />
+<meta name="theme-color" content="#F4F1EA" />
+
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+<!-- Fonts · a tight grotesque carries the structure, the serif is an
+     accent face for one or two words per headline, the mono labels the
+     instrumentation. Three families, three jobs, no overlap. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- Lenis' own stylesheet is inlined into atelier.css rather than linked
+     from the CDN: the site's Content-Security-Policy opens style-src to
+     'self' and Google Fonts only, so a jsDelivr <link> would be blocked
+     in production even though the scripts beside it are allowed. -->
+<link rel="stylesheet" href="atelier.css">
+
+<!-- Flip the document into "enhanced" mode before first paint. Every
+     hidden-then-revealed state in the stylesheet is scoped under .js,
+     so without this class the page renders as plain readable markup
+     instead of a screen of invisible text. -->
+<script>
+  (function () {
+    var d = document.documentElement;
+    d.classList.add('js');
+    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches &&
+        !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      d.classList.add('has-cursor');
+    }
+  })();
+</script>
+
+<script type="importmap">
+{ "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<!-- ═══════════════════════════ PRELOADER ═══════════════════════════ -->
+<div class="preloader" id="preloader" aria-hidden="true">
+  <div class="preloader__mark">
+    <img src="/PEAR-logo.png" alt="" width="74" height="105" style="width:clamp(48px,7vw,74px);height:auto">
+    <p class="preloader__word">Atelier</p>
+  </div>
+  <div class="preloader__foot">
+    <div class="preloader__bar"><i id="preBar"></i></div>
+    <p class="preloader__count"><span id="preNum">0</span><sup>%</sup></p>
+  </div>
+</div>
+
+<!-- ════════════════════════════ CURSOR ═════════════════════════════ -->
+<div class="cursor" id="cursor" aria-hidden="true">
+  <div class="cursor__ring" id="cursorRing">
+    <span class="cursor__label" id="cursorLabel">Drag 3D</span>
+  </div>
+  <div class="cursor__dot" id="cursorDot"></div>
+</div>
+
+<!-- ═══════════════════ PERSISTENT WEBGL BACKGROUND ═════════════════ -->
+<div id="stage" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- ════════════════════════════ NAV ════════════════════════════════ -->
+<header class="nav" id="nav">
+  <nav class="nav__bar" aria-label="Main navigation">
+    <a class="nav__brand" href="#main" data-cursor-hover>
+      <img src="/PEAR-logo.png" alt="" width="22" height="31">
+      <span class="nav__wordmark">PEAR</span>
+      <span class="nav__badge">Atelier</span>
+    </a>
+
+    <ul class="nav__links">
+      <li><a class="nav__link" href="#experience" data-cursor-hover>Experience</a></li>
+      <li><a class="nav__link" href="#technology" data-cursor-hover>Technology</a></li>
+      <li><a class="nav__link" href="#collection" data-cursor-hover>Collection</a></li>
+      <li><a class="nav__link" href="/#contact-section" data-cursor-hover>Talk to us</a></li>
+    </ul>
+
+    <div class="nav__tools">
+      <button class="sound" id="sound" type="button" aria-pressed="false" data-cursor-hover>
+        <span class="sound__eq" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="sound__text">Sound <span id="soundState">Off</span></span>
+      </button>
+      <a class="btn btn--primary btn--sm magnetic" href="https://app.pear-ai.io" target="_blank" rel="noopener" data-cursor-hover>
+        <span class="btn__ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
+        </span>
+        <span>Launch<span class="nav__ctaLong"> Virtual Fitting</span></span>
+      </a>
+    </div>
+  </nav>
+</header>
+
+<!-- ═════════════════════ SCROLL CHAPTER HUD ════════════════════════ -->
+<nav class="hud" id="hud" aria-label="Section progress">
+  <a class="hud__item" href="#main"       data-hud="main"><i></i><span>Intro</span></a>
+  <a class="hud__item" href="#experience" data-hud="experience"><i></i><span>Try-on</span></a>
+  <a class="hud__item" href="#overlay"    data-hud="overlay"><i></i><span>Overlay</span></a>
+  <a class="hud__item" href="#technology" data-hud="technology"><i></i><span>Impact</span></a>
+  <a class="hud__item" href="#collection" data-hud="collection"><i></i><span>Collection</span></a>
+  <a class="hud__item" href="#start"      data-hud="start"><i></i><span>Begin</span></a>
+</nav>
+
+<main id="main">
+
+<!-- ═════════════════════════════ HERO ══════════════════════════════ -->
+<section class="hero shell" data-chapter="main">
+  <div class="hero__grid">
+
+    <div class="hero__copy">
+      <p class="eyebrow" data-reveal>PEAR Platform · Real-Time AI Virtual Try-On</p>
+
+      <h1 class="display display--xl hero__title" data-split="lines">
+        <span class="line"><span>Your shoppers</span></span>
+        <span class="line"><span>try garments on</span></span>
+        <span class="line"><span><em class="serif">without</em> ever</span></span>
+        <span class="line"><span>stepping in&#8203;side.</span></span>
+      </h1>
+
+      <p class="lede" data-reveal>
+        <span class="brand-pear">PEAR</span> puts garments directly onto your shoppers in real
+        time — delivering instant fit certainty, boosting purchase confidence and eliminating
+        costly returns. <strong style="font-weight:600;color:var(--ink-100)">They try it on at
+        home. They buy with confidence.</strong>
+      </p>
+
+      <div class="hero__actions" data-stagger>
+        <a class="btn btn--primary magnetic" href="https://app.pear-ai.io" target="_blank" rel="noopener" data-cursor-hover>
+          <span class="btn__ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
+          </span>
+          Try the real widget
+          <span class="chip">30 sec</span>
+        </a>
+        <a class="btn btn--ghost magnetic" href="#overlay" data-cursor-hover>
+          <span class="btn__ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 3 14 9-14 9V3Z"/></svg>
+          </span>
+          How does it work?
+          <span class="chip">17 sec</span>
+        </a>
+      </div>
+
+      <ul class="proof" data-stagger>
+        <li><b>100% fit confidence</b> at checkout</li>
+        <li><b>Zero bracketing</b> — no more 3-size orders</li>
+        <li><b>~25% fewer returns</b> and lower OPEX</li>
+      </ul>
+    </div>
+
+    <!-- Live try-on preview · the merchant's embed, rendered in our palette -->
+    <aside class="hero__widget" data-reveal aria-label="Live virtual try-on preview">
+      <div class="widget" id="heroWidget" data-cursor-badge="Try on">
+        <div class="widget__frame">
+          <img src="/pear-tshirt.jpg" alt="PEAR AI Virtual Try-On widget on a fashion product page — oversized beige tee, sizes S–XXL" width="1024" height="1024" fetchpriority="high">
+          <div class="widget__scan" aria-hidden="true"></div>
+          <p class="widget__badge widget__badge--size">
+            Recommended size: <span class="mono-val">M</span>
+          </p>
+          <p class="widget__badge widget__badge--live">
+            <span class="pulse-dot" aria-hidden="true"></span> Real-time try-on
+          </p>
+        </div>
+
+        <div class="widget__meta">
+          <div>
+            <p class="widget__name"><span class="brand-pear">PEAR</span> tee · Virtual Try-On</p>
+            <p class="widget__sub">Beige · sizes S–XXL</p>
+          </div>
+          <div class="widget__sizes" aria-label="Available sizes">
+            <b>S</b><b class="is-fit">M</b><b>L</b><b>XL</b>
+          </div>
+        </div>
+
+        <a class="btn btn--pear widget__cta" href="https://app.pear-ai.io" target="_blank" rel="noopener" data-cursor-hover>
+          <span class="btn__ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h7l-1 8 10-12h-7l1-8L4 14Z"/></svg>
+          </span>
+          Quick one-time measurement
+        </a>
+        <p class="widget__note">Skips the signup step — straight into the fitting room, once per visit.</p>
+      </div>
+    </aside>
+
+  </div>
+</section>
+
+<!-- ══════════════ PINNED VIRTUAL TRY-ON EXPERIENCE ═════════════════ -->
+<section class="tryon shell" id="experience" data-chapter="experience">
+  <div class="tryon__grid">
+
+    <!-- LEFT · stays put while the right column travels -->
+    <div class="tryon__sticky">
+      <div>
+        <p class="eyebrow" data-reveal>Live Widget · No Signup Required</p>
+        <h2 class="display display--md" style="margin-top:.9rem" data-split="lines">
+          <span class="line"><span>This is the real widget.</span></span>
+          <span class="line"><span><em class="serif">Right</em> here.</span></span>
+        </h2>
+      </div>
+
+      <div class="stage-frame" id="stageFrame" data-cursor-badge="Drag 3D">
+        <span class="stage-frame__corner"></span>
+        <span class="stage-frame__corner"></span>
+        <span class="stage-frame__corner"></span>
+        <span class="stage-frame__corner"></span>
+        <div class="stage-frame__readout">
+          <span>FABRIC <b id="roFabric">Linen</b></span>
+          <span>DRAPE <b id="roDrape">0.62</b></span>
+          <span>FIT <b id="roFit">M</b></span>
+        </div>
+        <p class="stage-frame__hint">
+          <span class="pulse-dot" aria-hidden="true"></span> Drag to rotate · scroll to advance
+        </p>
+      </div>
+
+      <div class="swatches" role="group" aria-label="Fabric colourway">
+        <button class="swatch is-active" type="button" data-colour="linen"  data-hex="#E5E1D6" aria-pressed="true"  data-cursor-hover><i style="background:#E5E1D6"></i>Raw Linen</button>
+        <button class="swatch" type="button" data-colour="onyx"  data-hex="#0D0D0D" aria-pressed="false" data-cursor-hover><i style="background:#0D0D0D"></i>Onyx</button>
+        <button class="swatch" type="button" data-colour="pear"  data-hex="#9BB53A" aria-pressed="false" data-cursor-hover><i style="background:#9BB53A"></i>Pear</button>
+        <button class="swatch" type="button" data-colour="white" data-hex="#FFFFFF" aria-pressed="false" data-cursor-hover><i style="background:#FFFFFF"></i>Crisp White</button>
+      </div>
+    </div>
+
+    <!-- RIGHT · the features that scroll past the pinned garment -->
+    <div class="steps" id="steps">
+
+      <article class="step" data-step>
+        <p class="step__index">01 / Capture</p>
+        <h3 class="display display--md step__title" data-split="lines">
+          <span class="line"><span>One photo. No app.</span></span>
+        </h3>
+        <p class="step__body">
+          This is how it looks on a brand product page: tap “Quick one-time measurement” and the
+          shopper gets a real virtual fitting, straight in the browser, with nothing to install.
+        </p>
+        <ul class="step__list">
+          <li>Runs inside your existing product page</li>
+          <li>No signup step — once per visit</li>
+        </ul>
+      </article>
+
+      <article class="step" data-step>
+        <p class="step__index">02 / Measure</p>
+        <h3 class="display display--md step__title" data-split="lines">
+          <span class="line"><span>Virtual measurement,</span></span>
+          <span class="line"><span><em class="serif">in</em> real time.</span></span>
+        </h3>
+        <p class="step__body">
+          <span class="brand-pear">PEAR</span> reads body geometry and garment drape together, then
+          returns a recommended size before the shopper ever reaches the size chart.
+        </p>
+        <ul class="step__list">
+          <li>Fit certainty at the moment of decision</li>
+          <li>No size-chart guesswork</li>
+        </ul>
+      </article>
+
+      <article class="step" data-step>
+        <p class="step__index">03 / Try on</p>
+        <h3 class="display display--md step__title" data-split="lines">
+          <span class="line"><span>The garment,</span></span>
+          <span class="line"><span>on <em class="serif">their</em> body.</span></span>
+        </h3>
+        <p class="step__body">
+          From the product page to the garment on their own body — one smooth flow, straight in the
+          browser, with no app to install.
+        </p>
+        <ul class="step__list">
+          <li>Four colourways, one asset pipeline</li>
+          <li>Fewer abandoned carts</li>
+        </ul>
+      </article>
+
+      <article class="step" data-step>
+        <p class="step__index">04 / Embed</p>
+        <h3 class="display display--md step__title" data-split="lines">
+          <span class="line"><span>A single line</span></span>
+          <span class="line"><span><em class="serif">of</em> code.</span></span>
+        </h3>
+        <p class="step__body">
+          <span class="brand-pear">PEAR</span> embeds seamlessly into your product pages with a
+          single line of code — giving online shoppers total certainty on fit and look before they
+          click buy.
+        </p>
+        <ul class="step__list">
+          <li>Shopify · WooCommerce · Magento · custom builds</li>
+          <li>Under five minutes, no re-architecture</li>
+        </ul>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════ PHYSICAL ↔ VIRTUAL AI OVERLAY COMPARER ════════════ -->
+<section class="section section--pad shell" id="overlay" data-chapter="overlay">
+  <p class="eyebrow" data-reveal>17 seconds · before / after</p>
+  <h2 class="display display--lg" style="margin:1rem 0 1.2rem" data-split="lines">
+    <span class="line"><span>Here is what</span></span>
+    <span class="line"><span>your <em class="serif">shopper</em> sees.</span></span>
+  </h2>
+  <p class="lede" data-reveal style="margin-bottom:clamp(2rem,4vw,3.4rem)">
+    Drag the handle: on the left the physical garment as photographed, on the right the same piece
+    the way <span class="brand-pear">PEAR</span> reads it — geometry, drape and recommended fit.
+  </p>
+
+  <figure class="compare" id="compare" data-cursor-badge="Swipe">
+    <div class="compare__pane compare__pane--real">
+      <img src="/pear-tshirt.jpg" alt="The physical PEAR tee as photographed for the product page" width="1024" height="1024" loading="lazy">
+    </div>
+
+    <div class="compare__pane compare__pane--ai" id="comparePane">
+      <img src="/pear-tshirt.jpg" alt="The same garment as PEAR's virtual try-on reads it, with measurement points overlaid" width="1024" height="1024" loading="lazy">
+      <div class="compare__tint"></div>
+      <div class="compare__mesh"></div>
+      <!-- positioned against the contained plate: with a 1:1 image in a
+           16:10 frame the garment lives between roughly 25% and 75% -->
+      <p class="compare__pin" style="top:24%;left:53%"><span>SHOULDER 46.2cm</span></p>
+      <p class="compare__pin" style="top:45%;left:61%"><span>CHEST 104cm</span></p>
+      <p class="compare__pin" style="top:70%;left:55%"><span>LENGTH 71.5cm</span></p>
+    </div>
+
+    <figcaption>
+      <span class="compare__tag compare__tag--l">Physical garment</span>
+      <span class="compare__tag compare__tag--r">Virtual AI overlay</span>
+    </figcaption>
+
+    <div class="compare__handle" id="compareHandle">
+      <span class="compare__grip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 8 4 4-4 4"/><path d="m6 8-4 4 4 4"/><path d="M2 12h20"/></svg>
+      </span>
+    </div>
+
+    <label class="sr-only" for="compareRange">Reveal the virtual AI overlay</label>
+    <input class="sr-only" id="compareRange" type="range" min="0" max="100" value="50" step="1">
+  </figure>
+</section>
+
+<!-- ════════════════════════ TECHNOLOGY BENTO ═══════════════════════ -->
+<section class="section section--pad shell" id="technology" data-chapter="technology">
+  <p class="eyebrow" data-reveal>Business impact</p>
+  <h2 class="display display--lg" style="margin:1rem 0 1.2rem" data-split="lines">
+    <span class="line"><span>Three pillars of</span></span>
+    <span class="line"><span>fashion <em class="serif">profitability</em>.</span></span>
+  </h2>
+  <p class="lede" data-reveal>What changes across your P&amp;L when shoppers stop guessing their size.</p>
+
+  <div class="bento">
+
+    <article class="cell cell--w2" data-reveal>
+      <span class="cell__wash" aria-hidden="true"></span>
+      <div class="cell__head">
+        <p class="cell__tag">Conversion</p>
+        <p class="status"><i aria-hidden="true"></i>Live</p>
+      </div>
+      <h3 class="cell__title">Conversion Boost</h3>
+      <p class="cell__body">
+        Give shoppers 100% fit confidence before they buy. Real-time virtual try-on removes size
+        anxiety, driving higher add-to-cart rates and instant conversions.
+      </p>
+      <ul class="cell__list">
+        <li>Fewer abandoned carts</li>
+        <li>No size-chart guesswork</li>
+      </ul>
+    </article>
+
+    <article class="cell cell--w2" data-reveal>
+      <span class="cell__wash" aria-hidden="true"></span>
+      <div class="cell__head">
+        <p class="cell__tag">Inventory</p>
+        <p class="status"><i aria-hidden="true"></i>Live</p>
+      </div>
+      <h3 class="cell__title">Inventory Protection</h3>
+      <p class="cell__body">
+        Stop consumers from buying 3 sizes of the same garment to try at home.
+        <span class="brand-pear">PEAR</span> eliminates fit guessing, keeping high-demand stock
+        available for paying customers.
+      </p>
+      <ul class="cell__list">
+        <li>Best-sellers stay sellable</li>
+        <li>Cleaner demand signals</li>
+      </ul>
+    </article>
+
+    <article class="cell cell--w2" data-reveal>
+      <span class="cell__wash" aria-hidden="true"></span>
+      <div class="cell__head">
+        <p class="cell__tag">Operations</p>
+        <p class="status"><i aria-hidden="true"></i>Live</p>
+      </div>
+      <h3 class="cell__title">Operational Efficiency</h3>
+      <p class="cell__body">
+        Cut return rates by up to ~25%. Reduce double-shipping costs, restock overhead and
+        wear-and-tear losses to protect your bottom line.
+      </p>
+      <ul class="cell__list">
+        <li>Less inbound to sort and restock</li>
+        <li>Shorter cash-conversion cycle</li>
+      </ul>
+    </article>
+
+    <article class="cell cell--w2 cell--metric" data-reveal>
+      <span class="cell__wash" aria-hidden="true"></span>
+      <div class="cell__head">
+        <p class="cell__tag">Returns</p>
+        <p class="status"><i aria-hidden="true"></i>Measured</p>
+      </div>
+      <p class="metric"><span data-count="25" data-prefix="~">0</span><small>%</small></p>
+      <p class="cell__body" style="margin-top:.7rem">fewer returns, and the operating cost that travels with them.</p>
+    </article>
+
+    <article class="cell cell--w2 cell--metric" data-reveal>
+      <span class="cell__wash" aria-hidden="true"></span>
+      <div class="cell__head">
+        <p class="cell__tag">Confidence</p>
+        <p class="status"><i aria-hidden="true"></i>At checkout</p>
+      </div>
+      <p class="metric"><span data-count="100">0</span><small>%</small></p>
+      <p class="cell__body" style="margin-top:.7rem">fit certainty before the buy button is ever pressed.</p>
+    </article>
+
+    <article class="cell cell--w2 cell--metric" data-reveal>
+      <span class="cell__wash" aria-hidden="true"></span>
+      <div class="cell__head">
+        <p class="cell__tag">Bracketing</p>
+        <p class="status"><i aria-hidden="true"></i>Eliminated</p>
+      </div>
+      <p class="metric"><span data-count="0">3</span><small>orders</small></p>
+      <p class="cell__body" style="margin-top:.7rem">No more three sizes of one garment shipped out to be tried at home.</p>
+    </article>
+
+    <!-- the solution panel, inverted for weight -->
+    <article class="cell cell--w4 cell--onyx" data-reveal>
+      <span class="cell__wash" aria-hidden="true"></span>
+      <div class="cell__head">
+        <p class="cell__tag">The PEAR solution</p>
+        <p class="status"><i aria-hidden="true"></i>One line</p>
+      </div>
+      <h3 class="cell__title" style="font-size:clamp(1.4rem,2.4vw,2.1rem)">
+        Real-time fit certainty on your product page
+      </h3>
+      <p class="cell__body">
+        <span class="brand-pear">PEAR</span> embeds seamlessly into your product pages with
+        <strong style="color:var(--pear);font-weight:600">a single line of code</strong> — giving
+        online shoppers total certainty on fit and look before they click buy.
+      </p>
+      <pre class="snippet"><code>&lt;<span class="t">script</span> <span class="a">src</span>=<span class="t">"https://cdn.pear-ai.io/pear-widget.js"</span> <span class="a">data-store</span>=<span class="t">"STORE_ID"</span> <span class="a">async</span>&gt;&lt;/<span class="t">script</span>&gt;</code></pre>
+      <ul class="platforms">
+        <li>Shopify</li><li>WooCommerce</li><li>Magento</li><li>Custom builds</li>
+      </ul>
+    </article>
+
+    <article class="cell cell--w2" data-reveal>
+      <span class="cell__wash" aria-hidden="true"></span>
+      <div class="cell__head">
+        <p class="cell__tag">Integration</p>
+        <p class="status"><i aria-hidden="true"></i>&lt; 5 min</p>
+      </div>
+      <h3 class="cell__title">Five minutes from first paste to first try-on</h3>
+      <p class="cell__body">Your product pages stay exactly as they are — no changes to your site architecture.</p>
+      <a class="btn btn--ghost btn--sm magnetic" style="margin-top:1.2rem;align-self:flex-start" href="/#docs" data-cursor-hover>
+        Integration guide
+        <span class="btn__ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </span>
+      </a>
+    </article>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════ COLLECTION CAROUSEL ═════════════════════ -->
+<section class="gallery section--pad" id="collection" data-chapter="collection">
+  <div class="shell gallery__head">
+    <div>
+      <p class="eyebrow" data-reveal>The collection</p>
+      <h2 class="display display--lg" style="margin-top:1rem" data-split="lines">
+        <span class="line"><span>Every piece, <em class="serif">fitted</em></span></span>
+        <span class="line"><span>before it ships.</span></span>
+      </h2>
+    </div>
+    <p class="mono-label" data-reveal>Drag&nbsp;→&nbsp;or&nbsp;scroll</p>
+  </div>
+
+  <div class="gallery__track" id="track" data-cursor-badge="Drag">
+
+    <article class="look look--beige" data-cursor-hover>
+      <div class="look__art">
+        <img src="/pear-tshirt.jpg" alt="PEAR oversized tee in beige" loading="lazy">
+        <span class="look__grid" aria-hidden="true"></span>
+      </div>
+      <div class="look__foot">
+        <div><p class="look__name">Atelier Tee</p><p class="look__meta">Beige · S–XXL</p></div>
+        <span class="look__fit">Fit M</span>
+      </div>
+    </article>
+
+    <article class="look look--onyx" data-cursor-hover>
+      <div class="look__art">
+        <svg viewBox="0 0 32 40" fill="none" stroke="currentColor" stroke-width="0.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 4 8.5 1.5 16l5 1.8L6 36h20l-.5-18.2 5-1.8L28 8.5 21 5a5 5 0 0 1-10 0Z"/><path d="M11 5c1.6 2 3.1 3 5 3s3.4-1 5-3"/></svg>
+        <span class="look__grid" aria-hidden="true"></span>
+      </div>
+      <div class="look__foot">
+        <div><p class="look__name">Onyx Crew</p><p class="look__meta">Onyx · S–XXL</p></div>
+        <span class="look__fit">Fit L</span>
+      </div>
+    </article>
+
+    <article class="look look--linen" data-cursor-hover>
+      <div class="look__art">
+        <svg viewBox="0 0 32 40" fill="none" stroke="currentColor" stroke-width="0.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 4 8.5 1 18l4.5 1.5V36h21V19.5L31 18l-3-9.5L21 5"/><path d="M11 5c0 3.5 2.2 6 5 6s5-2.5 5-6"/><path d="M11 5a7 7 0 0 1 10 0"/><path d="M16 11v9"/><path d="M10 27h12"/></svg>
+        <span class="look__grid" aria-hidden="true"></span>
+      </div>
+      <div class="look__foot">
+        <div><p class="look__name">Linen Hoodie</p><p class="look__meta">Raw linen · S–XL</p></div>
+        <span class="look__fit">Fit M</span>
+      </div>
+    </article>
+
+    <article class="look look--pear" data-cursor-hover>
+      <div class="look__art">
+        <svg viewBox="0 0 32 40" fill="none" stroke="currentColor" stroke-width="0.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4 5 7.5 2 17l4 1.5V37h20V18.5L30 17l-3-9.5L20 4l-4 5-4-5Z"/><path d="M12 4 16 9l4-5"/><path d="M16 9v28"/></svg>
+        <span class="look__grid" aria-hidden="true"></span>
+      </div>
+      <div class="look__foot">
+        <div><p class="look__name">Pear Overshirt</p><p class="look__meta">Pear · S–XL</p></div>
+        <span class="look__fit">Fit S</span>
+      </div>
+    </article>
+
+    <article class="look look--white" data-cursor-hover>
+      <div class="look__art">
+        <svg viewBox="0 0 32 40" fill="none" stroke="currentColor" stroke-width="0.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4 5 8 2 19l4.5 1.5L6 37h20l-.5-16.5L30 19 27 8l-7-4a4 4 0 0 1-8 0Z"/><path d="M12 4c1.4 2.4 2.7 3.6 4 3.6S18.6 6.4 20 4"/><path d="M6 20.5 8 37"/><path d="M26 20.5 24 37"/></svg>
+        <span class="look__grid" aria-hidden="true"></span>
+      </div>
+      <div class="look__foot">
+        <div><p class="look__name">Crisp Shirt</p><p class="look__meta">White · S–XXL</p></div>
+        <span class="look__fit">Fit M</span>
+      </div>
+    </article>
+
+    <article class="look look--beige" data-cursor-hover>
+      <div class="look__art">
+        <svg viewBox="0 0 32 40" fill="none" stroke="currentColor" stroke-width="0.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4 4 8 1 18l5 2v3l-4 14h28l-4-14v-3l5-2-3-10-7-4a5 5 0 0 1-10 0Z"/><path d="M11 4c1.7 2.2 3.3 3.3 5 3.3S18.3 6.2 20 4"/></svg>
+        <span class="look__grid" aria-hidden="true"></span>
+      </div>
+      <div class="look__foot">
+        <div><p class="look__name">Drape Dress</p><p class="look__meta">Beige · XS–L</p></div>
+        <span class="look__fit">Fit S</span>
+      </div>
+    </article>
+
+    <article class="look look--onyx" data-cursor-hover>
+      <div class="look__art">
+        <svg viewBox="0 0 32 40" fill="none" stroke="currentColor" stroke-width="0.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4 4 8 2 20l4 1v16h20V21l4-1-2-12-8-4"/><path d="M12 4v33"/><path d="M20 4v33"/><path d="M12 4l4 4 4-4"/></svg>
+        <span class="look__grid" aria-hidden="true"></span>
+      </div>
+      <div class="look__foot">
+        <div><p class="look__name">Onyx Coat</p><p class="look__meta">Onyx · S–XL</p></div>
+        <span class="look__fit">Fit L</span>
+      </div>
+    </article>
+
+  </div>
+
+  <div class="shell"><div class="gallery__rail"><i id="railThumb"></i></div></div>
+</section>
+
+<!-- ═══════════════════════════ CLOSING CTA ═════════════════════════ -->
+<section class="section section--pad shell" id="start" data-chapter="start">
+  <div class="close">
+    <p class="eyebrow eyebrow--bare" style="color:var(--pear)" data-reveal>Begin</p>
+    <h2 class="display display--lg close__title" data-split="lines">
+      <span class="line"><span>Ready to let your shoppers</span></span>
+      <span class="line"><span>try <em class="serif">before</em> they buy?</span></span>
+    </h2>
+    <p class="lede" data-reveal>
+      Five minutes from first paste to first try-on. Your product pages stay exactly as they are.
+    </p>
+    <div class="close__actions" data-stagger>
+      <a class="btn btn--pear btn--pulse magnetic" href="https://app.pear-ai.io" target="_blank" rel="noopener" data-cursor-hover>
+        <span class="btn__ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
+        </span>
+        Try the widget
+      </a>
+      <a class="btn btn--ghost magnetic" href="/#docs" data-cursor-hover>
+        To the integration guide
+        <span class="btn__ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </span>
+      </a>
+      <a class="btn btn--ghost magnetic" href="mailto:support@pear-ai.io" data-cursor-hover>
+        Talk to us
+        <span class="btn__ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+        </span>
+      </a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ═════════════════════════════ FOOTER ════════════════════════════ -->
+<footer class="foot shell">
+  <div class="foot__top">
+    <div>
+      <div class="foot__brand">
+        <img src="/PEAR-logo.png" alt="" width="26" height="37">
+        <span class="nav__wordmark">PEAR Platform</span>
+      </div>
+      <p class="lede" style="font-size:.88rem;margin-top:1rem;max-width:34ch">
+        The <span class="brand-pear">PEAR</span> team is here for technical questions, brand demos
+        and integration support.
+      </p>
+    </div>
+
+    <div class="foot__cols">
+      <div class="foot__col">
+        <h4>Experience</h4>
+        <ul>
+          <li><a href="#experience" data-cursor-hover>Virtual try-on</a></li>
+          <li><a href="#overlay" data-cursor-hover>AI overlay</a></li>
+          <li><a href="#collection" data-cursor-hover>Collection</a></li>
+        </ul>
+      </div>
+      <div class="foot__col">
+        <h4>Platform</h4>
+        <ul>
+          <li><a href="/" data-cursor-hover>Overview<span class="arr">↗</span></a></li>
+          <li><a href="/#docs" data-cursor-hover>Integration guide<span class="arr">↗</span></a></li>
+          <li><a href="https://app.pear-ai.io" target="_blank" rel="noopener" data-cursor-hover>Launch fitting<span class="arr">↗</span></a></li>
+        </ul>
+      </div>
+      <div class="foot__col">
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="mailto:support@pear-ai.io" data-cursor-hover>support@pear-ai.io</a></li>
+          <li><a href="/#contact-section" data-cursor-hover>Request a demo<span class="arr">↗</span></a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot__bottom">
+    <p>© <span id="year">2026</span> <span class="brand-pear">PEAR</span> Platform (pearvton) — Virtual Try-On · All rights reserved</p>
+    <p class="clock">
+      <span class="pulse-dot" aria-hidden="true"></span>
+      <span id="tzName">Local</span> <b id="clockLocal">--:--:--</b>
+      <span class="clock__sep">/</span>
+      Studio <b id="clockStudio">--:--:--</b>
+    </p>
+  </div>
+</footer>
+
+<!-- ═════════════════════════════ SCRIPTS ═══════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js" defer></script>
+<script type="module" src="atelier.js"></script>
+
+</body>
+</html>
