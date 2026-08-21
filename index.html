@@ -673,9 +673,16 @@
     .sm\:text-2xl     { font-size: 1.5rem; line-height: 2rem; }
   }
 </style>
+
+<!-- The atelier design system. Loaded after BOTH Tailwind and the inline
+     style block above, so it wins the id-selector ties on the landing
+     view; the docs and contact views keep their Tailwind utilities. -->
+<link rel="stylesheet" href="pear-atelier.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<script>document.documentElement.classList.add('pa-js');</script>
 </head>
 
-<body class="bg-slate-50 text-slate-700 font-sans antialiased leading-relaxed">
+<body class="pa bg-slate-50 text-slate-700 font-sans antialiased leading-relaxed">
 
 <!-- Futuristic scroll HUD: glowing ring gauge + percentage + current chapter -->
 <div id="scrollHud" aria-hidden="true">
@@ -706,353 +713,301 @@
 <!-- ════════════════════════════════════════════════════════════════
      NAVBAR · frosted, sticky. Tabs switch the two views (SPA).
      ════════════════════════════════════════════════════════════════ -->
-<header class="sticky top-0 z-50 bg-white/55 backdrop-blur-2xl border-b border-white/50" style="box-shadow: inset 0 -1px 0 rgba(255,255,255,0.4), 0 4px 24px -12px rgba(15,23,42,0.15);">
-  <nav class="max-w-6xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between" data-i18n-aria-label="a11y.mainNav" aria-label="ניווט ראשי">
-    <a href="#overview" data-nav="overview" class="nav-link flex items-center gap-2 font-mono font-bold text-lg tracking-tight text-slate-900">
-      <img src="PEAR-logo.png" alt="" aria-hidden="true" width="1110" height="1586"
-           class="brand-logo h-9 sm:h-10 w-auto" />
-      <span class="brand-pear">PEAR</span>
+<!-- ════════════════════════════════════════════════════════════════
+     NAVBAR · a floating capsule rather than a full-width sticky bar.
+     Every hook the view router depends on is unchanged: data-nav picks
+     the view, data-view opens it, data-scroll targets a section, and
+     data-set-lang drives the language switch.
+     ════════════════════════════════════════════════════════════════ -->
+<header class="pa-nav" id="paNav">
+  <nav class="pa-nav__bar" data-i18n-aria-label="a11y.mainNav" aria-label="ניווט ראשי">
+
+    <a class="pa-nav__brand" href="#overview" data-nav="overview" data-pa-hover>
+      <img src="PEAR-logo.png" alt="" aria-hidden="true" width="1110" height="1586" />
+      <span class="pa-nav__word">PEAR</span>
     </a>
 
-    <div class="flex items-center gap-1 sm:gap-2 h-full">
-      <a href="#overview" data-nav="overview" data-scroll="hero"
-         class="nav-link nav-tab cursor-pointer h-full inline-flex items-center px-3 sm:px-4 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors" data-i18n="nav.about">על המיזם</a>
-      <a href="#docs" data-nav="docs" data-scroll="docsGate" data-view="docs" class="nav-link nav-tab cursor-pointer h-full inline-flex items-center px-3 sm:px-4 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors" data-i18n="nav.docs">מדריך הטמעה</a>
+    <div class="pa-nav__links">
+      <a class="pa-nav__link" href="#overview" data-nav="overview" data-scroll="hero"
+         data-i18n="nav.about" data-pa-hover>על המיזם</a>
+      <a class="pa-nav__link" href="#docs" data-nav="docs" data-scroll="docsGate" data-view="docs"
+         data-i18n="nav.docs" data-pa-hover>מדריך הטמעה</a>
     </div>
 
-    <div class="flex items-center gap-2 sm:gap-3">
-      <!-- Language switch · an explicit pick here wins over IP detection
-           forever after (i18n.js writes it to localStorage['app_lang']).
-           The option labels are language NAMES, so they are deliberately
+    <div class="pa-nav__tools">
+      <!-- The option labels are language NAMES, so they are deliberately
            identical in both dictionaries and stay hard-coded. -->
-      <div class="lang-switch" role="group" data-i18n-aria-label="a11y.langSwitch" aria-label="בחירת שפה">
-        <button type="button" class="lang-opt" data-set-lang="he" lang="he" aria-pressed="true">עב</button>
-        <button type="button" class="lang-opt" data-set-lang="en" lang="en" aria-pressed="false">EN</button>
+      <div class="pa-lang" role="group" data-i18n-aria-label="a11y.langSwitch" aria-label="בחירת שפה">
+        <button type="button" data-set-lang="he" lang="he" aria-pressed="true" data-pa-hover>עב</button>
+        <button type="button" data-set-lang="en" lang="en" aria-pressed="false" data-pa-hover>EN</button>
       </div>
 
-      <a href="#contact" data-nav="contact" data-scroll="contact-section" data-view="contact"
-         class="nav-link cursor-pointer inline-flex items-center gap-1.5 rounded-lg bg-slate-900 text-white text-sm font-semibold px-4 py-2 hover:bg-slate-700 transition-colors" data-i18n="nav.contact">
-        דברו איתנו
-      </a>
+      <a class="pa-btn pa-btn--primary pa-btn--sm pa-magnetic" href="#contact"
+         data-nav="contact" data-scroll="contact-section" data-view="contact"
+         data-i18n="nav.contact" data-pa-hover>דברו איתנו</a>
     </div>
+
   </nav>
 </header>
 
 <!-- ════════════════════════════════════════════════════════════════
      VIEW 1 · LANDING (high-converting overview)
      ════════════════════════════════════════════════════════════════ -->
+<!-- ════════════════════════════════════════════════════════════════
+     VIEW 1 · LANDING
+     Rebuilt on the atelier design system. The copy is untouched — every
+     string still arrives through the same data-i18n key it always did —
+     but the structure is asymmetric now: the hero splits copy against an
+     elevated device stage, the playground mirrors that split, the demo
+     band inverts to onyx full-bleed, and the pillars become a bento.
+
+     Two contracts constrain the markup and are easy to break by accident:
+       · anything carrying data-i18n-html has its innerHTML replaced, so
+         reveal wrappers cannot nest inside it — the reveal goes on the
+         element itself.
+       · #pearDirectMeasureBtn is labelled with textContent by the modal
+         script, which wipes child nodes, so it stays text-only.
+     ════════════════════════════════════════════════════════════════ -->
 <main id="view-overview" class="view active" data-i18n-aria-label="a11y.viewOverview" aria-label="אודות המיזם והפתרון">
 
-  <!-- ══════════ HERO · copy + social proof + 3D-tilt product mockup ══════════
-       data-hud holds a TRANSLATION KEY, not a label: the HUD chapter tracker
-       resolves it through PearI18n.t() so the chapter name follows the
-       active language. -->
-  <section id="hero" data-hud="hud.intro" class="relative overflow-hidden">
-    <!-- quiet top aura (drifts on scroll — parallax depth layer) -->
-    <div class="parallax-blob pointer-events-none absolute inset-x-0 -top-40 h-96 bg-[radial-gradient(ellipse_50%_100%_at_50%_0%,rgb(16_185_129/0.08),transparent_70%)]" data-speed=".35"></div>
+  <!-- ─────────────────────────── HERO ─────────────────────────── -->
+  <section id="hero" data-hud="hud.intro" class="pa-hero pa-shell">
+    <div class="pa-hero__grid">
 
-
-    <div class="relative max-w-6xl mx-auto px-5 sm:px-8 pt-16 pb-16 sm:pt-24 sm:pb-24 grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-
-      <!-- ── Copy side ── -->
-      <div class="text-center lg:text-start relative z-10">
-        <p class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3.5 py-1.5 text-xs font-mono font-medium text-slate-500 mb-7">
-          <span class="w-1.5 h-1.5 rounded-full bg-pear-500"></span>
-          Virtual Try-On · AI for Fashion E-commerce
-        </p>
-
-        <!-- data-i18n-html (not data-i18n): the headline carries inline
-             markup — the LTR product kicker and the coloured second line —
-             so the whole thing has to stay one translatable unit. Order
-             matters at boot: index.html's main script calls
-             PearI18n.apply() BEFORE the GSAP word-splitter runs, so the
-             splitter always sees the translated copy. -->
-        <h1 data-split data-i18n-html="hero.title" class="text-4xl sm:text-5xl xl:text-6xl font-black text-slate-900 tracking-tight leading-[1.07] mb-6">
-          <span dir="ltr" class="block text-lg sm:text-xl font-bold text-pear-600 tracking-tight mb-2">PEAR Platform · AI Virtual Try-On &amp; Measurement</span>
+      <div class="pa-hero__copy">
+        <!-- hero.title ships its own LTR product kicker as the first
+             span; the stylesheet demotes it to a mono label so the
+             headline underneath keeps the display scale to itself. -->
+        <h1 class="pa-display pa-d-xl pa-hero__title" data-pa-reveal data-i18n-html="hero.title">
+          <span dir="ltr">PEAR Platform · AI Virtual Try-On &amp; Measurement</span>
           הלקוחות שלכם מודדים
-          <span class="block mt-2 text-pear-600">בלי להגיע לחנות.</span>
+          <span>בלי להגיע לחנות.</span>
         </h1>
 
-        <p data-i18n-html="hero.sub" class="max-w-xl mx-auto lg:mx-0 text-lg sm:text-xl text-slate-500 leading-relaxed mb-8">
+        <p class="pa-lede" data-pa-reveal data-i18n-html="hero.sub">
           <span class="brand-pear">PEAR</span> מלביש את הבגד על הלקוח בזמן אמת, ממליץ מידה מדויקת ומוריד החזרות.
-          <span class="font-semibold text-slate-700"><br> מודדים בבית, קונים בביטחון.</span>
+          <span><br> מודדים בבית, קונים בביטחון.</span>
         </p>
 
-        
-        <!-- Frictionless CTAs -->
-        <div class="flex flex-wrap items-center justify-center lg:justify-start gap-3 mb-4">
-          <button data-scroll="playground" data-i18n="hero.ctaPrimary"
-             class="cta-glow inline-flex items-center gap-2 rounded-xl bg-pear-600 text-white font-bold px-7 py-3.5 shadow-btn hover:bg-pear-700 hover:-translate-y-0.5 transition-all">
-            ✨ נסו את הוויג'ט האמיתי · 30 שניות
-          </button>
-          <button data-scroll="demo" data-i18n="hero.ctaSecondary"
-             class="inline-flex items-center gap-2 rounded-xl glass text-slate-700 font-bold px-7 py-3.5 hover:-translate-y-0.5 transition-all">
-            ▶ איך זה עובד? ב-17 שניות
-          </button>
+        <div class="pa-hero__actions" data-pa-stagger>
+          <button type="button" class="pa-btn pa-btn--primary pa-magnetic" data-scroll="playground"
+                  data-i18n="hero.ctaPrimary" data-pa-hover>✨ נסו את הוויג'ט האמיתי · 30 שניות</button>
+          <button type="button" class="pa-btn pa-btn--ghost pa-magnetic" data-scroll="demo"
+                  data-i18n="hero.ctaSecondary" data-pa-hover>▶ איך זה עובד? ב-17 שניות</button>
         </div>
 
-        <!-- Above the fold: the three pillars as metric highlights — Conversion,
-             Inventory, Operations, in that order. This is where the framework is
-             established; the #value cards expand each one, and the fit-crisis
-             section states the problem. Keep the numbers here distinct from the
-             market stat cards: proof3 is a RETURNS-REDUCTION claim, while
-             market.stat1 is the industry return-rate benchmark.
-
-             Block rows, not a flex row with divider spans: the English copy is
-             long enough to wrap, and a wrapped flex row leaves a divider stranded
-             at the start of the second line. Plain <p>s inherit the parent's
-             text-center lg:text-start, so they follow the language direction with
-             no extra alignment utility. -->
-        <div>
-          <p class="text-sm text-slate-500 leading-relaxed" data-i18n-html="hero.proof1"><span class="font-bold text-slate-700">100% ביטחון בהתאמה</span> ברגע התשלום</p>
-          <p class="text-sm text-slate-500 leading-relaxed" data-i18n-html="hero.proof2"><span class="font-bold text-slate-700">אפס Bracketing</span> — סוף להזמנת שלוש מידות</p>
-          <p class="text-sm text-slate-500 leading-relaxed" data-i18n-html="hero.proof3"><span class="font-bold text-slate-700">עד כ-25% פחות החזרות</span> ופחות עלויות תפעול</p>
+        <!-- The three pillars in badge form: Conversion, Inventory,
+             Operations, in that order. proof3 is a returns-reduction
+             claim and must stay distinct from the pillar card bodies. -->
+        <div class="pa-proof" data-pa-stagger>
+          <p data-i18n-html="hero.proof1"><span>100% ביטחון בהתאמה</span> ברגע התשלום</p>
+          <p data-i18n-html="hero.proof2"><span>אפס Bracketing</span> — סוף להזמנת שלוש מידות</p>
+          <p data-i18n-html="hero.proof3"><span>עד כ-25% פחות החזרות</span> ופחות עלויות תפעול</p>
         </div>
       </div>
 
-      <!-- ── Mockup side: Try-On loop in a glass card + floating result badges ──
-           pear-VTon.mp4 already ships its own phone device mockup (bezel, header,
-           branding), so we do NOT add a second device shell — the clip sits in the
-           same glass card the brand animation used, adapted to its 464×832 portrait.
-           object-contain keeps the whole phone visible; a warm backdrop matching
-           the clip's own background fills any gap so it reads as intentional. -->
-      <div class="tilt-scene hero-mockup relative z-10 order-first lg:order-none lg:translate-x-20">
-        <div class="parallax-blob pointer-events-none absolute -inset-10 bg-[radial-gradient(ellipse_at_center,rgb(16_185_129/0.12),transparent_65%)] blur-2xl" data-speed="-.25" aria-hidden="true"></div>
+      <!-- pear-VTon.mp4 already ships its own phone device mockup, so no
+           second bezel is drawn around it: the clip sits in an elevated
+           glass stage with a pear-tinted ambient glow beneath it.
+           #tiltCard keeps its id so the existing mouse-tilt block still
+           finds and drives this card. -->
+      <!-- tilt-card and vton-frame are load-bearing, not decorative: the
+           existing tilt block drives this card through the --rx/--ry
+           custom properties that .tilt-card consumes, and the hero-loop
+           block reaches for .vton-frame with closest() to flag the
+           paused state. Dropping either one crashes that script at boot.
+           Because that tilt owns `transform`, this card deliberately does
+           NOT carry data-pa-tilt — two handlers writing the same property
+           is one handler too many. -->
+      <div class="pa-stage" data-pa-reveal>
+        <div id="tiltCard" class="pa-stage__card tilt-card vton-frame">
+          <span class="pa-stage__glow" aria-hidden="true"></span>
 
-        <div id="tiltCard" class="tilt-card vton-frame relative mx-auto w-[248px] sm:w-[280px] lg:w-[312px] rounded-3xl glass p-3">
-
-          <div class="relative aspect-[464/832] rounded-2xl overflow-hidden bg-[#f1efe9]">
-            <video id="vtonVideo" class="absolute inset-0 w-full h-full object-contain"
-                   src="pear-VTon.mp4" muted loop playsinline preload="auto"
+          <div class="pa-stage__screen">
+            <video id="vtonVideo" src="pear-VTon.mp4" muted loop playsinline preload="auto"
                    data-i18n-aria-label="a11y.heroVideo"
                    aria-label="הדגמת מדידה וירטואלית של PEAR — לולאה ללא קול"></video>
 
-            <!-- the only control on the clip: a single minimal play/pause toggle.
-                 No data-i18n-aria-label here — the label alternates with playback
-                 state, so block 7b owns it and re-reads it on language change. -->
-            <button id="vtonToggle" type="button"
-                    class="vton-toggle absolute bottom-2.5 left-2.5 inline-flex items-center justify-center w-9 h-9 rounded-full bg-black/45 backdrop-blur-md text-white/95 hover:bg-black/70 transition-colors"
-                    aria-label="השהיית ההדגמה">
-              <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor" aria-hidden="true">
+            <!-- No data-i18n-aria-label: the label alternates with
+                 playback state, so the hero-loop block owns it and
+                 re-reads it on language change. -->
+            <button id="vtonToggle" type="button" class="pa-stage__toggle"
+                    aria-label="השהיית ההדגמה" data-pa-hover>
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path id="vtonPath" d="M8 5h3v14H8zM13 5h3v14h-3z"/>
               </svg>
             </button>
           </div>
 
-          <!-- floating chips: hover above the card in 3D space -->
-          <div class="tilt-float absolute -top-4 -left-3 sm:-left-6 rounded-xl glass px-4 py-2.5 flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-pear-500 animate-pulse"></span>
-            <span class="text-xs font-bold text-slate-700" data-i18n-html="hero.badgeSize">מידה מומלצת: <span class="font-mono text-pear-600">M</span></span>
-          </div>
-          <div class="tilt-float absolute -bottom-4 -right-3 sm:-right-6 rounded-xl glass-dark text-white px-4 py-2.5">
-            <span class="text-xs font-bold" data-i18n="hero.badgeRealtime">התאמה בזמן אמת ✨</span>
-          </div>
+          <span class="pa-badge tilt-float pa-badge--size" data-i18n-html="hero.badgeSize">מידה מומלצת: <span class="font-mono">M</span></span>
+          <span class="pa-badge tilt-float pa-badge--live">
+            <span class="pa-dot" aria-hidden="true"></span>
+            <span data-i18n="hero.badgeRealtime">התאמה בזמן אמת ✨</span>
+          </span>
         </div>
       </div>
-    </div>
 
+    </div>
   </section>
 
-  <!-- ══════════ TRY IT YOURSELF · the real PEAR fitting room, live on this page ══════════
-       This is not a mockup — #pearDirectMeasureBtn below opens the real fitting room
-       in a modal iframe, wired to the nearest [data-product-image]. The card is a
-       pure try-on demo: the stand-in "הוסף לסל" button that used to sit above the
-       CTA has been removed, so that one button is the only control here.
+  <!-- ────────────────────── LIVE WIDGET PLAYGROUND ─────────────────
+       Mirrored against the hero: the artefact leads and the copy
+       follows, so two consecutive split sections do not read as one
+       repeated template. -->
+  <section id="playground" data-hud="hud.playground" class="pa-section pa-pad pa-shell">
+    <div class="pa-play">
 
-       pear-widget.js's own auto-injected black "מדוד וירטואלית" button is deliberately
-       NOT shown: the always-on embed was removed, and because no Add-to-Cart button
-       remains for it to anchor to, its fallback injection is stripped on sight. See
-       suppressWidgetButtons() at the end of <body>. -->
-  <section id="playground" data-hud="hud.playground" class="border-b border-white/50">
-    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
-      <div class="max-w-2xl mx-auto text-center mb-12 reveal">
-        <p class="text-xs font-mono font-semibold tracking-[0.2em] text-pear-600 uppercase mb-3" data-i18n="play.eyebrow">Live Widget · בלי הרשמה</p>
-        <h2 data-split data-i18n="play.title" class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">זה הוויג'ט האמיתי. ממש כאן.</h2>
-        <p class="text-slate-500 text-lg" data-i18n="play.sub">כך זה נראה בדף מוצר: לחצו על "מדידה חד-פעמית מהירה" וקבלו מדידה וירטואלית אמיתית, בלי הרשמה.</p>
-      </div>
-
-      <div class="reveal rounded-3xl glass p-7 sm:p-10 max-w-md mx-auto text-center">
-        <div class="relative rounded-2xl overflow-hidden bg-[#f1efe9] mb-5 aspect-square">
-          <img
-            data-product-image
-            src="pear-tshirt.jpg"
-            data-i18n-alt="play.productAlt"
-            alt="הוידג'ט PEAR AI Virtual Try-On בדף מוצר אופנה — חולצת אוברסייז בז', מידות S–XXL"
-            class="absolute inset-0 w-full h-full object-contain">
+      <div class="pa-play__card" data-pa-reveal data-pa-tilt>
+        <div class="pa-play__shot">
+          <img data-product-image src="pear-tshirt.jpg"
+               data-i18n-alt="play.productAlt"
+               alt="הוידג'ט PEAR AI Virtual Try-On בדף מוצר אופנה — חולצת אוברסייז בז', מידות S–XXL"
+               width="1024" height="1024" loading="lazy" />
+          <span class="pa-play__scan" aria-hidden="true"></span>
         </div>
-        <p class="text-sm font-bold text-slate-700 mb-1" data-i18n-html="play.productName">חולצת <span class="brand-pear">PEAR</span> · Virtual Try-On</p>
-        <p class="text-xs text-slate-400 mb-5" data-i18n="play.productMeta">בז' · מידות S–XXL</p>
 
-        <!-- The stand-in "הוסף לסל" button and its caption were removed: this card
-             is now a pure try-on demo, so the one-time CTA below is the only
-             control. NOTE for anyone re-adding a cart button here — pear-widget.js
-             anchors its own injected button to Add-to-Cart controls, so putting one
-             back changes which code path runs; see suppressWidgetButtons() at the
-             end of <body>. -->
+        <div class="pa-play__meta">
+          <div>
+            <p class="pa-play__name" data-i18n-html="play.productName">חולצת <span class="brand-pear">PEAR</span> · Virtual Try-On</p>
+            <p class="pa-play__sub" data-i18n="play.productMeta">בז' · מידות S–XXL</p>
+          </div>
+          <div class="pa-sizes" aria-hidden="true"><b>S</b><b class="is-fit">M</b><b>L</b><b>XL</b></div>
+        </div>
 
-        <!-- Dedicated one-time direct-measurement CTA — skips the fitting-room's
-             registration step and allows exactly one open per browser session.
-             Click handler lives near the widget block at the end of <body>. -->
-        <!-- No data-i18n on the label: this button swaps between idle /
-             loading / used states, so the block at the end of <body> owns
-             its text and re-applies the right one on language change. -->
+        <!-- text-only by contract: the modal script assigns textContent -->
         <button id="pearDirectMeasureBtn" type="button"
-           data-i18n-aria-label="a11y.directMeasure"
-           aria-label="מדידה וירטואלית חד-פעמית, ללא שלב הרשמה, פעם אחת בביקור"
-           class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-transparent border-2 border-slate-300 text-slate-700 font-bold px-6 py-3.5 hover:border-pear-500 hover:text-pear-600 hover:-translate-y-0.5 transition-all">
-          ⚡ מדידה חד-פעמית מהירה
-        </button>
-        <p class="text-xs text-slate-400 mt-2" data-i18n="play.ctaNote">דילוג על שלב ההרשמה — ישר למדידה, שימוש אחד בכל ביקור.</p>
+                class="pa-btn pa-btn--pear pa-magnetic"
+                style="width:100%;justify-content:center"
+                data-i18n-aria-label="a11y.directMeasure"
+                aria-label="מדידה וירטואלית חד-פעמית, ללא שלב הרשמה, פעם אחת בביקור"
+                data-pa-hover>⚡ מדידה חד-פעמית מהירה</button>
+
+        <p class="pa-play__note" data-i18n="play.ctaNote">דילוג על שלב ההרשמה — ישר למדידה, שימוש אחד בכל ביקור.</p>
+      </div>
+
+      <div class="pa-play__copy">
+        <p class="pa-eyebrow" data-pa-reveal data-i18n="play.eyebrow">Live Widget · בלי הרשמה</p>
+        <h2 class="pa-display pa-d-lg" style="margin-top:1rem" data-pa-reveal data-i18n="play.title">זה הוויג'ט האמיתי. ממש כאן.</h2>
+        <p class="pa-lede" style="margin-top:1.2rem" data-pa-reveal data-i18n="play.sub">כך זה נראה בדף מוצר: לחצו על "מדידה חד-פעמית מהירה" וקבלו מדידה וירטואלית אמיתית, בלי הרשמה.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ─────────────────────────── DEMO BAND ─────────────────────────
+       Full-bleed onyx: the one hard tonal break on the page, so the
+       beige either side of it reads as deliberate rather than uniform. -->
+  <section id="demo" data-hud="hud.demo" class="pa-demo pa-pad">
+    <div class="pa-shell">
+      <div class="pa-head">
+        <div>
+          <p class="pa-eyebrow" data-pa-reveal data-i18n="demo.eyebrow">17 שניות · לפני/אחרי</p>
+          <h2 class="pa-display pa-d-lg pa-head__title" data-pa-reveal data-i18n="demo.title">כך זה נראה ללקוח שלכם</h2>
+        </div>
+        <p class="pa-lede" data-pa-reveal data-i18n="demo.sub">מהעמוד מוצר ועד תמונת לבוש — חוויה חלקה, ישירות בדפדפן, ללא אפליקציה.</p>
+      </div>
+
+      <div class="pa-demo__frame" data-pa-reveal data-pa-parallax="-4">
+        <video src="pear-ad.mp4" muted loop playsinline preload="metadata" autoplay
+               data-i18n-aria-label="a11y.demoVideo"
+               aria-label="סרטון הדגמה מלא של הוידג'ט PEAR AI Virtual Try-On"></video>
       </div>
     </div>
   </section>
 
-  <!-- ══════════ DEMO · 17-second before/after (dark band) ══════════ -->
-  <section id="demo" data-hud="hud.demo" class="glass-dark">
-    <div class="max-w-4xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
-      <div class="max-w-2xl mb-12 reveal">
-        <p class="text-xs font-mono font-semibold tracking-[0.2em] text-pear-400 uppercase mb-3" data-i18n="demo.eyebrow">17 שניות · לפני/אחרי</p>
-        <h2 data-split data-i18n="demo.title" class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-4">כך זה נראה ללקוח שלכם</h2>
-        <p class="text-slate-400 text-lg" data-i18n="demo.sub">מהעמוד מוצר ועד תמונת לבוש — חוויה חלקה, ישירות בדפדפן, ללא אפליקציה.</p>
+  <!-- ───────────────────── BUSINESS IMPACT · BENTO ─────────────────
+       The three pillars become tilt panels. The metric cell carries a
+       numeral only — the figure already stated in hero.proof3 — and
+       borrows an existing pillar tag for its label, so no new copy is
+       introduced anywhere on the page. -->
+  <section id="value" data-hud="hud.value" class="pa-section pa-pad pa-shell">
+    <div class="pa-head">
+      <div>
+        <p class="pa-eyebrow" data-pa-reveal data-i18n="value.eyebrow">השפעה עסקית</p>
+        <h2 class="pa-display pa-d-lg pa-head__title" data-pa-reveal data-i18n="value.title">שלושה עמודי תווך לרווחיות באופנה</h2>
       </div>
-      <div class="reveal relative">
-        <div class="parallax-blob pointer-events-none absolute -inset-6 bg-[radial-gradient(ellipse_at_center,rgb(16_185_129/0.14),transparent_70%)] blur-2xl" data-speed="-.15" aria-hidden="true"></div>
-        <video class="relative w-full rounded-2xl ring-1 ring-white/10 shadow-lift bg-slate-950"
-               src="pear-ad.mp4" controls playsinline preload="metadata"
-               data-i18n-aria-label="a11y.demoVideo" aria-label="סרטון הדגמה של PEAR"></video>
-      </div>
+      <p class="pa-lede" data-pa-reveal data-i18n="value.sub">מה משתנה בשורת הרווח כשהקונים מפסיקים לנחש מידה.</p>
+    </div>
+
+    <div class="pa-bento">
+
+      <article class="pa-cell pa-w2" data-pa-reveal data-pa-tilt>
+        <span class="pa-cell__glow" aria-hidden="true"></span>
+        <div class="pa-cell__head">
+          <p class="pa-cell__tag" data-i18n="value.card1Tag">המרה</p>
+          <p class="pa-status"><i aria-hidden="true"></i></p>
+        </div>
+        <h3 class="pa-cell__title" data-i18n="value.card1Title">הגדלת המרות</h3>
+        <p class="pa-cell__body" data-i18n="value.card1Body">תנו לקונים 100% ביטחון בהתאמה עוד לפני הרכישה.</p>
+        <ul class="pa-cell__list">
+          <li data-i18n="value.card1Bullet1">פחות עגלות נטושות</li>
+          <li data-i18n="value.card1Bullet2">בלי ניחושים בטבלת מידות</li>
+        </ul>
+      </article>
+
+      <article class="pa-cell pa-w2" data-pa-reveal data-pa-tilt>
+        <span class="pa-cell__glow" aria-hidden="true"></span>
+        <div class="pa-cell__head">
+          <p class="pa-cell__tag" data-i18n="value.card2Tag">מלאי</p>
+          <p class="pa-status"><i aria-hidden="true"></i></p>
+        </div>
+        <h3 class="pa-cell__title" data-i18n="value.card2Title">הגנה על המלאי</h3>
+        <p class="pa-cell__body" data-i18n-html="value.card2Body">עצרו קונים שמזמינים שלוש מידות של אותו פריט רק כדי למדוד בבית.</p>
+        <ul class="pa-cell__list">
+          <li data-i18n="value.card2Bullet1">הדגמים החמים נשארים למכירה</li>
+          <li data-i18n="value.card2Bullet2">נתוני ביקוש נקיים יותר</li>
+        </ul>
+      </article>
+
+      <article class="pa-cell pa-w2" data-pa-reveal data-pa-tilt>
+        <span class="pa-cell__glow" aria-hidden="true"></span>
+        <div class="pa-cell__head">
+          <p class="pa-cell__tag" data-i18n="value.card3Tag">תפעול</p>
+          <p class="pa-status"><i aria-hidden="true"></i></p>
+        </div>
+        <h3 class="pa-cell__title" data-i18n="value.card3Title">יעילות תפעולית</h3>
+        <p class="pa-cell__body" data-i18n="value.card3Body">צמצמו את שיעור ההחזרות בעד כ-25%.</p>
+        <ul class="pa-cell__list">
+          <li data-i18n="value.card3Bullet1">פחות סחורה נכנסת למיון</li>
+          <li data-i18n="value.card3Bullet2">מחזור מזומנים קצר יותר</li>
+        </ul>
+      </article>
+
     </div>
   </section>
 
-  <!-- ══════════ BUSINESS IMPACT · the three pillars ══════════
-       Conversion / Inventory / Operations — the same framework the hero
-       proof strip states as metrics, expanded one card per pillar. Each
-       card owns its pillar exclusively: the hero gives the number, the
-       card gives the mechanism, and the fit-crisis section below gives
-       the problem. Do not reintroduce a summary paragraph here — the
-       one that used to close this section just restated the three cards
-       and the intro above them.
-
-       Inline copy is the Hebrew fallback, same convention as every other
-       section. Every key has a Hebrew twin in i18n.js: t() falls back to
-       DEFAULT_LANG ('en'), so an English-only key renders English text to
-       Hebrew visitors instead of failing loudly. -->
-  <section id="value" data-hud="hud.value" class="max-w-6xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
-    <div class="max-w-2xl mx-auto text-center mb-12 reveal">
-      <p class="text-xs font-mono font-semibold tracking-[0.2em] text-pear-600 uppercase mb-3" data-i18n="value.eyebrow">השפעה עסקית</p>
-      <h2 data-split data-i18n="value.title" class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">שלושה עמודי תווך לרווחיות באופנה</h2>
-      <p class="text-slate-500 text-lg" data-i18n="value.sub">מה משתנה בשורת הרווח כשהקונים מפסיקים לנחש מידה.</p>
-    </div>
-
-    <!-- No text-align class on the cards: they inherit from <html dir>, so the
-         copy flips to the right edge in Hebrew and the left edge in English
-         with no per-language override. -->
-    <div class="grid sm:grid-cols-3 gap-5">
-      <div class="reveal rounded-2xl glass p-7">
-        <div class="flex items-center gap-3 mb-5">
-          <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-pear-50 text-pear-600 shrink-0">
-            <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17.5l6-6 4 4 8-8"/><path d="M17.5 7.5H21v3.5"/></svg>
-          </span>
-          <p class="text-xs font-mono font-semibold tracking-[0.2em] text-pear-600 uppercase" data-i18n="value.card1Tag">המרה</p>
-        </div>
-        <h3 class="text-lg font-bold text-slate-900 tracking-tight mb-2" data-i18n="value.card1Title">הגדלת המרות</h3>
-        <p class="text-sm text-slate-500 leading-relaxed mb-4" data-i18n="value.card1Body">תנו לקונים 100% ביטחון בהתאמה עוד לפני הרכישה. מדידה וירטואלית בזמן אמת מסירה את חרדת המידה, ומעלה את שיעורי ההוספה לסל ואת ההמרות.</p>
-        <ul class="flex flex-col gap-2">
-          <li class="flex items-start gap-2 text-sm font-semibold text-slate-700">
-            <svg viewBox="0 0 24 24" class="w-4 h-4 text-pear-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>
-            <span data-i18n="value.card1Bullet1">פחות עגלות נטושות</span>
-          </li>
-          <li class="flex items-start gap-2 text-sm font-semibold text-slate-700">
-            <svg viewBox="0 0 24 24" class="w-4 h-4 text-pear-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>
-            <span data-i18n="value.card1Bullet2">בלי ניחושים בטבלת מידות</span>
-          </li>
-        </ul>
-      </div>
-      <div class="reveal rounded-2xl glass p-7">
-        <div class="flex items-center gap-3 mb-5">
-          <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-pear-50 text-pear-600 shrink-0">
-            <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 7.5L12 3.5l8.5 4v9L12 20.5l-8.5-4v-9z"/><path d="M3.5 7.5L12 11.5l8.5-4M12 11.5v9"/></svg>
-          </span>
-          <p class="text-xs font-mono font-semibold tracking-[0.2em] text-pear-600 uppercase" data-i18n="value.card2Tag">מלאי</p>
-        </div>
-        <h3 class="text-lg font-bold text-slate-900 tracking-tight mb-2" data-i18n="value.card2Title">הגנה על המלאי</h3>
-        <p class="text-sm text-slate-500 leading-relaxed mb-4" data-i18n-html="value.card2Body">עצרו קונים שמזמינים שלוש מידות של אותו פריט רק כדי למדוד בבית. <span class="brand-pear">PEAR</span> מסירה את הניחוש בהתאמה, והמלאי המבוקש נשאר זמין ללקוחות משלמים.</p>
-        <ul class="flex flex-col gap-2">
-          <li class="flex items-start gap-2 text-sm font-semibold text-slate-700">
-            <svg viewBox="0 0 24 24" class="w-4 h-4 text-pear-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>
-            <span data-i18n="value.card2Bullet1">הדגמים החמים נשארים למכירה</span>
-          </li>
-          <li class="flex items-start gap-2 text-sm font-semibold text-slate-700">
-            <svg viewBox="0 0 24 24" class="w-4 h-4 text-pear-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>
-            <span data-i18n="value.card2Bullet2">נתוני ביקוש נקיים יותר</span>
-          </li>
-        </ul>
-      </div>
-      <div class="reveal rounded-2xl glass p-7">
-        <div class="flex items-center gap-3 mb-5">
-          <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-pear-50 text-pear-600 shrink-0">
-            <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1"/><path d="M20.5 3.5v5h-5"/></svg>
-          </span>
-          <p class="text-xs font-mono font-semibold tracking-[0.2em] text-pear-600 uppercase" data-i18n="value.card3Tag">תפעול</p>
-        </div>
-        <h3 class="text-lg font-bold text-slate-900 tracking-tight mb-2" data-i18n="value.card3Title">יעילות תפעולית</h3>
-        <p class="text-sm text-slate-500 leading-relaxed mb-4" data-i18n="value.card3Body">צמצמו את שיעור ההחזרות בעד כ-25%. פחות עלויות משלוח כפול, פחות עומס החזרה למלאי ופחות בלאי — ישירות בשורה התחתונה.</p>
-        <ul class="flex flex-col gap-2">
-          <li class="flex items-start gap-2 text-sm font-semibold text-slate-700">
-            <svg viewBox="0 0 24 24" class="w-4 h-4 text-pear-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>
-            <span data-i18n="value.card3Bullet1">פחות סחורה נכנסת למיון</span>
-          </li>
-          <li class="flex items-start gap-2 text-sm font-semibold text-slate-700">
-            <svg viewBox="0 0 24 24" class="w-4 h-4 text-pear-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>
-            <span data-i18n="value.card3Bullet2">מחזור מזומנים קצר יותר</span>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </section>
-
-  <!-- ══════════ THE PEAR SOLUTION ══════════
-       Used to open with a problem statement (eyebrow "The problem" + headline
-       + a 3-card stat grid: ~25% / #1 / Bracketing). Removed on request — the
-       same ground is now covered earlier: the hero proof strip states the
-       ~25% and bracketing numbers as headline metrics, and the #value pillar
-       cards carry the mechanism. Keeping the stat recap here was pure repeat.
-       market.footnote went with it: it disclaimed "the market figures above",
-       which no longer exist in this section. -->
-  <section id="market-section" data-hud="hud.market" class="max-w-6xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
-    <div class="reveal rounded-3xl glass p-8 sm:p-10 text-center max-w-3xl mx-auto">
-      <p class="text-xs font-mono font-semibold tracking-[0.2em] text-pear-600 uppercase mb-3" data-i18n="market.solutionEyebrow">הפתרון של PEAR</p>
-      <h3 data-split class="text-2xl font-extrabold text-slate-900 tracking-tight mb-4" data-i18n="market.solutionTitle">ודאות מלאה במידה — ישירות בדף המוצר</h3>
-      <p class="text-lg sm:text-xl text-slate-700 leading-relaxed font-medium" data-i18n-html="market.potential">
-        <span class="brand-pear">PEAR</span> משתלבת בדפי המוצר שלכם ב
-        <span class="text-pear-700 font-bold">שורת קוד אחת</span>
-        — ונותנת לקונים ודאות מלאה לגבי הגזרה והמראה, עוד לפני הלחיצה על הקנייה.
+  <!-- ───────────────────── THE PEAR SOLUTION ───────────────────────
+       A floating glass panel rather than a band: it is the one section
+       that sits on the page instead of in it. -->
+  <section id="market-section" data-hud="hud.market" class="pa-section pa-pad pa-shell">
+    <div class="pa-solution" data-pa-reveal data-pa-tilt>
+      <span class="pa-cell__glow" aria-hidden="true"></span>
+      <p class="pa-eyebrow" data-i18n="market.solutionEyebrow">הפתרון של PEAR</p>
+      <h2 class="pa-display pa-d-lg" style="margin-block:1.1rem 1.3rem" data-i18n="market.solutionTitle">ודאות מלאה במידה — ישירות בדף המוצר</h2>
+      <p class="pa-lede" style="max-width:56ch" data-i18n-html="market.potential">
+        <span class="brand-pear">PEAR</span> משתלבת בדפי המוצר שלכם ב<span>שורת קוד אחת</span>.
       </p>
-      <p class="text-xs font-mono tracking-widest text-slate-400 uppercase mt-6" data-i18n="market.potentialTag">Shopify · WooCommerce · Magento · פיתוח מותאם</p>
+      <div class="pa-tags"><span data-i18n="market.potentialTag">Shopify · WooCommerce · Magento · פיתוח מותאם</span></div>
     </div>
   </section>
 
-  <!-- ══════════ FINAL CTA ══════════ -->
-  <section id="cta" data-hud="hud.cta" class="relative overflow-hidden">
-    <!-- z-30 keeps the CTA copy ABOVE the fixed 3D layer: the pear parks centered
-         behind this headline for the finale -->
-    <div class="max-w-3xl mx-auto px-5 sm:px-8 py-20 sm:py-28 text-center relative z-30">
-      <h2 data-split data-i18n="cta.title" class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight mb-4 reveal">מוכנים להוריד את אחוז ההחזרות?</h2>
-      <p class="text-slate-500 text-lg mb-9 reveal" data-i18n="cta.sub">חמש דקות מהדבקת הקוד ועד המדידה הראשונה. דפי המוצר שלכם נשארים בדיוק כפי שהם.</p>
-      <div class="flex flex-wrap justify-center gap-3 reveal">
-        <button data-scroll="playground" data-i18n="cta.primary" class="cta-glow inline-flex items-center gap-2 rounded-xl bg-pear-600 text-white font-bold px-8 py-4 shadow-btn hover:bg-pear-700 hover:-translate-y-0.5 transition-all">
-          ✨ נסו את הוויג'ט
-        </button>
-        <a href="#docs" data-nav="docs" data-i18n="cta.docs" class="nav-link inline-flex items-center rounded-xl glass text-slate-700 font-bold px-8 py-4 hover:-translate-y-0.5 transition-all">
-          למדריך ההטמעה ←
-        </a>
-        <button data-scroll="contact-section" data-view="contact" data-i18n="cta.contact"
-           class="cursor-pointer inline-flex items-center gap-2 rounded-xl bg-transparent border-2 border-slate-300 text-slate-700 font-bold px-8 py-4 hover:border-pear-500 hover:text-pear-600 hover:-translate-y-0.5 transition-all">
-          דברו איתנו 💬
-        </button>
+  <!-- ───────────────────────── CLOSING CTA ─────────────────────── -->
+  <section id="cta" data-hud="hud.cta" class="pa-section pa-pad pa-shell">
+    <div class="pa-close" data-pa-reveal>
+      <h2 class="pa-display pa-d-lg" data-i18n="cta.title">מוכנים להוריד את אחוז ההחזרות?</h2>
+      <p class="pa-lede" style="margin-top:1.2rem;text-align:center" data-i18n="cta.sub">חמש דקות מהדבקת הקוד ועד המדידה הראשונה.</p>
+
+      <div class="pa-close__actions" data-pa-stagger>
+        <button type="button" class="pa-btn pa-btn--pear pa-btn--pulse pa-magnetic" data-scroll="playground"
+                data-i18n="cta.primary" data-pa-hover>✨ נסו את הוויג'ט</button>
+        <a class="pa-btn pa-btn--ghost pa-magnetic" href="#docs" data-nav="docs" data-view="docs" data-scroll="docsGate"
+           data-i18n="cta.docs" data-pa-hover>למדריך ההטמעה ←</a>
+        <button type="button" class="pa-btn pa-btn--ghost pa-magnetic" data-nav="contact" data-view="contact" data-scroll="contact-section"
+                data-i18n="cta.contact" data-pa-hover>דברו איתנו 💬</button>
       </div>
     </div>
   </section>
+
 </main>
 
 <!-- ════════════════════════════════════════════════════════════════
@@ -1267,14 +1222,21 @@
 </main>
 
 <!-- ══════════ FOOTER ══════════ -->
-<footer class="border-t border-white/50 glass">
-  <div class="max-w-6xl mx-auto px-5 sm:px-8 py-10 flex flex-col sm:flex-row items-center justify-between gap-3">
-    <span class="flex items-center gap-2 font-mono font-bold text-slate-900">
-      <img src="PEAR-logo.png" alt="PEAR — AI Virtual Try-On platform logo" width="1110" height="1586"
-           class="brand-logo h-7 w-auto opacity-90" />
-      <span class="brand-pear">PEAR</span>
+<footer class="pa-foot pa-shell">
+  <div class="pa-foot__row">
+    <span class="pa-foot__brand">
+      <img src="PEAR-logo.png" alt="PEAR — AI Virtual Try-On platform logo" width="1110" height="1586" />
+      <span class="pa-nav__word">PEAR</span>
     </span>
-    <p class="text-xs text-slate-400" data-i18n-html="footer.rights">© 2026 <span class="brand-pear">PEAR</span> Platform (pearvton) — Virtual Try-On · כל הזכויות שמורות</p>
+
+    <p data-i18n-html="footer.rights">© 2026 <span class="brand-pear">PEAR</span> Platform (pearvton) — Virtual Try-On · כל הזכויות שמורות</p>
+
+    <!-- Local clock: the only non-translated string on the page, and it
+         is numerals, so it needs no dictionary entry. -->
+    <p class="pa-clock">
+      <span class="pa-dot" aria-hidden="true"></span>
+      <b id="paClock">--:--:--</b>
+    </p>
   </div>
 </footer>
 
@@ -1959,312 +1921,317 @@ setTimeout(revealAll, 1500);          // safety net — nothing may remain invis
   } }
 </script>
 <script type="module">
+/* ══════════════════════════════════════════════════════════════════
+   PEAR · ATELIER 3D LAYER
+   ------------------------------------------------------------------
+   One persistent scene behind the whole landing view. Scroll does not
+   swap scenes, it RE-FRAMES this one — cheaper than a context per
+   section, and it is what makes the objects feel continuous between
+   chapters instead of popping in and out.
+
+   Replaces the previous single-pear module. That scene drove itself
+   from a table of hard-coded world-x waypoints tuned to the old
+   two-column layout; against the rebuilt grid those coordinates put
+   the subject outside the frame, and the fix is a re-aim, not a patch.
+
+   Contents: a lathed pear built from the brand silhouette, a chrome
+   hanger, and silk sheets driven by a vertex displacement — the
+   fashion-atelier vocabulary the page is about.
+   ══════════════════════════════════════════════════════════════════ */
 try {
-  const REDUCED3D = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const stage = document.getElementById('pearStage');
-  if (stage && !REDUCED3D) {
+
+  if (stage && !REDUCED) {
     const THREE = await import('three');
     const { RoomEnvironment } = await import('three/addons/environments/RoomEnvironment.js');
 
-    /* ── renderer: full-viewport fixed layer, filmic tone mapping ── */
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+    const narrow = () => innerWidth < 1024;
+    const lowPower = narrow() || (navigator.hardwareConcurrency || 8) <= 4;
+    /* The layout mirrors under dir="rtl", so the scene has to mirror with
+       it or the composition ends up on the wrong side of the copy. */
+    const flip = () => (document.documentElement.dir === 'rtl' ? -1 : 1);
+
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: !lowPower, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, lowPower ? 1.4 : 1.75));
+    renderer.setSize(innerWidth, innerHeight);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
+    renderer.toneMappingExposure = 1.04;
     stage.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.1, 50);
-    camera.position.set(0, 0, 7.5);
+    const camera = new THREE.PerspectiveCamera(38, innerWidth / innerHeight, 0.1, 100);
+    camera.position.set(0, 0, 9);
 
-    /* Hero pear parks in the left gutter, beside the phone mockup. A FIXED world-x
-       can't do this: it projects to a different screen spot per aspect ratio — off
-       the left edge on narrow desktops, behind the phone on wide ones. So derive it
-       from the viewport instead, anchoring the pear ~11% from the left edge, clamped
-       to a sane range so it never drifts too far or too close. */
-    const HERO_SCREEN_FRAC = 0.11;
-    const computeHeroX = () => {
-      const halfW = Math.tan((42 * Math.PI / 180) / 2) * camera.position.z * camera.aspect;
-      return Math.max(-3.7, Math.min(-2.6, (2 * HERO_SCREEN_FRAC - 1) * halfW));
-    };
-    let heroX = computeHeroX();
-
-    /* ── lighting: image-based environment (the realism backbone) +
-         a warm key and a cool rim for shape definition ── */
+    /* RoomEnvironment gives real specular reflections with no HDR file to
+       fetch — which matters here, because the site CSP opens img-src to
+       'self' only and an .hdr would need a new origin. */
     const pmrem = new THREE.PMREMGenerator(renderer);
     scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
-    scene.add(new THREE.HemisphereLight(0xf8fafc, 0xdbe7d0, 0.35));
-    const key = new THREE.DirectionalLight(0xfff4e0, 1.15); key.position.set(3.5, 5, 4);  scene.add(key);
-    const rim = new THREE.DirectionalLight(0xcdeedd, 0.45); rim.position.set(-5, -1, -4); scene.add(rim);
 
-    /* ── procedural pear skin: one 1024px canvas paints the color map
-         (green gradient + russet sun-blush + ~4000 lenticel speckles),
-         a second paints the matching bump/roughness map ── */
-    function makeSkin() {
-      const col = document.createElement('canvas'); col.width = col.height = 1024;
-      const cx = col.getContext('2d');
-      const grad = cx.createLinearGradient(0, 0, 0, 1024);
-      grad.addColorStop(0, '#b4c554'); grad.addColorStop(0.45, '#9cba4b'); grad.addColorStop(1, '#7ba03e');
-      cx.fillStyle = grad; cx.fillRect(0, 0, 1024, 1024);
-      const blush = cx.createRadialGradient(690, 400, 40, 690, 400, 430);
-      blush.addColorStop(0, 'rgba(193,118,58,0.5)'); blush.addColorStop(1, 'rgba(193,118,58,0)');
-      cx.fillStyle = blush; cx.fillRect(0, 0, 1024, 1024);
+    /* The environment does most of the lighting. Pushed harder than this
+       and the beige fabrics blow out to white under ACES, which is what
+       makes CG cloth read as paper instead of silk. */
+    const key = new THREE.DirectionalLight(0xffffff, 0.9); key.position.set(3.2, 4.5, 5); scene.add(key);
+    const rim = new THREE.DirectionalLight(0x9bb53a, 0.85); rim.position.set(-4, 1.5, -3); scene.add(rim);
+    scene.add(new THREE.AmbientLight(0xf4f1ea, 0.3));
 
-      const bmp = document.createElement('canvas'); bmp.width = bmp.height = 1024;
-      const bx = bmp.getContext('2d');
-      bx.fillStyle = '#8a8a8a'; bx.fillRect(0, 0, 1024, 1024);
+    const atelier = new THREE.Group();
+    scene.add(atelier);
 
-      for (let i = 0; i < 4200; i++) {                       // lenticels
-        const x = Math.random() * 1024, y = Math.random() * 1024, r = 0.6 + Math.random() * 1.6;
-        cx.fillStyle = `rgba(121,86,44,${0.08 + Math.random() * 0.2})`;
-        cx.beginPath(); cx.arc(x, y, r, 0, 7); cx.fill();
-        bx.fillStyle = Math.random() > 0.5 ? 'rgba(200,200,200,0.5)' : 'rgba(60,60,60,0.45)';
-        bx.beginPath(); bx.arc(x, y, r, 0, 7); bx.fill();
-      }
-      for (let i = 0; i < 240; i++) {                        // soft mottling
-        const x = Math.random() * 1024, y = Math.random() * 1024, r = 10 + Math.random() * 36;
-        cx.fillStyle = `rgba(${Math.random() > 0.5 ? '176,196,90' : '116,150,58'},0.05)`;
-        cx.beginPath(); cx.arc(x, y, r, 0, 7); cx.fill();
-      }
-      const mk = (c) => { const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping;
-                          t.anisotropy = renderer.capabilities.getMaxAnisotropy(); return t; };
-      const map = mk(col);
-      map.colorSpace = THREE.SRGBColorSpace;   // CRITICAL: without this the greens wash out to pale
-      return { map, bump: mk(bmp), bumpCanvas: bmp };
-    }
-    const skin = makeSkin();
+    /* Deliberately a shade under the CSS hexes: ACES plus a bright
+       environment lifts everything, so feeding it the literal #E5E1D6
+       comes back as white. These land on the CSS values. */
+    const LINEN = 0xc9c3b1, ONYX = 0x101010, PEAR = 0x7f9a2a, CREAM = 0xe8e4dc;
 
-    /* Derive a proper TANGENT-SPACE NORMAL MAP from the speckle/bump canvas
-       (Sobel gradients → per-texel surface normal). Real normals catch the
-       lights far more convincingly than a scalar bumpScale — this is the main
-       lift toward a photoreal skin without shipping a scanned asset. */
-    function makeNormalMap(srcCanvas, strength) {
-      const w = srcCanvas.width, h = srcCanvas.height;
-      const s = srcCanvas.getContext('2d').getImageData(0, 0, w, h).data;
-      const out = document.createElement('canvas'); out.width = w; out.height = h;
-      const octx = out.getContext('2d'); const d = octx.createImageData(w, h);
-      const g = (x, y) => s[(((y + h) % h) * w + ((x + w) % w)) * 4] / 255;
-      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-        const dx = (g(x - 1, y) - g(x + 1, y)) * strength;
-        const dy = (g(x, y - 1) - g(x, y + 1)) * strength;
-        const len = Math.hypot(dx, dy, 1), i = (y * w + x) * 4;
-        d.data[i]     = (dx / len * 0.5 + 0.5) * 255;
-        d.data[i + 1] = (dy / len * 0.5 + 0.5) * 255;
-        d.data[i + 2] = (1 / len * 0.5 + 0.5) * 255;
-        d.data[i + 3] = 255;
-      }
-      octx.putImageData(d, 0, 0);
-      const t = new THREE.CanvasTexture(out); t.wrapS = t.wrapT = THREE.RepeatWrapping;
-      return t;
-    }
-    skin.normal = makeNormalMap(skin.bumpCanvas, 3.0);
+    /* ── silk: PBR cloth with a displaced surface ─────────────────── */
+    const clothTime = { value: 0 };
 
-    /* ── geometry: high-res lathe + organic vertex noise (asymmetry) ── */
-    const PROFILE = [
-      [0.00, -1.00], [0.34, -0.97], [0.58, -0.82], [0.70, -0.55],
-      [0.66, -0.22], [0.52,  0.08], [0.38,  0.34], [0.28,  0.58],
-      [0.22,  0.80], [0.16,  0.98], [0.00,  1.04],
-    ].map(([r, y]) => new THREE.Vector2(r, y));
-    const bodyGeo = new THREE.LatheGeometry(PROFILE, 128);
-    const pos = bodyGeo.attributes.position;
-    const v = new THREE.Vector3();
-    for (let i = 0; i < pos.count; i++) {
-      v.fromBufferAttribute(pos, i);
-      const n = Math.sin(v.y * 3.1 + v.x * 2.2) * Math.cos(v.z * 2.7) * 0.016
-              + Math.sin(v.x * 9 + v.y * 7) * 0.006;
-      v.multiplyScalar(1 + n);
-      pos.setXYZ(i, v.x, v.y, v.z);
-    }
-    bodyGeo.computeVertexNormals();
+    const makeCloth = (w, h, color, opt = {}) => {
+      const seg = lowPower ? 26 : 64;
+      const geo = new THREE.PlaneGeometry(w, h, seg, Math.round(seg * (h / w)));
+      const mat = new THREE.MeshPhysicalMaterial({
+        color, roughness: opt.roughness ?? 0.58, metalness: 0,
+        sheen: 1, sheenRoughness: 0.42, sheenColor: new THREE.Color(0xffffff),
+        clearcoat: 0.16, clearcoatRoughness: 0.5, side: THREE.DoubleSide,
+      });
 
-    const skinMat = new THREE.MeshPhysicalMaterial({
-      map: skin.map,
-      normalMap: skin.normal, normalScale: new THREE.Vector2(0.55, 0.55),  // real relief
-      roughnessMap: skin.bump, roughness: 0.5,
-      envMapIntensity: 1.15,                                // pick up the studio reflections
-      clearcoat: 0.28, clearcoatRoughness: 0.45,           // waxy skin, not plastic
-      sheen: 0.4, sheenColor: 0xe6efc4, sheenRoughness: 0.55, // faked subsurface softness
-    });
+      /* Displace in the vertex stage and rebuild the normal from the
+         displaced surface. Doing it here rather than with a bespoke
+         ShaderMaterial keeps the PBR lighting and the environment
+         reflection — the entire reason the silk reads as silk. */
+      const amp = opt.amp ?? 1, phase = opt.phase ?? 0;
+      mat.onBeforeCompile = (sh) => {
+        sh.uniforms.uTime = clothTime;
+        sh.uniforms.uAmp = { value: amp };
+        sh.uniforms.uPhase = { value: phase };
+        sh.vertexShader = sh.vertexShader
+          .replace('#include <common>', `
+            #include <common>
+            uniform float uTime; uniform float uAmp; uniform float uPhase;
+            vec3 drape(vec3 p) {
+              float t = uTime + uPhase;
+              float w = sin(p.x * 1.55 + t * 0.75) * 0.42
+                      + sin(p.y * 2.10 - t * 0.55) * 0.30
+                      + sin((p.x + p.y) * 3.40 + t * 1.05) * 0.14
+                      + sin(p.y * 5.60 + t * 0.35) * 0.07;
+              float sag = smoothstep(1.2, -1.2, p.y);   // the hem hangs looser
+              p.z += w * uAmp * (0.55 + sag * 0.75);
+              return p;
+            }`)
+          .replace('#include <beginnormal_vertex>', `
+            vec3 dP  = drape(position);
+            vec3 dPx = drape(position + vec3(0.02, 0.0, 0.0));
+            vec3 dPy = drape(position + vec3(0.0, 0.02, 0.0));
+            vec3 objectNormal = normalize(cross(dPx - dP, dPy - dP));
+            #ifdef USE_TANGENT
+              vec3 objectTangent = vec3(tangent.xyz);
+            #endif`)
+          .replace('#include <begin_vertex>', 'vec3 transformed = dP;');
+      };
+      return new THREE.Mesh(geo, mat);
+    };
 
-    /* bent stem: tube along a curve; leaf: a flat shape with both sides lit */
-    const stemCurve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(0, 1.0, 0), new THREE.Vector3(0.05, 1.22, 0.02), new THREE.Vector3(0.17, 1.4, 0.06),
-    ]);
-    const stemGeo = new THREE.TubeGeometry(stemCurve, 12, 0.042, 8);
-    const stemMat = new THREE.MeshStandardMaterial({ color: 0x6b4a2b, roughness: 0.9 });
-    const leafShape = new THREE.Shape();
-    leafShape.moveTo(0, 0);
-    leafShape.bezierCurveTo(0.16, 0.1, 0.3, 0.32, 0.14, 0.52);
-    leafShape.bezierCurveTo(0.0, 0.42, -0.06, 0.18, 0, 0);
-    const leafGeo = new THREE.ShapeGeometry(leafShape, 12);
-    const leafMat = new THREE.MeshPhysicalMaterial({ color: 0x5a7d2f, roughness: 0.6, sheen: 0.5, side: THREE.DoubleSide });
+    /* Layout rule for this group: the PEAR sits on the origin and
+       everything else is placed relative to it. That is what lets one
+       `x` per chapter aim the whole composition. */
+    const drape = makeCloth(2.9, 3.9, LINEN, { amp: 1 });
+    drape.position.set(0.85, 0.15, -1.6);
+    drape.rotation.set(-0.06, 0.28, 0.05);
+    atelier.add(drape);
 
-    function makePear(scale) {
-      const g = new THREE.Group();
-      g.add(new THREE.Mesh(bodyGeo, skinMat));
-      g.add(new THREE.Mesh(stemGeo, stemMat));
-      const leaf = new THREE.Mesh(leafGeo, leafMat);
-      leaf.position.set(0.06, 1.18, 0.03);
-      leaf.rotation.set(-0.5, 0.3, -0.9);
-      g.add(leaf);
-      g.scale.setScalar(scale);
-      return g;
-    }
-
-    /* ── the traveling hero pear + two hero-only companions ── */
-    const pear = makePear(0.72);
-    pear.position.set(heroX, 0.4, 0);
-    scene.add(pear);
-
-    const compA = makePear(0.32); compA.position.set(-3.85, -1.6, -1.7);
-    const compB = makePear(0.24); compB.position.set(6.1, 2.5, -2.6);
-    scene.add(compA, compB);
-
-    /* ── scroll-driven trajectory: one waypoint per chapter; GSAP eases the
-         shared state there whenever a section takes the stage. Through the
-         reading sections the pear sits far out in the SIDE GUTTER (|x|≈4.3,
-         small scale) so it peeks in from the margin without covering text;
-         only the hero and the finale bring it in close. Spins are slow
-         (≈0.1 rad/s) so it drifts like real fruit, never a CGI top. ── */
-    const state = { x: heroX, y: 0.4, s: 0.72, spin: 0.10 };
-    const WPS = [
-      ['hero',           heroX,  0.40, 0.72, 0.10],
-      ['playground',     -4.3,  0.05, 0.52, 0.13],  // gutter accent, left margin
-      ['demo',            4.3, -0.10, 0.44, 0.08],  // right gutter
-      ['market-section', -4.3,  0.05, 0.48, 0.09],  // must match the real section id, or this segment is skipped and the pear jumps
-      ['cta',             0.0, -0.60, 1.05, 0.06],  // calm centered finale behind the headline
+    const swatches = [
+      { m: makeCloth(0.95, 1.30, ONYX,  { amp: 1.5, phase: 2.1, roughness: .5 }),  p: [-1.35,  1.55, 0.3],  r: [0.10, -0.50, -0.22] },
+      { m: makeCloth(0.80, 1.10, PEAR,  { amp: 1.8, phase: 4.4, roughness: .45 }), p: [ 1.45, -1.35, 0.7],  r: [-0.12, 0.45,  0.30] },
+      { m: makeCloth(0.72, 1.00, CREAM, { amp: 1.6, phase: 6.2, roughness: .4 }),  p: [ 1.75,  1.60, -0.4], r: [0.16,  0.30, -0.35] },
     ];
+    swatches.forEach(({ m, p, r }) => { m.position.set(...p); m.rotation.set(...r); atelier.add(m); });
+
+    /* ── chrome hanger ────────────────────────────────────────────── */
+    const chrome = new THREE.MeshPhysicalMaterial({
+      color: 0xdfe1e4, metalness: 1, roughness: 0.14,
+      envMapIntensity: 1.7, clearcoat: 1, clearcoatRoughness: 0.08,
+    });
+    const hanger = new THREE.Group();
+    const tube = (pts, rad = 0.035) => new THREE.Mesh(
+      new THREE.TubeGeometry(
+        new THREE.CatmullRomCurve3(pts.map((p) => new THREE.Vector3(...p))),
+        lowPower ? 24 : 62, rad, lowPower ? 6 : 12, false),
+      chrome);
+    hanger.add(tube([[-1.15,-0.42,0],[-0.6,-0.16,0],[0,0.02,0],[0.6,-0.16,0],[1.15,-0.42,0]]));
+    hanger.add(tube([[-1.13,-0.44,0],[0,-0.5,0],[1.13,-0.44,0]], 0.028));
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.032, 0.26, 12), chrome);
+    neck.position.set(0, 0.15, 0); hanger.add(neck);
+    const hook = new THREE.Mesh(new THREE.TorusGeometry(0.19, 0.032, 10, lowPower ? 20 : 44, Math.PI * 1.45), chrome);
+    hook.position.set(0, 0.46, 0); hook.rotation.z = -Math.PI * 0.28; hanger.add(hook);
+    hanger.position.set(-0.2, 1.55, 0.5);
+    hanger.rotation.set(0.12, -0.35, 0.16);
+    hanger.scale.setScalar(0.9);
+    atelier.add(hanger);
+
+    /* ── the pear, lathed from the brand silhouette ───────────────── */
+    const profile = [
+      [0.001,-1.00],[0.34,-0.94],[0.62,-0.76],[0.76,-0.46],
+      [0.78,-0.14],[0.66, 0.14],[0.48, 0.38],[0.34, 0.60],
+      [0.25, 0.80],[0.19, 0.94],[0.12, 1.02],[0.001,1.05],
+    ].map(([x, y]) => new THREE.Vector3(x, y, 0));
+    const lathe = new THREE.CatmullRomCurve3(profile, false, 'catmullrom', 0.4)
+      .getPoints(lowPower ? 28 : 68)
+      .map((p) => new THREE.Vector2(Math.max(p.x, 0.001), p.y));
+
+    const pearMat = new THREE.MeshPhysicalMaterial({
+      color: PEAR, roughness: 0.28, metalness: 0.05,
+      clearcoat: 1, clearcoatRoughness: 0.14,
+      sheen: 0.4, sheenColor: new THREE.Color(0xffffff), envMapIntensity: 1.15,
+    });
+    const darkMat = new THREE.MeshPhysicalMaterial({ color: ONYX, roughness: 0.35, metalness: 0.1, clearcoat: .6 });
+
+    const pear = new THREE.Group();
+    pear.add(new THREE.Mesh(new THREE.LatheGeometry(lathe, lowPower ? 36 : 90), pearMat));
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.04, 0.34, 10), darkMat);
+    stem.position.set(0.02, 1.18, 0); stem.rotation.z = -0.18; pear.add(stem);
+    // a squashed sphere reads better than a plane at grazing angles
+    const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.2, 18, 12), darkMat);
+    leaf.scale.set(1, 0.4, 0.1); leaf.position.set(0.21, 1.27, 0.02); leaf.rotation.z = 0.66;
+    pear.add(leaf);
+    pear.position.set(0, -0.35, 0.9);
+    pear.scale.setScalar(0.68);
+    atelier.add(pear);
+
+    /* ── contact shadow ───────────────────────────────────────────── */
+    /* A painted gradient on a plane: a real shadow map would cost a
+       second render pass for a blur nobody looks at twice. */
+    const shadowTex = (() => {
+      const c = document.createElement('canvas'); c.width = c.height = 128;
+      const g = c.getContext('2d');
+      const grad = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+      grad.addColorStop(0, 'rgba(13,13,13,0.34)');
+      grad.addColorStop(0.55, 'rgba(13,13,13,0.10)');
+      grad.addColorStop(1, 'rgba(13,13,13,0)');
+      g.fillStyle = grad; g.fillRect(0, 0, 128, 128);
+      return new THREE.CanvasTexture(c);
+    })();
+    const shadow = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.9, 1.9),
+      new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false }));
+    shadow.rotation.x = -Math.PI / 2;
+    shadow.position.set(0, -1.06, 0.9);
+    atelier.add(shadow);
+
+    /* ── framing per chapter ──────────────────────────────────────── */
+    /* x is roughly "which column am I standing in" at this camera:
+       ±2.7 lands on a half-column edge, ±4 is off the side of the page.
+       Signed against reading direction, so the composition always sits
+       opposite the copy rather than under it. */
+    const ACTS = {
+      /* The hero copy column runs to ~55% and the device card starts at
+         ~64%, so there is no gap wide enough to stand a pear in. It goes
+         BEHIND the card instead and peeks around its edges — atmosphere,
+         not a third column competing with the headline. */
+      hero:              { x:  2.40, y: -0.10, z: -2.4, rx:  0.05, ry: -0.50, s: 0.78, o: 0.85 },
+      /* The playground mirrors the hero — artefact leading, copy
+         following — so the scene mirrors with it. */
+      playground:        { x: -2.40, y:  0.00, z: -2.2, rx:  0.02, ry:  0.35, s: 0.80, o: 0.62 },
+      demo:              { x:  3.40, y:  0.40, z: -2.5, rx:  0.08, ry: -0.90, s: 0.85, o: 0.30 },
+      value:             { x: -3.60, y:  0.50, z: -4.0, rx:  0.06, ry:  1.00, s: 0.75, o: 0.26 },
+      'market-section':  { x:  3.60, y: -0.40, z: -3.6, rx: -0.05, ry: -1.20, s: 0.78, o: 0.30 },
+      cta:               { x:  0.00, y:  0.10, z: -2.2, rx:  0.00, ry:  0.35, s: 1.00, o: 0.55 },
+    };
+
+    let chapter = 'hero';
+    const actFor = (name) => {
+      const a = { ...(ACTS[name] || ACTS.hero) };
+      a.x *= flip();
+      a.ry *= flip();
+      if (narrow()) { a.x *= 0.28; a.z -= 1.6; a.s *= 0.82; a.o *= 0.5; }
+      return a;
+    };
+
+    const goal = actFor('hero');
+    const cur = { ...goal };
+    let stageOpacity = goal.o;
+
     if (window.gsap && window.ScrollTrigger) {
       gsap.registerPlugin(ScrollTrigger);
-      /* Scroll-SCRUBBED travel: each section owns a segment that eases `state`
-         from the previous waypoint to its own as that section scrolls up through
-         the viewport. Because the tween is scrubbed (tied to scroll position, not
-         a fixed clock), the pear tracks the scrollbar DIRECTLY — a fast fling drags
-         it along in real time instead of leaving it frozen while a timed tween
-         plays catch-up. `scrub: 0.8` keeps a soft ~0.8s weight without lag-to-a-stop. */
-      for (let i = 1; i < WPS.length; i++) {
-        const [id, x, y, s, spin] = WPS[i];
-        const [, px, py, ps, pspin] = WPS[i - 1];
+      Object.keys(ACTS).forEach((id) => {
         const el = document.getElementById(id);
-        if (!el) continue;
-        gsap.fromTo(state,
-          { x: px, y: py, s: ps, spin: pspin },
-          { x, y, s, spin, ease: 'sine.inOut', immediateRender: false,
-            scrollTrigger: { trigger: el, start: 'top 85%', end: 'top 35%', scrub: 1 } });
-      }
-      /* companions belong to the hero only — shrink away when it exits */
-      ScrollTrigger.create({
-        trigger: '#hero', start: 'bottom 75%',
-        onEnter: () => [compA, compB].forEach((c) =>
-          gsap.to(c.scale, { x: 0.001, y: 0.001, z: 0.001, duration: 0.5, ease: 'power2.in' })),
-        onLeaveBack: () => [[compA, 0.4], [compB, 0.26]].forEach(([c, s]) =>
-          gsap.to(c.scale, { x: s, y: s, z: s, duration: 0.8, ease: 'back.out(2)' })),
+        if (!el) return;
+        ScrollTrigger.create({
+          trigger: el, start: 'top 60%', end: 'bottom 40%',
+          onToggle: (self) => {
+            if (!self.isActive) return;
+            chapter = id;
+            Object.assign(goal, actFor(id));
+          },
+        });
       });
     }
 
-    /* ── INTRO GATE ──────────────────────────────────────────────
-       Lock the page scroll while the pear dramatically drops in and
-       settles into its hero spot, then release. A hard failsafe always
-       releases (so a hiccup can never trap the user), and desktop-only
-       (mobile/reduced-motion/no-GSAP get no lock and no intro). */
-    let introDone = false, failsafe;
-    const blockWheel = (e) => e.preventDefault();
-    const blockKeys  = (e) => { if ([32,33,34,35,36,38,40].includes(e.keyCode)) e.preventDefault(); };
-    function releaseIntro() {
-      if (introDone) return;
-      introDone = true;
-      clearTimeout(failsafe);
-      /* SNAP to the final resting state so the scene is guaranteed visible even
-         if the intro tween was interrupted (kill any in-flight intro tweens
-         first, then plant everything where it belongs). */
-      if (window.gsap) gsap.killTweensOf([pear.position, pear.scale, compA.scale, compB.scale]);
-      pear.position.set(state.x, state.y, 0);
-      pear.scale.setScalar(state.s);
-      compA.scale.setScalar(0.36);
-      compB.scale.setScalar(0.24);
-      document.documentElement.classList.remove('intro-lock');
-      removeEventListener('wheel', blockWheel, { passive: false });
-      removeEventListener('touchmove', blockWheel, { passive: false });
-      removeEventListener('keydown', blockKeys);
-      if (window.ScrollTrigger) ScrollTrigger.refresh();
-    }
-    if (window.gsap && innerWidth >= 1024) {
-      scrollTo(0, 0);
-      document.documentElement.classList.add('intro-lock');
-      addEventListener('wheel', blockWheel, { passive: false });
-      addEventListener('touchmove', blockWheel, { passive: false });
-      addEventListener('keydown', blockKeys);
-      failsafe = setTimeout(releaseIntro, 3000);          // guaranteed unlock
-      pear.position.set(heroX, 5.4, 0.4);                  // start high, above the fold
-      pear.scale.setScalar(0.02);
-      gsap.timeline({ onComplete: releaseIntro })
-        .to(pear.scale,    { x: 0.72, y: 0.72, z: 0.72, duration: 1.5, ease: 'back.out(1.5)' }, 0)
-        .to(pear.position, { x: heroX, y: 0.4, z: 0, duration: 1.7, ease: 'power3.out' }, 0)
-        .from([compA.scale, compB.scale], { x: 0, y: 0, z: 0, duration: 1, ease: 'back.out(2)' }, 0.45);
-    } else {
-      introDone = true;                                   // no lock path
-    }
-
-    /* ── sizing / interaction / loop ── */
-    function resize() {
-      renderer.setSize(innerWidth, innerHeight, false);
-      camera.aspect = innerWidth / innerHeight;
-      camera.updateProjectionMatrix();
-      /* Re-anchor the hero rest spot for the new aspect ratio. Update the waypoint
-         (the from-value of the first travel segment) and, while the pear is still
-         parked at the hero, glide it to the new spot too. */
-      heroX = computeHeroX();
-      WPS[0][1] = heroX;
-      if (scrollY < innerHeight * 0.5) state.x = heroX;
-    }
-    addEventListener('resize', resize);
-    resize();
-
-    let mx = 0, my = 0;
+    /* ── pointer torque ───────────────────────────────────────────── */
+    const pointer = { x: 0, y: 0 };
+    const torque = { x: 0, y: 0 };
     addEventListener('mousemove', (e) => {
-      mx = e.clientX / innerWidth - 0.5;
-      my = e.clientY / innerHeight - 0.5;
+      pointer.x = (e.clientX / innerWidth) * 2 - 1;
+      pointer.y = (e.clientY / innerHeight) * 2 - 1;
     }, { passive: true });
 
+    addEventListener('resize', () => {
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+      Object.assign(goal, actFor(chapter));
+    });
+    /* A language switch flips dir, which mirrors the layout — the scene
+       has to re-aim or it ends up sitting on top of the copy. */
+    window.PearI18n?.onChange(() => Object.assign(goal, actFor(chapter)));
+
+    /* ── frame loop ───────────────────────────────────────────────── */
+    const damp = (a, b, l, dt) => a + (b - a) * (1 - Math.exp(-l * dt));
     const clock = new THREE.Clock();
     let prevT = 0;
-    /* Frame-rate-independent smoothing: turn a per-second "responsiveness" rate
-       into this frame's lerp alpha. A fixed per-frame factor (the old 0.12) runs
-       twice as fast on a 120Hz screen as on 60Hz and jerks whenever a frame drops;
-       easing by elapsed time keeps the glide identical everywhere and buttery
-       through stutters. */
-    const smooth = (rate, dt) => 1 - Math.exp(-rate * dt);
+
     function frame() {
       requestAnimationFrame(frame);
-      if (document.hidden || innerWidth < 1024 || document.body.classList.contains('subview-active')) return;
+      // the landing view owns this layer; sub-views hide it entirely
+      if (document.hidden || narrow() || document.body.classList.contains('subview-active')) return;
+
       const t = clock.getElapsedTime();
-      const dt = Math.min(t - prevT, 0.05);   // clamp: returning to a backgrounded tab can't fling the pear
+      const dt = Math.min(t - prevT, 0.05);
       prevT = t;
+      clothTime.value = t;
 
-      /* hero pear: slow lerp (0.02) toward the active waypoint = weighty,
-         unhurried motion. Gentle float, slow drift-spin, feather-light mouse
-         lean — so it reads as a real fruit hanging in space, not a fast toy.
-         Skipped during the intro, when GSAP owns the pear's drop-in. */
-      if (introDone) {
-        /* State is already scroll-scrubbed (weighty); this lerp is a light low-pass
-           so micro-steps stay buttery. Rates are tuned so the pear tracks the scroll
-           closely (never looks "stuck" on a fast fling) yet glides smoothly. */
-        const aPos = smooth(9, dt);     // position + scale follow
-        const aRot = smooth(3.2, dt);   // gentler tilt follow
-        pear.position.x += (state.x + mx * 0.3 - pear.position.x) * aPos;
-        pear.position.y += (state.y + Math.sin(t * 0.55) * 0.16 - pear.position.y) * aPos;
-        pear.scale.setScalar(pear.scale.x + (state.s - pear.scale.x) * aPos);
-        pear.rotation.x += (my * 0.18 - pear.rotation.x) * aRot;
-      }
-      pear.rotation.y = t * state.spin + scrollY * 0.00035;
-      pear.rotation.z = Math.sin(t * 0.3) * 0.05;
+      cur.x = damp(cur.x, goal.x, 2.4, dt);
+      cur.y = damp(cur.y, goal.y, 2.4, dt);
+      cur.z = damp(cur.z, goal.z, 2.4, dt);
+      cur.s = damp(cur.s, goal.s, 2.4, dt);
+      cur.rx = damp(cur.rx, goal.rx, 2.0, dt);
+      cur.ry = damp(cur.ry, goal.ry, 2.0, dt);
 
-      /* companions: slow idle bob in the hero */
-      compA.rotation.y = -t * 0.12;  compA.position.y = -1.6 + Math.sin(t * 0.8 + 2) * 0.14;
-      compB.rotation.y =  t * 0.14;  compB.position.y =  2.5 + Math.sin(t * 0.7 + 4) * 0.12;
+      torque.x = damp(torque.x, pointer.y * 0.16, 3.2, dt);
+      torque.y = damp(torque.y, pointer.x * 0.28, 3.2, dt);
+
+      atelier.position.set(cur.x, cur.y + Math.sin(t * 0.55) * 0.075, cur.z);
+      atelier.scale.setScalar(cur.s);
+      atelier.rotation.set(cur.rx + torque.x, cur.ry + torque.y, 0);
+
+      hanger.rotation.z = 0.16 + Math.sin(t * 0.7) * 0.07;
+      hanger.position.y = 1.55 + Math.sin(t * 0.62 + 1.1) * 0.12;
+      pear.rotation.y = t * 0.22;
+      pear.position.y = -0.35 + Math.sin(t * 0.85) * 0.08;
+      // the shadow tightens as the pear settles and softens as it lifts;
+      // one that merely follows the object reads as a decal
+      shadow.position.y = -1.06 + Math.sin(t * 0.85) * 0.015;
+      shadow.material.opacity = 0.62 - Math.sin(t * 0.85) * 0.12;
+      shadow.scale.setScalar(1 - Math.sin(t * 0.85) * 0.06);
+      swatches.forEach(({ m }, i) => { m.rotation.z += (i % 2 ? -1 : 1) * dt * 0.06; });
+
+      stageOpacity = damp(stageOpacity, goal.o, 2.2, dt);
+      renderer.domElement.style.opacity = stageOpacity.toFixed(3);
 
       renderer.render(scene, camera);
     }
+
+    pmrem.dispose();
     frame();
   }
 } catch (e) {
@@ -2476,5 +2443,6 @@ try {
 })();
 </script>
 
+<script src="pear-motion.js" defer></script>
 </body>
 </html>

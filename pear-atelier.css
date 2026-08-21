@@ -1,0 +1,847 @@
+/* ══════════════════════════════════════════════════════════════════
+   PEAR · ATELIER DESIGN SYSTEM
+   The visual language for the landing view. Loaded AFTER
+   pear-tailwind.css so it wins on the sections it owns; the docs and
+   contact views still run on the Tailwind utilities and are only
+   re-skinned here through the shared tokens.
+
+   BIDI · this site is Hebrew-first with an English alternate, and the
+   two share one stylesheet. Every directional value below is a logical
+   property (inline-start / inline-end / margin-inline), never left or
+   right — the layout mirrors itself when i18n.js flips dir="rtl" and
+   nothing needs a second rule.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ─────────────────────────── 1 · TOKENS ─────────────────────────── */
+:root {
+  --pa-beige:       #F4F1EA;
+  --pa-beige-deep:  #EFECE4;
+  --pa-beige-shade: #E5E1D6;
+  --pa-onyx:        #0D0D0D;
+  --pa-onyx-soft:   #17171A;
+  --pa-pear:        #9BB53A;
+  --pa-pear-deep:   #8EA633;
+  --pa-pear-glow:   rgba(155, 181, 58, .35);
+  --pa-white:       #FFFFFF;
+
+  --pa-ink:      rgba(13, 13, 13, 1);
+  --pa-ink-70:   rgba(13, 13, 13, .70);
+  --pa-ink-50:   rgba(13, 13, 13, .50);
+  --pa-ink-35:   rgba(13, 13, 13, .35);
+  --pa-ink-20:   rgba(13, 13, 13, .20);
+  --pa-hair:     rgba(13, 13, 13, .08);
+  --pa-hair-soft:rgba(13, 13, 13, .05);
+
+  --pa-lift-1: 0 1px 2px rgba(13,13,13,.03), 0 8px 24px -12px rgba(13,13,13,.10);
+  --pa-lift-2: 0 2px 4px rgba(13,13,13,.03), 0 18px 48px -20px rgba(13,13,13,.16);
+  --pa-lift-3: 0 4px 8px rgba(13,13,13,.04), 0 40px 90px -32px rgba(13,13,13,.24);
+
+  /* Inter Tight carries Latin; Heebo has no Latin competition here
+     because Inter Tight resolves first, and it catches every Hebrew
+     glyph Inter Tight cannot draw. One stack, two scripts. */
+  --pa-sans:  'Inter Tight', 'Heebo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  --pa-serif: 'Instrument Serif', 'Times New Roman', Georgia, serif;
+  --pa-mono:  'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --pa-gutter: clamp(1.25rem, 4vw, 4.5rem);
+  --pa-measure: 1440px;
+  --pa-radius: 22px;
+  --pa-radius-lg: 34px;
+  --pa-pill: 999px;
+
+  --pa-ease-out: cubic-bezier(.16, 1, .3, 1);
+  --pa-ease-io:  cubic-bezier(.65, .05, .36, 1);
+}
+
+/* ──────────────────── 2 · GROUND + TYPE BASE ────────────────────── */
+/* Scoped to the landing view so the docs/contact Tailwind pages are
+   not dragged into a palette they were not designed against. */
+body.pa {
+  background: var(--pa-beige);
+  color: var(--pa-ink);
+  font-family: var(--pa-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body.pa ::selection { background: var(--pa-pear); color: var(--pa-onyx); }
+
+body.pa :focus-visible {
+  outline: 2px solid var(--pa-pear-deep);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.pa-shell {
+  width: 100%;
+  max-width: var(--pa-measure);
+  margin-inline: auto;
+  padding-inline: var(--pa-gutter);
+}
+
+.pa-section { position: relative; z-index: 2; }
+.pa-pad { padding-block: clamp(5.5rem, 12vw, 11rem); }
+
+/* ── display type ── */
+.pa-display {
+  font-family: var(--pa-sans);
+  font-weight: 600;
+  line-height: .92;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+.pa-d-xl { font-size: clamp(2.3rem, 5.2vw, 5.6rem); }
+.pa-d-lg { font-size: clamp(2rem, 4.6vw, 4.4rem); letter-spacing: -0.04em; }
+.pa-d-md { font-size: clamp(1.6rem, 3vw, 2.8rem); letter-spacing: -0.035em; line-height: 1; }
+
+/* Hebrew is a heavier, wider script with no true italic and no
+   descender-driven rhythm; the Latin tracking that reads as tailored
+   reads as cramped set in Heebo, so it is relaxed back here. */
+[lang="he"] .pa-display,
+[dir="rtl"] .pa-display {
+  letter-spacing: -0.015em;
+  line-height: 1.06;
+  font-weight: 700;
+}
+
+/* The serif accent face carries no Hebrew glyphs at all. Rather than
+   let it silently fall back mid-headline, it is switched off outside
+   Latin and the emphasis is carried by colour alone. */
+.pa-serif {
+  font-family: var(--pa-serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--pa-pear-deep);
+}
+[lang="he"] .pa-serif,
+[dir="rtl"] .pa-serif {
+  font-family: inherit;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.pa-eyebrow {
+  font-family: var(--pa-mono);
+  font-size: clamp(.62rem, .78vw, .72rem);
+  font-weight: 500;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--pa-ink-50);
+  display: inline-flex;
+  align-items: center;
+  gap: .6rem;
+}
+.pa-eyebrow::before {
+  content: '';
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--pa-pear);
+  box-shadow: 0 0 0 4px var(--pa-pear-glow);
+  flex: none;
+}
+/* Hebrew has no uppercase, and letter-spacing on Hebrew breaks the
+   ligature-free flow of the script into loose beads. */
+[lang="he"] .pa-eyebrow,
+[dir="rtl"] .pa-eyebrow {
+  text-transform: none;
+  letter-spacing: .04em;
+  font-family: var(--pa-sans);
+  font-weight: 600;
+  font-size: .74rem;
+}
+
+.pa-lede {
+  font-size: clamp(1rem, 1.3vw, 1.24rem);
+  line-height: 1.6;
+  color: var(--pa-ink-70);
+  max-width: 48ch;
+  text-wrap: pretty;
+}
+
+.pa-brand {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background: linear-gradient(96deg, var(--pa-pear-deep), var(--pa-pear));
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+}
+/* i18n copy ships the wordmark as <span class="brand-pear">; adopt it
+   rather than asking the dictionary to learn a second class name. */
+body.pa .brand-pear {
+  font-weight: 700;
+  background: linear-gradient(96deg, var(--pa-pear-deep), var(--pa-pear));
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+}
+
+/* ───────────── 2b · LEGACY CLASS COMPATIBILITY LAYER ─────────────
+   The dictionary does not ship plain strings — several entries carry
+   markup, and that markup carries the OLD Tailwind utilities baked in
+   (text-pear-600, brand-pear, text-slate-700 …). Those classes arrive
+   through innerHTML at translation time, so they cannot be edited out
+   of the page without editing i18n.js and re-translating both
+   languages. They are re-skinned here instead: same class names, new
+   palette. Remove this block only if the dictionary is ever rewritten.
+
+   .text-pear-600 in pear-tailwind.css is rgb(5 150 105) — the previous
+   emerald brand colour. Left alone it repaints every headline accent
+   on the page in the palette this redesign replaced. */
+body.pa .text-pear-600,
+body.pa .text-pear-700,
+body.pa .hover\:text-pear-600:hover { color: var(--pa-pear-deep); }
+
+/* Didot on a Hebrew page falls back per-glyph and never matched the
+   grotesque anyway; the wordmark takes the page's own stack. */
+body.pa .brand-pear {
+  font-family: var(--pa-sans) !important;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+body.pa .text-slate-700 { color: var(--pa-ink); }
+body.pa .border-pear-100 { border-color: rgba(155,181,58,.3); }
+body.pa .border-slate-200 { border-color: var(--pa-hair); }
+body.pa .bg-slate-100 { background-color: var(--pa-beige-deep); }
+body.pa .font-mono { font-family: var(--pa-mono); }
+
+/* On the onyx panels the same utilities have to invert or the copy
+   they colour drops out of the surface entirely. */
+body.pa .pa-demo .text-slate-700,
+body.pa .pa-close .text-slate-700 { color: var(--pa-beige); }
+body.pa .pa-demo .text-pear-600,
+body.pa .pa-close .text-pear-600,
+body.pa .pa-demo .text-pear-700,
+body.pa .pa-close .text-pear-700 { color: var(--pa-pear); }
+body.pa .pa-demo .brand-pear,
+body.pa .pa-close .brand-pear {
+  background: linear-gradient(96deg, var(--pa-pear), #C6DA6B);
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+}
+
+/* ───────────────────── 3 · WEBGL + ATMOSPHERE ───────────────────── */
+#pearStage {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.2s var(--pa-ease-out);
+}
+#pearStage.is-ready { opacity: 1; }
+#pearStage canvas { width: 100% !important; height: 100% !important; display: block; }
+
+#pageBg {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(120% 80% at 50% 0%,   rgba(255,255,255,.55), transparent 60%),
+    radial-gradient(100% 60% at 50% 100%, rgba(229,225,214,.5),  transparent 55%);
+  mix-blend-mode: multiply;
+  opacity: .55;
+}
+
+/* ─────────────────────────── 4 · CURSOR ─────────────────────────── */
+.pa-cursor { position: fixed; top: 0; left: 0; z-index: 240; pointer-events: none; }
+.pa-cursor__dot,
+.pa-cursor__ring {
+  position: absolute; top: 0; left: 0;
+  border-radius: 50%;
+  transform: translate3d(-50%, -50%, 0);
+  will-change: transform;
+}
+.pa-cursor__dot {
+  width: 6px; height: 6px; background: var(--pa-onyx);
+  transition: opacity .25s var(--pa-ease-out);
+}
+.pa-cursor__ring {
+  width: 38px; height: 38px;
+  border: 1px solid var(--pa-onyx);
+  /* difference flips the ring against onyx panels automatically, so a
+     single cursor works over beige, white and black with no state */
+  mix-blend-mode: difference;
+  filter: invert(1);
+  display: grid; place-items: center;
+  transition:
+    width .45s var(--pa-ease-out), height .45s var(--pa-ease-out),
+    background-color .45s var(--pa-ease-out), border-color .45s var(--pa-ease-out);
+}
+.pa-cursor__label {
+  font-family: var(--pa-mono); font-size: .58rem; font-weight: 500;
+  letter-spacing: .14em; text-transform: uppercase;
+  color: var(--pa-beige);
+  opacity: 0; transform: scale(.6);
+  transition: opacity .3s var(--pa-ease-out), transform .45s var(--pa-ease-out);
+  white-space: nowrap;
+}
+.pa-cursor.is-hover .pa-cursor__ring {
+  width: 74px; height: 74px;
+  background: rgba(155,181,58,.22);
+  border-color: var(--pa-pear);
+}
+.pa-cursor.is-hover .pa-cursor__dot { opacity: 0; }
+.pa-cursor.is-badge .pa-cursor__ring {
+  width: 104px; height: 104px;
+  background: var(--pa-onyx);
+  border-color: transparent;
+  mix-blend-mode: normal;
+  filter: none;
+}
+.pa-cursor.is-badge .pa-cursor__label { opacity: 1; transform: scale(1); }
+.pa-cursor.is-badge .pa-cursor__dot { opacity: 0; }
+.pa-cursor.is-down .pa-cursor__ring { transform: translate3d(-50%,-50%,0) scale(.86); }
+
+@media (hover: hover) and (pointer: fine) {
+  html.pa-cursor-on, html.pa-cursor-on * { cursor: none !important; }
+}
+@media (hover: none), (pointer: coarse) { .pa-cursor { display: none; } }
+
+/* ──────────────────────── 5 · NAVIGATION ────────────────────────── */
+body.pa .pa-nav {
+  position: fixed; inset-inline: 0; top: 0; z-index: 200;
+  padding: clamp(.7rem, 1.6vw, 1.35rem) var(--pa-gutter);
+  display: flex; justify-content: center;
+  pointer-events: none;
+  background: none; box-shadow: none; border: 0;
+}
+.pa-nav__bar {
+  pointer-events: auto;
+  width: 100%; max-width: var(--pa-measure);
+  display: flex; align-items: center; gap: clamp(.4rem, 1.2vw, 1rem);
+  padding: .5rem .5rem .5rem 1rem;
+  padding-inline-start: 1rem; padding-inline-end: .5rem;
+  background: rgba(255,255,255,.72);
+  border: 1px solid var(--pa-hair);
+  border-radius: var(--pa-pill);
+  box-shadow: var(--pa-lift-1);
+  backdrop-filter: blur(18px) saturate(1.6);
+  -webkit-backdrop-filter: blur(18px) saturate(1.6);
+  transition: background-color .5s var(--pa-ease-out), box-shadow .5s var(--pa-ease-out);
+}
+.pa-nav.is-stuck .pa-nav__bar {
+  background: rgba(255,255,255,.88);
+  box-shadow: var(--pa-lift-2);
+}
+.pa-nav__brand { display: flex; align-items: center; gap: .65rem; flex: none; }
+.pa-nav__brand img { width: 22px; height: auto; }
+.pa-nav__word { font-weight: 700; letter-spacing: -0.03em; font-size: 1.02rem; }
+.pa-nav__links { display: flex; align-items: center; gap: clamp(.15rem, .8vw, .75rem); margin-inline: auto; }
+.pa-nav__link {
+  position: relative; padding: .55rem .85rem;
+  font-size: .86rem; font-weight: 500; letter-spacing: -0.01em;
+  color: var(--pa-ink-70); border-radius: var(--pa-pill);
+  transition: color .3s var(--pa-ease-out);
+  white-space: nowrap;
+}
+.pa-nav__link::after {
+  content: ''; position: absolute; inset-inline: .85rem; bottom: .38rem;
+  height: 1px; background: var(--pa-onyx);
+  transform: scaleX(0); transform-origin: inline-start;
+  transition: transform .45s var(--pa-ease-out);
+}
+.pa-nav__link:hover { color: var(--pa-ink); }
+.pa-nav__link:hover::after { transform: scaleX(1); }
+.pa-nav__link.is-active { color: var(--pa-ink); }
+.pa-nav__link.is-active::after { transform: scaleX(1); background: var(--pa-pear-deep); }
+
+.pa-nav__tools { display: flex; align-items: center; gap: .45rem; flex: none; }
+
+/* language switch, rebuilt as a segmented pill */
+.pa-lang {
+  display: inline-flex; align-items: center; gap: 2px;
+  padding: 3px; border-radius: var(--pa-pill);
+  border: 1px solid var(--pa-hair);
+  background: rgba(255,255,255,.5);
+}
+.pa-lang button {
+  font-family: var(--pa-mono); font-size: .62rem; font-weight: 500;
+  letter-spacing: .08em;
+  padding: .34rem .6rem; border-radius: var(--pa-pill);
+  color: var(--pa-ink-35); background: none; border: 0; cursor: pointer;
+  transition: color .3s, background-color .3s;
+}
+.pa-lang button:hover { color: var(--pa-ink); }
+.pa-lang button[aria-pressed="true"] { background: var(--pa-onyx); color: var(--pa-beige); }
+
+/* ──────────────────────── 6 · BUTTONS ───────────────────────────── */
+body.pa .pa-btn {
+  position: relative; display: inline-flex; align-items: center; gap: .6rem;
+  padding: .95rem 1.5rem;
+  border-radius: var(--pa-pill);
+  font-size: .88rem; font-weight: 500; letter-spacing: -0.01em;
+  white-space: nowrap; text-align: center;
+  isolation: isolate; overflow: hidden; cursor: pointer;
+  border: 0;
+  transition: color .4s var(--pa-ease-out), border-color .4s var(--pa-ease-out);
+}
+/* the fill wipes up from the bottom edge rather than fading — the
+   direction is what makes the hover read as physical */
+body.pa .pa-btn::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  transform: translateY(101%);
+  transition: transform .55s var(--pa-ease-out);
+}
+body.pa .pa-btn:hover::before { transform: translateY(0); }
+.pa-btn svg { width: 16px; height: 16px; flex: none; }
+
+.pa-btn--primary { background: var(--pa-onyx); color: var(--pa-beige); padding-block: 1rem; }
+.pa-btn--primary::before { background: var(--pa-pear); }
+.pa-btn--primary:hover { color: var(--pa-onyx); }
+
+.pa-btn--pear { background: var(--pa-pear); color: var(--pa-onyx); font-weight: 600; }
+.pa-btn--pear::before { background: var(--pa-onyx); }
+.pa-btn--pear:hover { color: var(--pa-beige); }
+
+/* body.pa-scoped so it outranks the `border: 0` on the base .pa-btn
+   rule above, which is itself scoped to beat Tailwind's preflight. */
+body.pa .pa-btn--ghost { border: 1px solid var(--pa-ink-20); color: var(--pa-ink); background: transparent; }
+body.pa .pa-btn--ghost::before { background: var(--pa-onyx); }
+body.pa .pa-btn--ghost:hover { color: var(--pa-beige); border-color: var(--pa-onyx); }
+
+.pa-btn--sm { padding: .62rem 1.05rem; font-size: .8rem; }
+
+/* one pulsing halo on the page, on the closing CTA only */
+.pa-btn--pulse::after {
+  content: ''; position: absolute; inset: -2px; z-index: -2;
+  border-radius: inherit; border: 1px solid var(--pa-pear);
+  animation: pa-halo 2.6s var(--pa-ease-io) infinite;
+}
+@keyframes pa-halo {
+  0%   { transform: scale(1);    opacity: .9; }
+  70%, 100% { transform: scale(1.22); opacity: 0; }
+}
+
+/* ─────────────── 7 · KINETIC TYPE + REVEAL PRIMITIVES ───────────── */
+/* Scoped under .pa-js so a no-script visitor never meets hidden text.
+   The mask that hides an incoming line also clips descenders on the
+   resting line, so the box grows past the baseline and the growth is
+   pulled back out of the layout. */
+.pa-js .pa-line {
+  display: block; overflow: hidden;
+  padding-bottom: .14em; margin-bottom: -.14em;
+}
+.pa-js .pa-line > span { display: block; will-change: transform; transform: translateY(110%); }
+.pa-js [data-pa-reveal] { opacity: 0; }
+.pa-js [data-pa-stagger] > * { opacity: 0; }
+
+/* ─────────────────────────── 8 · HERO ───────────────────────────── */
+.pa-hero {
+  position: relative; z-index: 3;
+  min-height: 100svh;
+  padding-top: clamp(7rem, 14vh, 11rem);
+  padding-bottom: clamp(2rem, 6vh, 5rem);
+  display: flex; flex-direction: column; justify-content: center;
+}
+.pa-hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr);
+  gap: clamp(2rem, 4vw, 4rem);
+  align-items: center;
+}
+.pa-hero__title { margin-block: clamp(1.1rem, 2.2vw, 1.9rem) clamp(1.3rem, 2.4vw, 2rem); }
+/* the dictionary's hero.title ships an LTR product kicker as its first
+   span; it is a label, not part of the headline scale */
+.pa-hero__title > span[dir="ltr"]:first-child {
+  display: block;
+  font-family: var(--pa-mono);
+  font-size: clamp(.62rem, .8vw, .72rem);
+  font-weight: 500; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--pa-pear-deep);
+  margin-bottom: 1.1rem;
+}
+.pa-hero__actions { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: clamp(1.5rem, 2.8vw, 2.2rem); }
+
+/* glassmorphic proof badges */
+.pa-proof {
+  display: flex; flex-wrap: wrap; gap: .5rem;
+  margin-top: clamp(1.8rem, 3.6vw, 2.8rem);
+  padding-top: clamp(1.3rem, 2.4vw, 1.9rem);
+  border-top: 1px solid var(--pa-hair);
+}
+.pa-proof p {
+  display: inline-flex; align-items: baseline; gap: .45rem;
+  padding: .5rem .9rem;
+  background: rgba(255,255,255,.6);
+  border: 1px solid var(--pa-hair-soft);
+  border-radius: var(--pa-pill);
+  font-size: .8rem; color: var(--pa-ink-50);
+  backdrop-filter: blur(8px);
+  margin: 0;
+}
+.pa-proof p span:first-child { font-weight: 600; color: var(--pa-ink); letter-spacing: -0.015em; }
+
+/* ── the elevated device stage that frames the try-on loop ── */
+.pa-stage {
+  position: relative;
+  perspective: 1400px;
+}
+.pa-stage__card {
+  position: relative;
+  background: var(--pa-white);
+  border: 1px solid var(--pa-hair);
+  border-radius: var(--pa-radius-lg);
+  box-shadow: var(--pa-lift-3);
+  padding: .8rem;
+  transform-style: preserve-3d;
+  will-change: transform;
+  margin-inline: auto;
+  max-width: 380px;
+}
+.pa-stage__screen {
+  position: relative; overflow: hidden;
+  border-radius: calc(var(--pa-radius-lg) - .55rem);
+  background: var(--pa-beige-deep);
+  aspect-ratio: 464 / 832;
+}
+.pa-stage__screen video { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+/* the ambient glow beneath the device, tinted by the clip */
+.pa-stage__glow {
+  position: absolute; inset-inline: 8%; bottom: -6%;
+  height: 40%; z-index: -1;
+  background: radial-gradient(50% 50% at 50% 50%, var(--pa-pear-glow), transparent 70%);
+  filter: blur(28px);
+  opacity: .9;
+}
+
+.pa-stage__toggle {
+  position: absolute; bottom: .85rem; inset-inline-end: .85rem; z-index: 3;
+  width: 38px; height: 38px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: rgba(255,255,255,.85);
+  border: 1px solid var(--pa-hair);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--pa-lift-1);
+  color: var(--pa-onyx); cursor: pointer;
+  transition: transform .35s var(--pa-ease-out), background-color .3s;
+}
+.pa-stage__toggle:hover { transform: scale(1.08); background: var(--pa-pear); }
+.pa-stage__toggle svg { width: 15px; height: 15px; }
+
+.pa-badge {
+  position: absolute; z-index: 4;
+  display: inline-flex; align-items: center; gap: .45rem;
+  padding: .45rem .8rem;
+  background: rgba(255,255,255,.9);
+  border: 1px solid var(--pa-hair);
+  border-radius: var(--pa-pill);
+  box-shadow: var(--pa-lift-1);
+  font-size: .74rem; font-weight: 500;
+  backdrop-filter: blur(10px);
+  white-space: nowrap;
+}
+.pa-badge--size { top: 1.4rem; inset-inline-start: -1.1rem; }
+.pa-badge--live { bottom: 3.4rem; inset-inline-end: -1.1rem; }
+.pa-badge .font-mono, .pa-badge span[class*="mono"] { color: var(--pa-pear-deep); font-family: var(--pa-mono); }
+
+.pa-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--pa-pear);
+  flex: none; position: relative;
+}
+.pa-dot::after {
+  content: ''; position: absolute; inset: 0; border-radius: 50%;
+  background: var(--pa-pear); animation: pa-halo 2s var(--pa-ease-io) infinite;
+}
+
+/* ───────────────── 9 · ASYMMETRIC SECTION HEADERS ───────────────── */
+.pa-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr);
+  gap: clamp(1.5rem, 4vw, 4rem);
+  align-items: end;
+  margin-bottom: clamp(2.2rem, 5vw, 4rem);
+}
+.pa-head__title { margin-top: 1rem; }
+
+/* ───────────────────── 10 · BENTO / CARDS ───────────────────────── */
+.pa-bento {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: clamp(.7rem, 1.1vw, 1.1rem);
+}
+.pa-cell {
+  position: relative; overflow: hidden;
+  background: var(--pa-white);
+  border: 1px solid var(--pa-hair);
+  border-radius: var(--pa-radius);
+  padding: clamp(1.35rem, 2.1vw, 2rem);
+  display: flex; flex-direction: column;
+  min-height: 210px;
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: border-color .5s var(--pa-ease-out), box-shadow .5s var(--pa-ease-out);
+}
+.pa-cell:hover { border-color: var(--pa-ink-20); box-shadow: var(--pa-lift-2); }
+
+/* cursor-tracked highlight; --mx/--my are written by the motion layer */
+.pa-cell__glow {
+  position: absolute; inset: 0; z-index: 0; opacity: 0;
+  background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%),
+              rgba(155,181,58,.20), transparent 68%);
+  transition: opacity .45s var(--pa-ease-out);
+}
+.pa-cell:hover .pa-cell__glow { opacity: 1; }
+.pa-cell > *:not(.pa-cell__glow) { position: relative; z-index: 1; transform: translateZ(30px); }
+
+.pa-cell__head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: auto; }
+.pa-cell__tag {
+  font-family: var(--pa-mono); font-size: .58rem; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--pa-ink-35);
+}
+[lang="he"] .pa-cell__tag, [dir="rtl"] .pa-cell__tag {
+  font-family: var(--pa-sans); text-transform: none; letter-spacing: .02em;
+  font-size: .68rem; font-weight: 600;
+}
+.pa-status {
+  display: inline-flex; align-items: center; gap: .45rem;
+  font-family: var(--pa-mono); font-size: .55rem; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--pa-ink-35);
+}
+.pa-status i {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--pa-pear);
+  animation: pa-blip 2.4s var(--pa-ease-io) infinite;
+}
+@keyframes pa-blip {
+  0%, 100% { box-shadow: 0 0 0 0 var(--pa-pear-glow); }
+  50%      { box-shadow: 0 0 0 5px rgba(155,181,58,0); }
+}
+
+.pa-cell__title {
+  margin: 1.5rem 0 .6rem;
+  letter-spacing: -0.03em; font-weight: 600;
+  font-size: clamp(1.15rem, 1.6vw, 1.5rem); line-height: 1.12;
+}
+[lang="he"] .pa-cell__title, [dir="rtl"] .pa-cell__title { letter-spacing: 0; line-height: 1.25; font-weight: 700; }
+.pa-cell__body { font-size: .88rem; color: var(--pa-ink-70); text-wrap: pretty; }
+.pa-cell__list { margin-top: 1.1rem; padding-top: 1rem; border-top: 1px solid var(--pa-hair-soft); display: grid; gap: .45rem; }
+.pa-cell__list li { display: flex; align-items: baseline; gap: .55rem; font-size: .78rem; color: var(--pa-ink-50); list-style: none; }
+.pa-cell__list li::before {
+  content: ''; flex: none;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--pa-pear); transform: translateY(-2px);
+}
+
+.pa-w2 { grid-column: span 2; }
+.pa-w3 { grid-column: span 3; }
+.pa-w4 { grid-column: span 4; }
+.pa-w6 { grid-column: span 6; }
+
+.pa-cell--onyx { background: var(--pa-onyx); border-color: var(--pa-onyx); color: var(--pa-beige); }
+.pa-cell--onyx .pa-cell__tag, .pa-cell--onyx .pa-status { color: rgba(244,241,234,.45); }
+.pa-cell--onyx .pa-cell__body { color: rgba(244,241,234,.72); }
+.pa-cell--onyx .pa-cell__list { border-color: rgba(244,241,234,.14); }
+.pa-cell--onyx .pa-cell__list li { color: rgba(244,241,234,.6); }
+
+/* metric cells */
+.pa-metric {
+  font-weight: 500; letter-spacing: -0.05em; line-height: .88;
+  font-size: clamp(2.6rem, 5.4vw, 4.8rem);
+  font-variant-numeric: tabular-nums;
+  direction: ltr;
+}
+.pa-metric small { font-size: .3em; letter-spacing: -0.02em; color: var(--pa-ink-35); margin-inline-start: .1em; }
+.pa-cell--onyx .pa-metric small { color: rgba(244,241,234,.4); }
+
+/* ─────────────────── 11 · PLAYGROUND / WIDGET ───────────────────── */
+.pa-play {
+  display: grid;
+  grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr);
+  gap: clamp(2rem, 5vw, 5rem);
+  align-items: center;
+}
+.pa-play__card {
+  background: var(--pa-white);
+  border: 1px solid var(--pa-hair);
+  border-radius: var(--pa-radius-lg);
+  box-shadow: var(--pa-lift-3);
+  padding: .85rem;
+  max-width: 460px; margin-inline: auto; width: 100%;
+  transform-style: preserve-3d; will-change: transform;
+}
+.pa-play__shot {
+  position: relative; overflow: hidden;
+  border-radius: calc(var(--pa-radius-lg) - .6rem);
+  background: var(--pa-beige-deep);
+  aspect-ratio: 1 / 1;
+}
+.pa-play__shot img { width: 100%; height: 100%; object-fit: cover; }
+/* the scan sweep that says "the model is reading this garment" */
+.pa-play__scan {
+  position: absolute; inset-inline: 0; height: 34%; z-index: 2;
+  background: linear-gradient(to bottom, transparent, rgba(155,181,58,.16) 45%,
+              rgba(155,181,58,.5) 50%, rgba(155,181,58,.16) 55%, transparent);
+  mix-blend-mode: multiply;
+  animation: pa-sweep 4.6s var(--pa-ease-io) infinite;
+}
+@keyframes pa-sweep {
+  0%, 8%    { transform: translateY(-40%); opacity: 0; }
+  20%, 80%  { opacity: 1; }
+  92%, 100% { transform: translateY(320%); opacity: 0; }
+}
+.pa-play__meta { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: 1rem .85rem .5rem; }
+.pa-play__name { font-weight: 600; letter-spacing: -0.02em; font-size: .96rem; }
+.pa-play__sub { font-size: .78rem; color: var(--pa-ink-50); margin-top: .15rem; }
+.pa-sizes { display: flex; gap: .3rem; }
+.pa-sizes b {
+  font-family: var(--pa-mono); font-size: .62rem; font-weight: 500;
+  width: 25px; height: 25px; display: grid; place-items: center;
+  border: 1px solid var(--pa-hair); border-radius: 7px; color: var(--pa-ink-35);
+}
+.pa-sizes b.is-fit { background: var(--pa-pear); border-color: var(--pa-pear); color: var(--pa-onyx); }
+.pa-play__note { font-size: .72rem; color: var(--pa-ink-35); text-align: center; padding: .6rem .85rem .2rem; line-height: 1.5; }
+
+/* ─────────────────────── 12 · DEMO BAND ─────────────────────────── */
+.pa-demo { position: relative; z-index: 3; background: var(--pa-onyx); color: var(--pa-beige); overflow: hidden; }
+.pa-demo::before {
+  content: ''; position: absolute; inset-inline: -10%; top: -40%; height: 140%;
+  background: radial-gradient(50% 50% at 50% 40%, rgba(155,181,58,.2), transparent 70%);
+  pointer-events: none;
+}
+.pa-demo > * { position: relative; }
+.pa-demo .pa-eyebrow { color: rgba(244,241,234,.5); }
+.pa-demo .pa-lede { color: rgba(244,241,234,.66); }
+.pa-demo__frame {
+  margin-top: clamp(2rem, 4vw, 3.5rem);
+  border-radius: var(--pa-radius-lg);
+  overflow: hidden;
+  border: 1px solid rgba(244,241,234,.14);
+  box-shadow: 0 50px 120px -40px rgba(0,0,0,.7);
+  background: #000;
+  will-change: transform;
+}
+.pa-demo__frame video { width: 100%; height: auto; display: block; }
+
+/* ─────────────────── 13 · SOLUTION / CLOSING ────────────────────── */
+.pa-solution {
+  position: relative; overflow: hidden;
+  border-radius: var(--pa-radius-lg);
+  border: 1px solid var(--pa-hair);
+  background: rgba(255,255,255,.66);
+  backdrop-filter: blur(18px);
+  box-shadow: var(--pa-lift-2);
+  padding: clamp(2rem, 5vw, 4.5rem);
+}
+.pa-tags { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: 1.4rem; }
+.pa-tags span {
+  font-family: var(--pa-mono); font-size: .64rem; letter-spacing: .04em;
+  padding: .4rem .75rem; border-radius: var(--pa-pill);
+  border: 1px solid var(--pa-hair); color: var(--pa-ink-50);
+  background: rgba(255,255,255,.6);
+}
+
+.pa-close {
+  position: relative; z-index: 3;
+  background: var(--pa-onyx); color: var(--pa-beige);
+  border-radius: var(--pa-radius-lg);
+  padding: clamp(3rem, 8vw, 7rem) clamp(1.5rem, 5vw, 5rem);
+  overflow: hidden; text-align: center;
+}
+.pa-close::before {
+  content: ''; position: absolute; inset: -40% -10% auto; height: 140%;
+  background: radial-gradient(50% 50% at 50% 30%, rgba(155,181,58,.24), transparent 70%);
+  pointer-events: none;
+}
+.pa-close > * { position: relative; }
+.pa-close .pa-eyebrow { color: rgba(244,241,234,.5); }
+.pa-close .pa-lede { color: rgba(244,241,234,.66); margin-inline: auto; }
+.pa-close__actions { display: flex; flex-wrap: wrap; gap: .7rem; justify-content: center; margin-top: clamp(2rem, 4vw, 3rem); }
+/* body.pa-scoped to match the base ghost rule's specificity (0,2,1).
+   Written as `.pa-close .pa-btn--ghost` it scores (0,2,0) and LOSES,
+   which paints these two buttons onyx-on-onyx — invisible. */
+body.pa .pa-close .pa-btn--ghost { border-color: rgba(244,241,234,.28); color: var(--pa-beige); }
+body.pa .pa-close .pa-btn--ghost::before { background: var(--pa-beige); }
+body.pa .pa-close .pa-btn--ghost:hover { color: var(--pa-onyx); border-color: var(--pa-beige); }
+
+/* ─────────────────────────── 14 · FOOTER ────────────────────────── */
+body.pa .pa-foot {
+  position: relative; z-index: 3;
+  padding-block: clamp(2.5rem, 5vw, 4rem);
+  border-top: 1px solid var(--pa-hair);
+  background: none;
+}
+.pa-foot__row {
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: 1.2rem;
+}
+.pa-foot__brand { display: flex; align-items: center; gap: .7rem; }
+.pa-foot__brand img { width: 26px; height: auto; }
+.pa-foot__row p { font-size: .78rem; color: var(--pa-ink-35); margin: 0; }
+.pa-clock {
+  display: inline-flex; align-items: center; gap: .55rem;
+  font-family: var(--pa-mono); font-size: .68rem; letter-spacing: .06em;
+  color: var(--pa-ink-50); direction: ltr;
+}
+.pa-clock b { font-weight: 500; color: var(--pa-ink); font-variant-numeric: tabular-nums; }
+
+/* ────────────────────── 15 · SCROLL HUD ─────────────────────────── */
+/* Stays in the bottom corner where the original put it — the bento and
+   the demo band both run the full width of the shell, so a rail parked
+   at the vertical middle lands on top of a card. Only the skin changes:
+   the emerald glow goes, the ring turns pear. */
+body.pa #scrollHud {
+  inset-inline-end: 1.4rem; inset-inline-start: auto;
+  bottom: 1.4rem; top: auto; transform: none;
+  gap: .6rem;
+  padding: .45rem .9rem .45rem .5rem;
+  background: rgba(255,255,255,.72);
+  border: 1px solid var(--pa-hair);
+  border-radius: var(--pa-pill);
+  box-shadow: var(--pa-lift-1);
+  opacity: 0; visibility: hidden;
+  transition: opacity .6s var(--pa-ease-out), visibility .6s;
+}
+body.pa #scrollHud.is-visible { opacity: 1; visibility: visible; }
+/* the drop-shadow was tuned to the old emerald and reads as a smudge
+   against the new accent */
+body.pa #scrollHud svg { filter: none; }
+/* SVG gradient stops are styleable from CSS, which is the only way to
+   recolour a ring whose markup is owned by the original page. */
+body.pa #hudGrad stop:first-child { stop-color: var(--pa-pear); }
+body.pa #hudGrad stop:last-child  { stop-color: var(--pa-pear-deep); }
+body.pa #scrollHud circle:first-of-type { stroke: var(--pa-hair); }
+body.pa #hudPct { font-family: var(--pa-mono); color: var(--pa-ink); }
+body.pa #hudLabel {
+  font-family: var(--pa-mono); font-size: .58rem; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--pa-ink-50); white-space: nowrap;
+}
+[lang="he"] #hudLabel, [dir="rtl"] #hudLabel {
+  font-family: var(--pa-sans); text-transform: none; letter-spacing: 0;
+  font-size: .72rem; font-weight: 600;
+}
+
+/* ─────────────────────── 16 · RESPONSIVE ────────────────────────── */
+@media (max-width: 1100px) {
+  body.pa #scrollHud { display: none; }
+  .pa-hero__grid { grid-template-columns: minmax(0, 1fr); gap: clamp(2.5rem, 6vw, 4rem); }
+  .pa-play { grid-template-columns: minmax(0, 1fr); }
+  .pa-head { grid-template-columns: minmax(0, 1fr); align-items: start; }
+  .pa-w2, .pa-w3, .pa-w4 { grid-column: span 3; }
+}
+@media (max-width: 860px) {
+  .pa-nav__links { display: none; }
+  .pa-nav__bar { padding-inline-start: .7rem; gap: .5rem; }
+  .pa-nav__tools { margin-inline-start: auto; }
+  .pa-bento { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pa-w2, .pa-w3, .pa-w4, .pa-w6 { grid-column: span 2; }
+  .pa-cell { min-height: 180px; }
+  .pa-badge--size { inset-inline-start: .6rem; }
+  .pa-badge--live { inset-inline-end: .6rem; }
+}
+@media (max-width: 560px) {
+  .pa-bento { grid-template-columns: minmax(0, 1fr); }
+  .pa-w2, .pa-w3, .pa-w4, .pa-w6 { grid-column: span 1; }
+  .pa-hero__actions .pa-btn { flex: 1 1 100%; justify-content: center; }
+}
+
+/* ───────────────────── 17 · REDUCED MOTION ──────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  body.pa *, body.pa *::before, body.pa *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+  .pa-js [data-pa-reveal], .pa-js [data-pa-stagger] > * { opacity: 1 !important; }
+  .pa-js .pa-line > span { transform: none !important; }
+  .pa-play__scan { display: none; }
+  html.pa-cursor-on, html.pa-cursor-on * { cursor: auto !important; }
+  .pa-cursor { display: none; }
+}
