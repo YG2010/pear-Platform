@@ -138,7 +138,7 @@
          הגדלת המרות = boost conversion, הזמנת כמה מידות = bracketing. */
       'meta.title':              'PEAR Platform | תא מדידה וירטואלי ו-AI Virtual Try-On בזמן אמת (PearVTON)',
       'meta.description':        'PEAR (PearVTON) מביאה מדידה וירטואלית ותא מדידה מבוססי AI בזמן אמת לחנויות אופנה אונליין. ודאות מלאה במידה, יותר המרות, סוף להזמנת כמה מידות, וירידה דרמטית בהחזרות.',
-      'meta.keywords':           'pear, pear platform, pear ai, pear vton, pearvton, תא מדידה וירטואלי, מדידה וירטואלית, מדידת בגדים אונליין, המלצת מידה, הפחתת החזרות, הגדלת המרות, אופנה אונליין, AI virtual try on, virtual fitting room',
+      'meta.keywords':           'pear, pear platform, pear ai, pear vton, pearvton, תא מדידה וירטואלי, מדידה וירטואלית, אינטגרציית מדידה אונליין, הלבשה וירטואלית בינה מלאכותית, מדידת בגדים אונליין, המלצת מידה, הפחתת החזרות, הגדלת המרות, אופנה אונליין, AI virtual try on, virtual fitting room',
       'meta.ogTitle':            'PEAR Platform | תא מדידה וירטואלי מבוסס AI לאיקומרס אופנה',
       'meta.ogDescription':      'שדרגו את חנות האופנה שלכם עם PEAR AI Virtual Try-On. הקונים מודדים ומתלבשים וירטואלית, ליותר המרות ופחות החזרות.',
       'meta.twitterTitle':       'PEAR Platform | מדידה וירטואלית בזמן אמת (PearVTON)',
@@ -336,7 +336,7 @@
          mixed signal. Change one, change both. */
       'meta.title':              'PEAR Platform | Real-Time AI Virtual Try-On & Fit Technology (PearVTON)',
       'meta.description':        'PEAR (PearVTON) delivers real-time AI Virtual Try-On and virtual measurement for fashion e-commerce. Give shoppers 100% fit confidence, boost conversion rates, eliminate bracketing, and drastically reduce return rates.',
-      'meta.keywords':           'pear, pear platform, pear ai, pear vton, pear virtual try on, AI virtual try on, virtual fitting room, fashion e-commerce widget, reduce return rates, eliminate bracketing, virtual sizing',
+      'meta.keywords':           'pear, pear platform, pear ai, pear vton, pearvton, pear virtual try on, pear fitting room, pear ai fashion, AI virtual try on, AI virtual fitting room, real-time virtual try-on, online fitting room for e-commerce, virtual outfit preview, AI garment fitting, virtual fitting room, fashion e-commerce widget, Shopify virtual try-on integration, WooCommerce virtual try-on integration, Magento AI fitting room integration, e-commerce VTON integration, reduce return rates, eliminate bracketing, virtual sizing',
       'meta.ogTitle':            'PEAR Platform | Real-Time AI Virtual Try-On for Fashion E-Commerce',
       'meta.ogDescription':      'Transform your fashion store with PEAR AI Virtual Try-On. Allow shoppers to measure and try on clothes virtually, boosting conversions and slashing return rates.',
       'meta.twitterTitle':       'PEAR Platform | Real-Time AI Virtual Try-On (PearVTON)',
