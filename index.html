@@ -4,14 +4,27 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- ════════════════════════════════════════════════════════════════
-     TITLE / DESCRIPTION · the values below are the HEBREW defaults that
-     ship in the static file. i18n.js rewrites both (plus og:*, twitter:*,
-     keywords, canonical and the JSON-LD block) before first paint when
-     the visitor resolves to English. Edit the copy in i18n.js, not here —
-     these literals only ever survive with JavaScript disabled.
+     TITLE / DESCRIPTION · these are the ENGLISH defaults, because
+     DEFAULT_LANG in i18n.js is 'en': every visitor except a confirmed
+     Israeli IP is painted English, and Googlebot crawls from US IPs.
+
+     i18n.js rewrites all of them (plus og:*, twitter:*, keywords,
+     canonical and the JSON-LD block) before first paint. Edit the copy
+     in i18n.js, not here — these literals only ever survive with
+     JavaScript disabled, and they must stay byte-identical to DICT.en
+     so the pre-JS and post-JS passes never disagree.
      ════════════════════════════════════════════════════════════════ -->
-<title>PEAR Platform | PearVTON – Virtual Try-On &amp; Measurement</title>
-<meta name="description" content="PEAR Platform (PearVTON): AI-powered Virtual Try On and Virtual Measurement for fashion e-commerce. Reduce returns, boost conversion.">
+<title>PEAR Platform | Real-Time AI Virtual Try-On &amp; Fit Technology (PearVTON)</title>
+<meta name="title" content="PEAR Platform | Real-Time AI Virtual Try-On &amp; Fit Technology (PearVTON)" />
+<meta name="description" content="PEAR (PearVTON) delivers real-time AI Virtual Try-On and virtual measurement for fashion e-commerce. Give shoppers 100% fit confidence, boost conversion rates, eliminate bracketing, and drastically reduce return rates." />
+<meta name="keywords" content="pear, pear platform, pear ai, pear vton, pear virtual try on, AI virtual try on, virtual fitting room, fashion e-commerce widget, reduce return rates, eliminate bracketing, virtual sizing" />
+
+<!-- robots · robots.txt already allows everything, but it cannot ask for
+     large image/video previews. max-image-preview:large is what lets the
+     try-on stills run as full-size thumbnails in Search and Discover,
+     which is the whole point of a visual product like this. -->
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+
 <link rel="canonical" href="https://platform.pear-ai.io/" />
 
 <!-- ════════════════════════════════════════════════════════════════
@@ -40,34 +53,100 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
 <link rel="manifest" href="/site.webmanifest" />
 
-<!-- Open Graph / Facebook -->
+<!-- Open Graph / Facebook / LinkedIn -->
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://platform.pear-ai.io/" />
 <meta property="og:site_name" content="PEAR" />
-<meta property="og:title" content="PEAR Platform | PearVTON – AI Virtual Try-On &amp; Measurement" />
-<meta property="og:description" content="AI-powered Virtual Try On and Virtual Measurement platform for fashion e-commerce. Fewer returns, more confident purchases." />
-<meta property="og:image" content="https://platform.pear-ai.io/PEAR-logo.png" />
-<meta property="og:locale" content="he_IL" />
+<meta property="og:title" content="PEAR Platform | Real-Time AI Virtual Try-On for Fashion E-Commerce" />
+<meta property="og:description" content="Transform your fashion store with PEAR AI Virtual Try-On. Allow shoppers to measure and try on clothes virtually, boosting conversions and slashing return rates." />
+<!-- og-cover.png, NOT PEAR-logo.png. The logo is 1110x1586 portrait, and a
+     summary_large_image / LinkedIn large card is 1.91:1 — a portrait source
+     gets centre-cropped to a horizontal slice through the middle of the mark,
+     which is why the old card looked broken everywhere it was shared.
+     og-cover.png is the mark on the site background at exactly 1200x630.
+     Declaring the size stops Facebook/LinkedIn guessing on first scrape. -->
+<meta property="og:image" content="https://platform.pear-ai.io/og-cover.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="PEAR AI Virtual Try-On Widget" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:locale:alternate" content="he_IL" />
 
-<!-- Twitter Card -->
+<!-- Twitter / X · these stay name=, NOT property=. name is the form the
+     card spec defines, and applyHead() selects meta[name="twitter:title"]
+     / meta[name="twitter:description"] — switching them to property=
+     makes setMeta() match nothing and fail silently, freezing the card
+     copy in whatever language happened to ship. -->
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="PEAR Platform | PearVTON – Virtual Try-On &amp; Measurement" />
-<meta name="twitter:description" content="AI Virtual Try On &amp; Virtual Measurement for fashion e-commerce, powered by PearVTON." />
-<meta name="twitter:image" content="https://platform.pear-ai.io/PEAR-logo.png" />
+<meta name="twitter:url" content="https://platform.pear-ai.io/" />
+<meta name="twitter:title" content="PEAR Platform | Real-Time AI Virtual Try-On (PearVTON)" />
+<meta name="twitter:description" content="AI-powered virtual fitting room widget for online clothing brands. Reduce returns and eliminate sizing doubt." />
+<meta name="twitter:image" content="https://platform.pear-ai.io/og-cover.png" />
+<meta name="twitter:image:alt" content="PEAR AI Virtual Try-On Widget" />
 
-<meta name="keywords" content="pear, pear platform, pearvton, pear virtual measurement, pear virtual try on, virtual try-on, virtual measurement, AI virtual try-on, תא מדידה וירטואלי">
+<!-- ════════════════════════════════════════════════════════════════
+     STRUCTURED DATA · id is required: applyHead() in i18n.js rewrites the
+     descriptions and inLanguage in place, walking the graph by @type.
 
-<!-- id is required: i18n.js rewrites description + inLanguage in place. -->
+     This is an @graph rather than a single node on purpose. Brand queries
+     ("pear ai", "pear platform", "pear vton") resolve against an
+     Organization entity, not a SoftwareApplication one — the Organization
+     node with alternateName + logo is what gives Google something to hang
+     a knowledge panel and sitelinks on. The three nodes are wired by @id
+     so they read as one entity rather than three unrelated things that
+     happen to share a page.
+
+     logo lives on Organization, NOT on SoftwareApplication: schema.org
+     defines logo for Organization/Brand only, so on SoftwareApplication it
+     is an invalid property and gets dropped. image is correct there.
+     ════════════════════════════════════════════════════════════════ -->
 <script type="application/ld+json" id="ld-webapp">
 {
   "@context": "https://schema.org",
-  "@type": "WebApplication",
-  "name": "PEAR Platform",
-  "alternateName": ["pear", "pearvton", "PearVTON", "PEAR Virtual Try-On", "pear Virtual Try On", "pear Virtual Measurement"],
-  "url": "https://platform.pear-ai.io/",
-  "applicationCategory": "ShoppingApplication",
-  "operatingSystem": "All",
-  "description": "PEAR Platform (PearVTON) - AI Virtual Try-On and Virtual Measurement technology for fashion e-commerce and real-time sizing."
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://platform.pear-ai.io/#organization",
+      "name": "PEAR",
+      "alternateName": ["PEAR Platform", "PEAR AI", "PearVTON", "PEAR Virtual Try-On", "pear-ai.io"],
+      "url": "https://platform.pear-ai.io/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://platform.pear-ai.io/PEAR-logo.png",
+        "width": 1110,
+        "height": 1586,
+        "caption": "PEAR AI Virtual Try-On Widget"
+      },
+      "description": "PEAR builds real-time AI Virtual Try-On and virtual measurement technology for fashion e-commerce."
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://platform.pear-ai.io/#website",
+      "name": "PEAR Platform",
+      "url": "https://platform.pear-ai.io/",
+      "publisher": { "@id": "https://platform.pear-ai.io/#organization" },
+      "inLanguage": "en"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://platform.pear-ai.io/#software",
+      "name": "PEAR Platform",
+      "alternateName": ["PearVTON", "PEAR AI", "PEAR Virtual Try-On"],
+      "url": "https://platform.pear-ai.io/",
+      "image": "https://platform.pear-ai.io/og-cover.png",
+      "applicationCategory": "BusinessApplication",
+      "applicationSubCategory": "Virtual Try-On / Virtual Fitting Room",
+      "operatingSystem": "All",
+      "publisher": { "@id": "https://platform.pear-ai.io/#organization" },
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "description": "PEAR Platform (PearVTON) provides real-time AI Virtual Try-On and measurement technology for fashion e-commerce retailers to increase conversion rates and cut return costs.",
+      "inLanguage": "en"
+    }
+  ]
 }
 </script>
 
@@ -455,6 +534,41 @@
   .field-underline { transform: scaleX(0); transition: transform .3s cubic-bezier(.2,.7,.2,1); }
   .peer:focus ~ .field-underline { transform: scaleX(1); }
 
+  /* ── Pillar cards (#value): bottom-aligned bullet lists ──
+     The three bodies are different lengths, so without this the bullet
+     lists start at three different heights across the row. Making each
+     card a flex column and pushing its <ul> down lines them up.
+     Hand-written because mt-auto is not in the static Tailwind build. */
+  #value > .grid > div { display: flex; flex-direction: column; }
+  #value > .grid > div > ul { margin-top: auto; }
+
+  /* ══════════════════════════════════════════════════════════════
+     ENGLISH TYPOGRAPHY TUNING — [lang="en"] only.
+
+     The layout was sized around the Hebrew source copy, which says the
+     same thing in roughly half the characters. Left unadjusted, the
+     English hero headline breaks to five lines and orphans "store." on
+     its own, and the two hero CTAs no longer fit one row of the
+     lg:grid-cols-2 copy column.
+
+     Scoped to html[lang="en"] so Hebrew keeps its original scale
+     untouched. i18n.js stamps <html lang> in a render-blocking script
+     before first paint, so this is applied on the first frame — no flash
+     of the wrong size. These are hand-written rules on purpose:
+     pear-tailwind.css is a static build and cannot JIT new utilities.
+     ══════════════════════════════════════════════════════════════ */
+  html[lang="en"] #hero h1 { text-wrap: balance; }
+  @media (min-width: 1280px) {
+    /* xl:text-6xl (60px) is tuned for 2-line Hebrew; English needs ~52px
+       to hold each clause to two lines in the same column. */
+    html[lang="en"] #hero h1 { font-size: 3.25rem; }
+  }
+  /* NOTE on the hero CTAs: in English the pair measures 2x296px against a
+     512px copy column, so they stack instead of sitting in one row. That is
+     deliberate — trimming them enough to fit needs the padding cut to almost
+     nothing, which costs more than the stack does. flex-wrap gives two
+     equal-width buttons with the primary on top; leave it alone. */
+
   /* ── Reduced motion: kill all decorative movement ── */
   @media (prefers-reduced-motion: reduce) {
     .reveal { opacity: 1; transform: none; transition: none; }
@@ -677,13 +791,22 @@
           </button>
         </div>
 
-        <!-- Above the fold: industry research + product capability (no client claims) -->
-        <div class="flex flex-wrap items-center justify-center lg:justify-start gap-x-5 gap-y-2">
-          <span class="text-sm text-slate-500" data-i18n-html="hero.proof1">מחקרי שוק: <span class="font-bold text-slate-700">עד ~25% מהזמנות האופנה מוחזרות</span></span>
-          <span class="w-px h-4 bg-slate-200 hidden sm:block"></span>
-          <span class="text-sm text-slate-500" data-i18n-html="hero.proof2">אי-התאמת מידה <span class="font-bold text-slate-700">סיבת ההחזרה מס' 1</span></span>
-          <span class="w-px h-4 bg-slate-200 hidden sm:block"></span>
-          <span class="text-sm text-slate-500" data-i18n-html="hero.proof3">הטמעה ב<span class="font-bold text-slate-700">שורת קוד אחת</span></span>
+        <!-- Above the fold: the three pillars as metric highlights — Conversion,
+             Inventory, Operations, in that order. This is where the framework is
+             established; the #value cards expand each one, and the fit-crisis
+             section states the problem. Keep the numbers here distinct from the
+             market stat cards: proof3 is a RETURNS-REDUCTION claim, while
+             market.stat1 is the industry return-rate benchmark.
+
+             Block rows, not a flex row with divider spans: the English copy is
+             long enough to wrap, and a wrapped flex row leaves a divider stranded
+             at the start of the second line. Plain <p>s inherit the parent's
+             text-center lg:text-start, so they follow the language direction with
+             no extra alignment utility. -->
+        <div>
+          <p class="text-sm text-slate-500 leading-relaxed" data-i18n-html="hero.proof1"><span class="font-bold text-slate-700">100% ביטחון בהתאמה</span> ברגע התשלום</p>
+          <p class="text-sm text-slate-500 leading-relaxed" data-i18n-html="hero.proof2"><span class="font-bold text-slate-700">אפס Bracketing</span> — סוף להזמנת שלוש מידות</p>
+          <p class="text-sm text-slate-500 leading-relaxed" data-i18n-html="hero.proof3"><span class="font-bold text-slate-700">עד כ-25% פחות החזרות</span> ופחות עלויות תפעול</p>
         </div>
       </div>
 
@@ -754,7 +877,7 @@
             data-product-image
             src="pear-tshirt.jpg"
             data-i18n-alt="play.productAlt"
-            alt="חולצה בעיצוב PEAR Virtual Try-On, גזרת אוברסייז, בז'"
+            alt="הוידג'ט PEAR AI Virtual Try-On בדף מוצר אופנה — חולצת אוברסייז בז', מידות S–XXL"
             class="absolute inset-0 w-full h-full object-contain">
         </div>
         <p class="text-sm font-bold text-slate-700 mb-1" data-i18n-html="play.productName">חולצת <span class="brand-pear">PEAR</span> · Virtual Try-On</p>
@@ -801,43 +924,112 @@
     </div>
   </section>
 
-  <!-- ══════════ MARKET RESEARCH · industry data + product potential ══════════ -->
+  <!-- ══════════ BUSINESS IMPACT · the three pillars ══════════
+       Conversion / Inventory / Operations — the same framework the hero
+       proof strip states as metrics, expanded one card per pillar. Each
+       card owns its pillar exclusively: the hero gives the number, the
+       card gives the mechanism, and the fit-crisis section below gives
+       the problem. Do not reintroduce a summary paragraph here — the
+       one that used to close this section just restated the three cards
+       and the intro above them.
+
+       Inline copy is the Hebrew fallback, same convention as every other
+       section. Every key has a Hebrew twin in i18n.js: t() falls back to
+       DEFAULT_LANG ('en'), so an English-only key renders English text to
+       Hebrew visitors instead of failing loudly. -->
+  <section id="value" data-hud="hud.value" class="max-w-6xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
+    <div class="max-w-2xl mx-auto text-center mb-12 reveal">
+      <p class="text-xs font-mono font-semibold tracking-[0.2em] text-pear-600 uppercase mb-3" data-i18n="value.eyebrow">השפעה עסקית</p>
+      <h2 data-split data-i18n="value.title" class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">שלושה עמודי תווך לרווחיות באופנה</h2>
+      <p class="text-slate-500 text-lg" data-i18n="value.sub">מה משתנה בשורת הרווח כשהקונים מפסיקים לנחש מידה.</p>
+    </div>
+
+    <!-- No text-align class on the cards: they inherit from <html dir>, so the
+         copy flips to the right edge in Hebrew and the left edge in English
+         with no per-language override. -->
+    <div class="grid sm:grid-cols-3 gap-5">
+      <div class="reveal rounded-2xl glass p-7">
+        <div class="flex items-center gap-3 mb-5">
+          <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-pear-50 text-pear-600 shrink-0">
+            <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17.5l6-6 4 4 8-8"/><path d="M17.5 7.5H21v3.5"/></svg>
+          </span>
+          <p class="text-xs font-mono font-semibold tracking-[0.2em] text-pear-600 uppercase" data-i18n="value.card1Tag">המרה</p>
+        </div>
+        <h3 class="text-lg font-bold text-slate-900 tracking-tight mb-2" data-i18n="value.card1Title">הגדלת המרות</h3>
+        <p class="text-sm text-slate-500 leading-relaxed mb-4" data-i18n="value.card1Body">תנו לקונים 100% ביטחון בהתאמה עוד לפני הרכישה. מדידה וירטואלית בזמן אמת מסירה את חרדת המידה, ומעלה את שיעורי ההוספה לסל ואת ההמרות.</p>
+        <ul class="flex flex-col gap-2">
+          <li class="flex items-start gap-2 text-sm font-semibold text-slate-700">
+            <svg viewBox="0 0 24 24" class="w-4 h-4 text-pear-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>
+            <span data-i18n="value.card1Bullet1">פחות עגלות נטושות</span>
+          </li>
+          <li class="flex items-start gap-2 text-sm font-semibold text-slate-700">
+            <svg viewBox="0 0 24 24" class="w-4 h-4 text-pear-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>
+            <span data-i18n="value.card1Bullet2">בלי ניחושים בטבלת מידות</span>
+          </li>
+        </ul>
+      </div>
+      <div class="reveal rounded-2xl glass p-7">
+        <div class="flex items-center gap-3 mb-5">
+          <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-pear-50 text-pear-600 shrink-0">
+            <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 7.5L12 3.5l8.5 4v9L12 20.5l-8.5-4v-9z"/><path d="M3.5 7.5L12 11.5l8.5-4M12 11.5v9"/></svg>
+          </span>
+          <p class="text-xs font-mono font-semibold tracking-[0.2em] text-pear-600 uppercase" data-i18n="value.card2Tag">מלאי</p>
+        </div>
+        <h3 class="text-lg font-bold text-slate-900 tracking-tight mb-2" data-i18n="value.card2Title">הגנה על המלאי</h3>
+        <p class="text-sm text-slate-500 leading-relaxed mb-4" data-i18n-html="value.card2Body">עצרו קונים שמזמינים שלוש מידות של אותו פריט רק כדי למדוד בבית. <span class="brand-pear">PEAR</span> מסירה את הניחוש בהתאמה, והמלאי המבוקש נשאר זמין ללקוחות משלמים.</p>
+        <ul class="flex flex-col gap-2">
+          <li class="flex items-start gap-2 text-sm font-semibold text-slate-700">
+            <svg viewBox="0 0 24 24" class="w-4 h-4 text-pear-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>
+            <span data-i18n="value.card2Bullet1">הדגמים החמים נשארים למכירה</span>
+          </li>
+          <li class="flex items-start gap-2 text-sm font-semibold text-slate-700">
+            <svg viewBox="0 0 24 24" class="w-4 h-4 text-pear-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>
+            <span data-i18n="value.card2Bullet2">נתוני ביקוש נקיים יותר</span>
+          </li>
+        </ul>
+      </div>
+      <div class="reveal rounded-2xl glass p-7">
+        <div class="flex items-center gap-3 mb-5">
+          <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-pear-50 text-pear-600 shrink-0">
+            <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1"/><path d="M20.5 3.5v5h-5"/></svg>
+          </span>
+          <p class="text-xs font-mono font-semibold tracking-[0.2em] text-pear-600 uppercase" data-i18n="value.card3Tag">תפעול</p>
+        </div>
+        <h3 class="text-lg font-bold text-slate-900 tracking-tight mb-2" data-i18n="value.card3Title">יעילות תפעולית</h3>
+        <p class="text-sm text-slate-500 leading-relaxed mb-4" data-i18n="value.card3Body">צמצמו את שיעור ההחזרות בעד כ-25%. פחות עלויות משלוח כפול, פחות עומס החזרה למלאי ופחות בלאי — ישירות בשורה התחתונה.</p>
+        <ul class="flex flex-col gap-2">
+          <li class="flex items-start gap-2 text-sm font-semibold text-slate-700">
+            <svg viewBox="0 0 24 24" class="w-4 h-4 text-pear-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>
+            <span data-i18n="value.card3Bullet1">פחות סחורה נכנסת למיון</span>
+          </li>
+          <li class="flex items-start gap-2 text-sm font-semibold text-slate-700">
+            <svg viewBox="0 0 24 24" class="w-4 h-4 text-pear-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>
+            <span data-i18n="value.card3Bullet2">מחזור מזומנים קצר יותר</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ THE PEAR SOLUTION ══════════
+       Used to open with a problem statement (eyebrow "The problem" + headline
+       + a 3-card stat grid: ~25% / #1 / Bracketing). Removed on request — the
+       same ground is now covered earlier: the hero proof strip states the
+       ~25% and bracketing numbers as headline metrics, and the #value pillar
+       cards carry the mechanism. Keeping the stat recap here was pure repeat.
+       market.footnote went with it: it disclaimed "the market figures above",
+       which no longer exist in this section. -->
   <section id="market-section" data-hud="hud.market" class="max-w-6xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
-    <div class="max-w-2xl mx-auto text-center mb-14 reveal">
-      <p class="text-xs font-mono font-semibold tracking-[0.2em] text-pear-600 uppercase mb-3" data-i18n="market.eyebrow">נתוני שוק</p>
-      <h2 data-split data-i18n="market.title" class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">מה שמחקרי השוק מראים</h2>
-      <p class="text-slate-500 text-lg" data-i18n-html="market.sub">הפער בין המסך למציאות עולה למותגי אופנה ביוקר — וזו בדיוק הבעיה ש-<span class="brand-pear">PEAR</span> נבנתה כדי לפתור.</p>
-    </div>
-
-    <!-- Industry-research stat cards (findings, not client results) -->
-    <div class="grid sm:grid-cols-3 gap-5 mb-8">
-      <div class="reveal rounded-2xl glass-dark text-white p-7 text-center">
-        <p class="font-mono text-4xl font-black text-pear-400 mb-2"><span class="stat-num" data-to="25" data-prefix="~" data-suffix="%">~25%</span></p>
-        <p class="text-sm text-slate-300" data-i18n="market.stat1">שיעור ההחזרות באופנה מקוונת מהגבוהים באיקומרס</p>
-      </div>
-      <div class="reveal rounded-2xl glass-dark text-white p-7 text-center">
-        <p class="font-mono text-4xl font-black text-pear-400 mb-2">#1</p>
-        <p class="text-sm text-slate-300" data-i18n="market.stat2">אי-התאמת מידה היא סיבת ההחזרה המובילה בהלבשה</p>
-      </div>
-      <div class="reveal rounded-2xl glass-dark text-white p-7 text-center">
-        <p class="font-mono text-2xl font-black text-pear-400 mb-2 mt-3">Bracketing</p>
-        <p class="text-sm text-slate-300" data-i18n="market.stat3">קונים מזמינים כמה מידות ומחזירים את העודף — ונועלים מלאי מבוקש</p>
-      </div>
-    </div>
-
-    <!-- Product potential — forward-looking, focused on capability (no clients) -->
     <div class="reveal rounded-3xl glass p-8 sm:p-10 text-center max-w-3xl mx-auto">
+      <p class="text-xs font-mono font-semibold tracking-[0.2em] text-pear-600 uppercase mb-3" data-i18n="market.solutionEyebrow">הפתרון של PEAR</p>
+      <h3 data-split class="text-2xl font-extrabold text-slate-900 tracking-tight mb-4" data-i18n="market.solutionTitle">ודאות מלאה במידה — ישירות בדף המוצר</h3>
       <p class="text-lg sm:text-xl text-slate-700 leading-relaxed font-medium" data-i18n-html="market.potential">
-        <span class="brand-pear">PEAR</span> הופכת את חוסר הוודאות הזה לביטחון:
-        <span class="text-pear-700 font-bold">מדידה חזותית מבוססת AI</span>
-        שמאפשרת לכל קונה לראות את הבגד על עצמו ולקבל את המידה המדויקת עוד לפני התשלום.
+        <span class="brand-pear">PEAR</span> משתלבת בדפי המוצר שלכם ב
+        <span class="text-pear-700 font-bold">שורת קוד אחת</span>
+        — ונותנת לקונים ודאות מלאה לגבי הגזרה והמראה, עוד לפני הלחיצה על הקנייה.
       </p>
-      <p class="text-xs font-mono tracking-widest text-slate-400 uppercase mt-6" data-i18n="market.potentialTag">הפוטנציאל · פחות החזרות · יותר המרות · קונים בטוחים</p>
+      <p class="text-xs font-mono tracking-widest text-slate-400 uppercase mt-6" data-i18n="market.potentialTag">Shopify · WooCommerce · Magento · פיתוח מותאם</p>
     </div>
-
-    <p class="text-center text-xs text-slate-400 mt-6 reveal" data-i18n="market.footnote">
-      * הנתונים לעיל מבוססים על מחקרי אופנה ואיקומרס מקובלים בתעשייה, לא על ביצועי לקוח.
-    </p>
   </section>
 
   <!-- ══════════ FINAL CTA ══════════ -->
@@ -846,7 +1038,7 @@
          behind this headline for the finale -->
     <div class="max-w-3xl mx-auto px-5 sm:px-8 py-20 sm:py-28 text-center relative z-30">
       <h2 data-split data-i18n="cta.title" class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight mb-4 reveal">מוכנים להוריד את אחוז ההחזרות?</h2>
-      <p class="text-slate-500 text-lg mb-9 reveal" data-i18n="cta.sub">שורת קוד אחת. חמש דקות. והלקוחות שלכם מודדים בבית.</p>
+      <p class="text-slate-500 text-lg mb-9 reveal" data-i18n="cta.sub">חמש דקות מהדבקת הקוד ועד המדידה הראשונה. דפי המוצר שלכם נשארים בדיוק כפי שהם.</p>
       <div class="flex flex-wrap justify-center gap-3 reveal">
         <button data-scroll="playground" data-i18n="cta.primary" class="cta-glow inline-flex items-center gap-2 rounded-xl bg-pear-600 text-white font-bold px-8 py-4 shadow-btn hover:bg-pear-700 hover:-translate-y-0.5 transition-all">
           ✨ נסו את הוויג'ט
@@ -1078,7 +1270,7 @@
 <footer class="border-t border-white/50 glass">
   <div class="max-w-6xl mx-auto px-5 sm:px-8 py-10 flex flex-col sm:flex-row items-center justify-between gap-3">
     <span class="flex items-center gap-2 font-mono font-bold text-slate-900">
-      <img src="PEAR-logo.png" alt="PEAR" width="1110" height="1586"
+      <img src="PEAR-logo.png" alt="PEAR — AI Virtual Try-On platform logo" width="1110" height="1586"
            class="brand-logo h-7 w-auto opacity-90" />
       <span class="brand-pear">PEAR</span>
     </span>

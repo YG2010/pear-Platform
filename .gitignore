@@ -9,3 +9,4 @@ node_modules
 # Local-only backups & unused assets — kept out of the repo and the deploy
 PEAR-logo-original.png
 pear-anmtion.mp4
+.env*

@@ -130,14 +130,22 @@
     /* ──────────────────────────── HEBREW ──────────────────────────── */
     he: {
       /* — head / SEO — */
-      'meta.title':              'PEAR Platform | PearVTON – מדידה וירטואלית ותא מדידה לאופנה',
-      'meta.description':        'PEAR Platform (PearVTON): מדידה וירטואלית ותא מדידה וירטואלי מבוססי AI לחנויות אופנה אונליין. פחות החזרות, יותר המרות.',
-      'meta.keywords':           'pear, pear platform, pearvton, תא מדידה וירטואלי, מדידה וירטואלית, מדידת בגדים אונליין, המלצת מידה, הפחתת החזרות, אופנה אונליין, virtual try-on',
-      'meta.ogTitle':            'PEAR Platform | PearVTON – מדידה וירטואלית מבוססת AI',
-      'meta.ogDescription':      'פלטפורמת מדידה ותא מדידה וירטואלי מבוססי AI לחנויות אופנה. פחות החזרות, קונים בטוחים יותר.',
-      'meta.twitterTitle':       'PEAR Platform | PearVTON – מדידה וירטואלית לאופנה',
-      'meta.twitterDescription': 'מדידה וירטואלית ותא מדידה לחנויות אופנה אונליין, מבוססי PearVTON.',
-      'meta.jsonldDescription':  'PEAR Platform (PearVTON) – טכנולוגיית מדידה וירטואלית ותא מדידה מבוססי AI לחנויות אופנה אונליין ולהתאמת מידה בזמן אמת.',
+      /* Hebrew stays Hebrew. Dropping the English strings in here would
+         collapse the hreflang set — two "languages" serving identical
+         copy — and throw away every Hebrew query the site ranks for, so
+         the B2B keyword strategy is carried IN Hebrew rather than
+         translated away: הפחתת החזרות = reduce return rates,
+         הגדלת המרות = boost conversion, הזמנת כמה מידות = bracketing. */
+      'meta.title':              'PEAR Platform | תא מדידה וירטואלי ו-AI Virtual Try-On בזמן אמת (PearVTON)',
+      'meta.description':        'PEAR (PearVTON) מביאה מדידה וירטואלית ותא מדידה מבוססי AI בזמן אמת לחנויות אופנה אונליין. ודאות מלאה במידה, יותר המרות, סוף להזמנת כמה מידות — ודרמטית פחות החזרות.',
+      'meta.keywords':           'pear, pear platform, pear ai, pear vton, pearvton, תא מדידה וירטואלי, מדידה וירטואלית, מדידת בגדים אונליין, המלצת מידה, הפחתת החזרות, הגדלת המרות, אופנה אונליין, AI virtual try on, virtual fitting room',
+      'meta.ogTitle':            'PEAR Platform | תא מדידה וירטואלי מבוסס AI לאיקומרס אופנה',
+      'meta.ogDescription':      'שדרגו את חנות האופנה שלכם עם PEAR AI Virtual Try-On. הקונים מודדים ומתלבשים וירטואלית — יותר המרות, פחות החזרות.',
+      'meta.twitterTitle':       'PEAR Platform | מדידה וירטואלית בזמן אמת (PearVTON)',
+      'meta.twitterDescription': 'וידג\'ט תא מדידה וירטואלי מבוסס AI למותגי אופנה אונליין. פחות החזרות, אפס ספק במידה.',
+      'meta.jsonldDescription':  'PEAR Platform (PearVTON) מספקת טכנולוגיית Virtual Try-On ומדידה וירטואלית מבוססת AI בזמן אמת לקמעונאי אופנה אונליין — להגדלת שיעורי ההמרה ולצמצום עלויות ההחזרות.',
+      'meta.orgDescription':     'PEAR מפתחת טכנולוגיית Virtual Try-On ומדידה וירטואלית מבוססת AI בזמן אמת לאיקומרס אופנה.',
+      'meta.imageAlt':           'הוידג\'ט PEAR AI Virtual Try-On',
 
       /* — accessibility labels — */
       'a11y.mainNav':       'ניווט ראשי',
@@ -145,8 +153,8 @@
       'a11y.viewOverview':  'אודות המיזם והפתרון',
       'a11y.viewDocs':      'מדריך הטמעת הוויג\'ט',
       'a11y.viewContact':   'צור קשר',
-      'a11y.heroVideo':     'הדגמת מדידה וירטואלית של PEAR — לולאה ללא קול',
-      'a11y.demoVideo':     'סרטון הדגמה של PEAR',
+      'a11y.heroVideo':     'הדגמת הוידג\'ט PEAR AI Virtual Try-On — לולאה ללא קול',
+      'a11y.demoVideo':     'סרטון הדגמה מלא של הוידג\'ט PEAR AI Virtual Try-On',
       'a11y.vtonPause':     'השהיית ההדגמה',
       'a11y.vtonPlay':      'הפעלת ההדגמה',
       'a11y.directMeasure': 'מדידה וירטואלית חד-פעמית, ללא שלב הרשמה, פעם אחת בביקור',
@@ -162,7 +170,8 @@
       'hud.intro':      'פתיחה',
       'hud.playground': 'נסו בעצמכם',
       'hud.demo':       'הדגמה חיה',
-      'hud.market':     'נתוני שוק',
+      'hud.value':      'השפעה עסקית',
+      'hud.market':     'הפתרון',
       'hud.cta':        'סיום',
 
       /* — hero — */
@@ -170,9 +179,9 @@
       'hero.sub':           '<span class="brand-pear">PEAR</span> מלביש את הבגד על הלקוח בזמן אמת, ממליץ מידה מדויקת ומוריד החזרות.\n          <span class="font-semibold text-slate-700"><br> מודדים בבית, קונים בביטחון.</span>',
       'hero.ctaPrimary':    '✨ נסו את הוויג\'ט האמיתי · 30 שניות',
       'hero.ctaSecondary':  '▶ איך זה עובד? ב-17 שניות',
-      'hero.proof1':        'מחקרי שוק: <span class="font-bold text-slate-700">עד ~25% מהזמנות האופנה מוחזרות</span>',
-      'hero.proof2':        'אי-התאמת מידה <span class="font-bold text-slate-700">סיבת ההחזרה מס\' 1</span>',
-      'hero.proof3':        'הטמעה ב<span class="font-bold text-slate-700">שורת קוד אחת</span>',
+      'hero.proof1':        '<span class="font-bold text-slate-700">100% ביטחון בהתאמה</span> ברגע התשלום',
+      'hero.proof2':        '<span class="font-bold text-slate-700">אפס Bracketing</span> — סוף להזמנת שלוש מידות',
+      'hero.proof3':        '<span class="font-bold text-slate-700">עד כ-25% פחות החזרות</span> ופחות עלויות תפעול',
       'hero.badgeSize':     'מידה מומלצת: <span class="font-mono text-pear-600">M</span>',
       'hero.badgeRealtime': 'התאמה בזמן אמת ✨',
 
@@ -180,7 +189,7 @@
       'play.eyebrow':      'Live Widget · בלי הרשמה',
       'play.title':        'זה הוויג\'ט האמיתי. ממש כאן.',
       'play.sub':          'כך זה נראה בדף מוצר: לחצו על "מדידה חד-פעמית מהירה" וקבלו מדידה וירטואלית אמיתית, בלי הרשמה.',
-      'play.productAlt':   'חולצה בעיצוב PEAR Virtual Try-On, גזרת אוברסייז, בז\'',
+      'play.productAlt':   'הוידג\'ט PEAR AI Virtual Try-On בדף מוצר אופנה — חולצת אוברסייז בז\', מידות S–XXL',
       'play.productName':  'חולצת <span class="brand-pear">PEAR</span> · Virtual Try-On',
       'play.productMeta':  'בז\' · מידות S–XXL',
       'play.cta':          '⚡ מדידה חד-פעמית מהירה',
@@ -195,20 +204,35 @@
       'demo.title':   'כך זה נראה ללקוח שלכם',
       'demo.sub':     'מהעמוד מוצר ועד תמונת לבוש — חוויה חלקה, ישירות בדפדפן, ללא אפליקציה.',
 
-      /* — market research — */
-      'market.eyebrow':      'נתוני שוק',
-      'market.title':        'מה שמחקרי השוק מראים',
-      'market.sub':          'הפער בין המסך למציאות עולה למותגי אופנה ביוקר — וזו בדיוק הבעיה ש-<span class="brand-pear">PEAR</span> נבנתה כדי לפתור.',
-      'market.stat1':        'שיעור ההחזרות באופנה מקוונת מהגבוהים באיקומרס',
-      'market.stat2':        'אי-התאמת מידה היא סיבת ההחזרה המובילה בהלבשה',
-      'market.stat3':        'קונים מזמינים כמה מידות ומחזירים את העודף — ונועלים מלאי מבוקש',
-      'market.potential':    '<span class="brand-pear">PEAR</span> הופכת את חוסר הוודאות הזה לביטחון:\n        <span class="text-pear-700 font-bold">מדידה חזותית מבוססת AI</span>\n        שמאפשרת לכל קונה לראות את הבגד על עצמו ולקבל את המידה המדויקת עוד לפני התשלום.',
-      'market.potentialTag': 'הפוטנציאל · פחות החזרות · יותר המרות · קונים בטוחים',
-      'market.footnote':     '* הנתונים לעיל מבוססים על מחקרי אופנה ואיקומרס מקובלים בתעשייה, לא על ביצועי לקוח.',
+      /* — business impact · the three pillars — */
+      'value.eyebrow':       'השפעה עסקית',
+      'value.title':         'שלושה עמודי תווך לרווחיות באופנה',
+      'value.sub':           'מה משתנה בשורת הרווח כשהקונים מפסיקים לנחש מידה.',
+      'value.card1Tag':      'המרה',
+      'value.card1Title':    'הגדלת המרות',
+      'value.card1Body':     'תנו לקונים 100% ביטחון בהתאמה עוד לפני הרכישה. מדידה וירטואלית בזמן אמת מסירה את חרדת המידה, ומעלה את שיעורי ההוספה לסל ואת ההמרות.',
+      'value.card1Bullet1':  'פחות עגלות נטושות',
+      'value.card1Bullet2':  'בלי ניחושים בטבלת מידות',
+      'value.card2Tag':      'מלאי',
+      'value.card2Title':    'הגנה על המלאי',
+      'value.card2Body':     'עצרו קונים שמזמינים שלוש מידות של אותו פריט רק כדי למדוד בבית. <span class="brand-pear">PEAR</span> מסירה את הניחוש בהתאמה, והמלאי המבוקש נשאר זמין ללקוחות משלמים.',
+      'value.card2Bullet1':  'הדגמים החמים נשארים למכירה',
+      'value.card2Bullet2':  'נתוני ביקוש נקיים יותר',
+      'value.card3Tag':      'תפעול',
+      'value.card3Title':    'יעילות תפעולית',
+      'value.card3Body':     'צמצמו את שיעור ההחזרות בעד כ-25%. פחות עלויות משלוח כפול, פחות עומס החזרה למלאי ופחות בלאי — ישירות בשורה התחתונה.',
+      'value.card3Bullet1':  'פחות סחורה נכנסת למיון',
+      'value.card3Bullet2':  'מחזור מזומנים קצר יותר',
+
+      /* — the PEAR solution panel — */
+      'market.solutionEyebrow': 'הפתרון של PEAR',
+      'market.solutionTitle':   'ודאות מלאה במידה — ישירות בדף המוצר',
+      'market.potential':    '<span class="brand-pear">PEAR</span> משתלבת בדפי המוצר שלכם ב\n        <span class="text-pear-700 font-bold">שורת קוד אחת</span>\n        — ונותנת לקונים ודאות מלאה לגבי הגזרה והמראה, עוד לפני הלחיצה על הקנייה.',
+      'market.potentialTag': 'Shopify · WooCommerce · Magento · פיתוח מותאם',
 
       /* — final CTA — */
       'cta.title':   'מוכנים להוריד את אחוז ההחזרות?',
-      'cta.sub':     'שורת קוד אחת. חמש דקות. והלקוחות שלכם מודדים בבית.',
+      'cta.sub':     'חמש דקות מהדבקת הקוד ועד המדידה הראשונה. דפי המוצר שלכם נשארים בדיוק כפי שהם.',
       'cta.primary': '✨ נסו את הוויג\'ט',
       'cta.docs':    'למדריך ההטמעה ←',
       'cta.contact': 'דברו איתנו 💬',
@@ -293,14 +317,20 @@
     /* ──────────────────────────── ENGLISH ─────────────────────────── */
     en: {
       /* — head / SEO — */
-      'meta.title':              'PEAR Platform | PearVTON – Virtual Try-On & Measurement',
-      'meta.description':        'PEAR Platform (PearVTON): AI-powered Virtual Try-On and Virtual Measurement for fashion e-commerce. Reduce returns, boost conversion.',
-      'meta.keywords':           'pear, pear platform, pearvton, virtual try-on, virtual measurement, AI virtual try-on, size recommendation, reduce returns, fashion ecommerce',
-      'meta.ogTitle':            'PEAR Platform | PearVTON – AI Virtual Try-On & Measurement',
-      'meta.ogDescription':      'AI-powered Virtual Try-On and Virtual Measurement platform for fashion e-commerce. Fewer returns, more confident purchases.',
-      'meta.twitterTitle':       'PEAR Platform | PearVTON – Virtual Try-On & Measurement',
-      'meta.twitterDescription': 'AI Virtual Try-On & Virtual Measurement for fashion e-commerce, powered by PearVTON.',
-      'meta.jsonldDescription':  'PEAR Platform (PearVTON) – AI Virtual Try-On and Virtual Measurement technology for fashion e-commerce and real-time sizing.',
+      /* These must stay byte-identical to the literals in index.html's
+         <head>: the static tag is what a crawler reads pre-JS, this is
+         what it reads post-JS, and the two disagreeing is a needless
+         mixed signal. Change one, change both. */
+      'meta.title':              'PEAR Platform | Real-Time AI Virtual Try-On & Fit Technology (PearVTON)',
+      'meta.description':        'PEAR (PearVTON) delivers real-time AI Virtual Try-On and virtual measurement for fashion e-commerce. Give shoppers 100% fit confidence, boost conversion rates, eliminate bracketing, and drastically reduce return rates.',
+      'meta.keywords':           'pear, pear platform, pear ai, pear vton, pear virtual try on, AI virtual try on, virtual fitting room, fashion e-commerce widget, reduce return rates, eliminate bracketing, virtual sizing',
+      'meta.ogTitle':            'PEAR Platform | Real-Time AI Virtual Try-On for Fashion E-Commerce',
+      'meta.ogDescription':      'Transform your fashion store with PEAR AI Virtual Try-On. Allow shoppers to measure and try on clothes virtually, boosting conversions and slashing return rates.',
+      'meta.twitterTitle':       'PEAR Platform | Real-Time AI Virtual Try-On (PearVTON)',
+      'meta.twitterDescription': 'AI-powered virtual fitting room widget for online clothing brands. Reduce returns and eliminate sizing doubt.',
+      'meta.jsonldDescription':  'PEAR Platform (PearVTON) provides real-time AI Virtual Try-On and measurement technology for fashion e-commerce retailers to increase conversion rates and cut return costs.',
+      'meta.orgDescription':     'PEAR builds real-time AI Virtual Try-On and virtual measurement technology for fashion e-commerce.',
+      'meta.imageAlt':           'PEAR AI Virtual Try-On Widget',
 
       /* — accessibility labels — */
       'a11y.mainNav':       'Main navigation',
@@ -308,12 +338,12 @@
       'a11y.viewOverview':  'About the product and the solution',
       'a11y.viewDocs':      'Widget integration guide',
       'a11y.viewContact':   'Contact us',
-      'a11y.heroVideo':     'PEAR virtual try-on demo — silent loop',
-      'a11y.demoVideo':     'PEAR demo video',
+      'a11y.heroVideo':     'PEAR AI Virtual Try-On Widget demo — silent loop',
+      'a11y.demoVideo':     'PEAR AI Virtual Try-On Widget — full demo video',
       'a11y.vtonPause':     'Pause the demo',
       'a11y.vtonPlay':      'Play the demo',
-      'a11y.directMeasure': 'One-time virtual measurement, no signup step, once per visit',
-      'a11y.fittingRoom':   'PEAR — one-time virtual measurement',
+      'a11y.directMeasure': 'One-time virtual try-on, no signup step, once per visit',
+      'a11y.fittingRoom':   'PEAR — one-time virtual try-on',
       'a11y.closeModal':    'Close',
 
       /* — navbar — */
@@ -325,60 +355,79 @@
       'hud.intro':      'Intro',
       'hud.playground': 'Try it yourself',
       'hud.demo':       'Live demo',
-      'hud.market':     'Market data',
+      'hud.value':      'Business impact',
+      'hud.market':     'The solution',
       'hud.cta':        'Wrap-up',
 
       /* — hero — */
-      'hero.title':         '<span dir="ltr" class="block text-lg sm:text-xl font-bold text-pear-600 tracking-tight mb-2">PEAR Platform · AI Virtual Try-On &amp; Measurement</span>\n          Your customers find their size\n          <span class="block mt-2 text-pear-600">without setting foot in a store.</span>',
-      'hero.sub':           '<span class="brand-pear">PEAR</span> puts the garment on your shopper in real time, recommends their exact size and cuts returns.\n          <span class="font-semibold text-slate-700"><br> They measure at home and buy with confidence.</span>',
+      'hero.title':         '<span dir="ltr" class="block text-lg sm:text-xl font-bold text-pear-600 tracking-tight mb-2">PEAR Platform · Real-Time AI Virtual Try-On</span>\n          Your shoppers try garments on\n          <span class="block mt-2 text-pear-600">without ever stepping into a store.</span>',
+      'hero.sub':           '<span class="brand-pear">PEAR</span> puts garments directly onto your shoppers in real time — delivering instant fit certainty, boosting purchase confidence and eliminating costly returns.\n          <span class="font-semibold text-slate-700"><br> They try it on at home. They buy with confidence.</span>',
       'hero.ctaPrimary':    '✨ Try the real widget · 30 seconds',
       'hero.ctaSecondary':  '▶ How does it work? In 17 seconds',
-      'hero.proof1':        'Market research: <span class="font-bold text-slate-700">up to ~25% of fashion orders come back</span>',
-      'hero.proof2':        'Wrong size is the <span class="font-bold text-slate-700">#1 reason for returns</span>',
-      'hero.proof3':        'Integrates in <span class="font-bold text-slate-700">a single line of code</span>',
+      'hero.proof1':        '<span class="font-bold text-slate-700">100% fit confidence</span> at checkout',
+      'hero.proof2':        '<span class="font-bold text-slate-700">Zero bracketing</span> — no more 3-size orders',
+      'hero.proof3':        '<span class="font-bold text-slate-700">~25% fewer returns</span> and lower OPEX',
       'hero.badgeSize':     'Recommended size: <span class="font-mono text-pear-600">M</span>',
-      'hero.badgeRealtime': 'Real-time fit ✨',
+      'hero.badgeRealtime': 'Real-time try-on ✨',
 
       /* — live widget playground — */
-      'play.eyebrow':      'Live Widget · no signup',
+      'play.eyebrow':      'Live Widget · No Signup Required',
       'play.title':        'This is the real widget. Right here.',
-      'play.sub':          'This is how it looks on a product page: tap "Quick one-time measurement" and get a real virtual measurement — no signup.',
-      'play.productAlt':   'PEAR Virtual Try-On tee, oversized fit, beige',
+      'play.sub':          'This is how it looks on a brand product page: tap “Quick one-time measurement” to experience real virtual fitting.',
+      'play.productAlt':   'PEAR AI Virtual Try-On Widget on a fashion product page — oversized beige tee, sizes S–XXL',
       'play.productName':  '<span class="brand-pear">PEAR</span> tee · Virtual Try-On',
       'play.productMeta':  'Beige · sizes S–XXL',
       'play.cta':          '⚡ Quick one-time measurement',
-      'play.ctaNote':      'Skips the signup step — straight to measuring, once per visit.',
-      'play.ctaUsed':      '✓ Measurement already used this visit',
-      'play.ctaUsedTitle': 'You have already used your one-time measurement on this visit',
+      'play.ctaNote':      'Skips the signup step — straight into the fitting room, once per visit.',
+      'play.ctaUsed':      '✓ Fitting already used this visit',
+      'play.ctaUsedTitle': 'You have already used your one-time fitting on this visit',
       'play.ctaLoading':   'Loading…',
       'play.loadError':    'We could not load the widget. Please try again in a moment.',
 
       /* — demo band — */
       'demo.eyebrow': '17 seconds · before/after',
-      'demo.title':   'Here is what your customer sees',
-      'demo.sub':     'From the product page to a photo of them wearing it — one smooth flow, straight in the browser, no app.',
+      'demo.title':   'Here is what your shopper sees',
+      'demo.sub':     'From the product page to the garment on their own body — one smooth flow, straight in the browser, with no app to install.',
 
-      /* — market research — */
-      'market.eyebrow':      'Market data',
-      'market.title':        'What the market research shows',
-      'market.sub':          'The gap between the screen and reality costs fashion brands dearly — and that is exactly the problem <span class="brand-pear">PEAR</span> was built to solve.',
-      'market.stat1':        'Online fashion return rates are among the highest in e-commerce',
-      'market.stat2':        'Wrong size is the leading reason apparel gets sent back',
-      'market.stat3':        'Shoppers order several sizes and return the rest — locking up in-demand stock',
-      'market.potential':    '<span class="brand-pear">PEAR</span> turns that uncertainty into confidence:\n        <span class="text-pear-700 font-bold">AI-powered visual measurement</span>\n        that lets every shopper see the garment on themselves and get their exact size before they pay.',
-      'market.potentialTag': 'The potential · fewer returns · more conversions · confident buyers',
-      'market.footnote':     '* The figures above come from widely cited fashion and e-commerce research, not from client results.',
+      /* — business impact · the three pillars —
+         Card bodies own their pillar outright; nothing here restates the
+         hero metrics or the problem section. Bullets carry a second-order
+         consequence, never a paraphrase of the body above them. */
+      'value.eyebrow':       'Business impact',
+      'value.title':         'Three pillars of fashion profitability',
+      'value.sub':           'What changes across your P&L when shoppers stop guessing their size.',
+      'value.card1Tag':      'Conversion',
+      'value.card1Title':    'Conversion Boost',
+      'value.card1Body':     'Give shoppers 100% fit confidence before they buy. Real-time virtual try-on removes size anxiety, driving higher add-to-cart rates and instant conversions.',
+      'value.card1Bullet1':  'Fewer abandoned carts',
+      'value.card1Bullet2':  'No size-chart guesswork',
+      'value.card2Tag':      'Inventory',
+      'value.card2Title':    'Inventory Protection',
+      'value.card2Body':     'Stop consumers from buying 3 sizes of the same garment to try at home. <span class="brand-pear">PEAR</span> eliminates fit guessing, keeping high-demand stock available for paying customers.',
+      'value.card2Bullet1':  'Best-sellers stay sellable',
+      'value.card2Bullet2':  'Cleaner demand signals',
+      'value.card3Tag':      'Operations',
+      'value.card3Title':    'Operational Efficiency',
+      'value.card3Body':     'Cut return rates by up to ~25%. Reduce double-shipping costs, restock overhead and wear-and-tear losses to protect your bottom line.',
+      'value.card3Bullet1':  'Less inbound to sort and restock',
+      'value.card3Bullet2':  'Shorter cash-conversion cycle',
+
+      /* — the PEAR solution panel — */
+      'market.solutionEyebrow': 'The PEAR solution',
+      'market.solutionTitle':   'Real-time fit certainty on your product page',
+      'market.potential':       '<span class="brand-pear">PEAR</span> embeds seamlessly into your product pages with\n        <span class="text-pear-700 font-bold">a single line of code</span>\n        — giving online shoppers total certainty on fit and look before they click buy.',
+      'market.potentialTag':    'Shopify · WooCommerce · Magento · custom builds',
 
       /* — final CTA — */
-      'cta.title':   'Ready to bring your return rate down?',
-      'cta.sub':     'One line of code. Five minutes. And your customers measure at home.',
+      'cta.title':   'Ready to let your shoppers try before they buy?',
+      'cta.sub':     'Five minutes from first paste to first try-on. Your product pages stay exactly as they are.',
       'cta.primary': '✨ Try the widget',
       'cta.docs':    'To the integration guide →',
       'cta.contact': 'Talk to us 💬',
 
       /* — docs view + access gate — */
       'docs.title':             'Widget integration guide',
-      'docs.sub':               'Installing the <span class="brand-pear">PEAR</span> widget takes <span class="font-semibold text-slate-700">under 5 minutes</span> and needs no\n        changes to your site architecture. Three steps and your customers are measuring.',
+      'docs.sub':               'Installing the <span class="brand-pear">PEAR</span> widget takes <span class="font-semibold text-slate-700">under 5 minutes</span> and needs no\n        changes to your site architecture. Three steps and your shoppers are trying garments on.',
       'docs.gateTitle':         'This guide is not public',
       'docs.gateSub':           'Access to the technical integration guide is granted manually by the development team.',
       'docs.gatePlaceholder':   'Access code',
@@ -438,12 +487,12 @@
       'guide.stepsTitle':  'Integration steps',
       'guide.step1Title':  'Step 1 · Add the SDK script (CDN)',
       'guide.step1Body':   'Paste the line below just before the <code class="font-mono text-xs bg-slate-100 border border-slate-200 rounded px-1.5 py-0.5 text-slate-700" dir="ltr">&lt;/body&gt;</code> tag — once, on every product page.',
-      'guide.step2Title':  'Step 2 · Place the measurement button on the product page',
+      'guide.step2Title':  'Step 2 · Place the try-on button on the product page',
       'guide.step2Body':   'Drop the container anywhere on the product page — usually under the size picker. The widget styles itself to fit its surroundings.',
       'guide.step3Title':  'Step 3 · Initialise and customise',
       'guide.step3Body':   'Full control over language, theme, button copy and callbacks — all from a single configuration object.',
       'guide.snipLocale':  '\'en\'',
-      'guide.snipButton':  '\'Measure now with AI\'',
+      'guide.snipButton':  '\'Try it on with AI\'',
       'guide.snipComment': '// Called once the algorithm has computed a recommended size',
       'guide.snipLog':     '\'Recommended size:\'',
       'guide.helpTitle':   'Need a hand with the integration?',
@@ -619,13 +668,21 @@
     root.setAttribute('dir', dirFor(lang));
 
     document.title = t('meta.title', lang);
+    setMeta('meta[name="title"]',                 t('meta.title', lang));
     setMeta('meta[name="description"]',           t('meta.description', lang));
     setMeta('meta[name="keywords"]',              t('meta.keywords', lang));
     setMeta('meta[property="og:title"]',          t('meta.ogTitle', lang));
     setMeta('meta[property="og:description"]',    t('meta.ogDescription', lang));
     setMeta('meta[property="og:locale"]',         OG_LOCALE[lang] || OG_LOCALE[DEFAULT_LANG]);
+    setMeta('meta[property="og:image:alt"]',      t('meta.imageAlt', lang));
     setMeta('meta[name="twitter:title"]',         t('meta.twitterTitle', lang));
     setMeta('meta[name="twitter:description"]',   t('meta.twitterDescription', lang));
+    setMeta('meta[name="twitter:image:alt"]',     t('meta.imageAlt', lang));
+
+    /* og:locale:alternate is the mirror of whichever locale is active — it
+       must never repeat og:locale, or the pair stops describing a
+       translated document at all. */
+    setMeta('meta[property="og:locale:alternate"]', OG_LOCALE[lang === 'he' ? 'en' : 'he']);
 
     /* og:url and canonical must agree with the hreflang alternates:
        a language-specific URL is self-canonical, the bare root is the
@@ -640,16 +697,31 @@
     var canonicalHref = explicit ? langUrl : SITE_ORIGIN + '/';
     var canonical = document.head && document.head.querySelector('link[rel="canonical"]');
     if (canonical) canonical.setAttribute('href', canonicalHref);
-    setMeta('meta[property="og:url"]', canonicalHref);
+    setMeta('meta[property="og:url"]',  canonicalHref);
+    setMeta('meta[name="twitter:url"]', canonicalHref);
 
-    /* Structured data: keep the description in the page's language and
-       declare which language that is. */
+    /* Structured data: keep the descriptions in the page's language and
+       declare which language that is. The block is an @graph, so the nodes
+       are walked by @type — assigning to the parsed root instead would
+       write two properties that belong to no node at all, localising
+       nothing. The [data] fallback keeps this working if the graph is ever
+       collapsed back to a single node. */
     var ld = document.getElementById('ld-webapp');
     if (ld) {
       try {
-        var data = JSON.parse(ld.textContent);
-        data.description = t('meta.jsonldDescription', lang);
-        data.inLanguage = lang;
+        var data  = JSON.parse(ld.textContent);
+        var nodes = data['@graph'] || [data];
+        for (var n = 0; n < nodes.length; n++) {
+          var type = nodes[n]['@type'];
+          if (type === 'SoftwareApplication' || type === 'WebApplication') {
+            nodes[n].description = t('meta.jsonldDescription', lang);
+            nodes[n].inLanguage  = lang;
+          } else if (type === 'Organization') {
+            nodes[n].description = t('meta.orgDescription', lang);
+          } else if (type === 'WebSite') {
+            nodes[n].inLanguage  = lang;
+          }
+        }
         ld.textContent = JSON.stringify(data, null, 2);
       } catch (e) { /* malformed JSON-LD is not worth breaking boot over */ }
     }
