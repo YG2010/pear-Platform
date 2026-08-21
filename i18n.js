@@ -160,6 +160,8 @@
       'a11y.directMeasure': 'מדידה וירטואלית חד-פעמית, ללא שלב הרשמה, פעם אחת בביקור',
       'a11y.fittingRoom':   'PEAR — מדידה וירטואלית חד-פעמית',
       'a11y.closeModal':    'סגירה',
+      'a11y.modelPreviewToggle': 'הצגת התמונה על דוגמן/ית',
+      'a11y.angleToggleGroup':   'תצוגת חזית / גב',
 
       /* — navbar — */
       'nav.about':   'על המיזם',
@@ -175,7 +177,7 @@
       'hud.cta':        'סיום',
 
       /* — hero — */
-      'hero.title':         '<span dir="ltr" class="block text-lg sm:text-xl font-bold text-pear-600 tracking-tight mb-2">PEAR Platform · AI Virtual Try-On &amp; Measurement</span>\n          הלקוחות שלכם מודדים\n          <span class="block mt-2 text-pear-600">בלי להגיע לחנות.</span>',
+      'hero.title':         '<span dir="ltr" class="block text-lg sm:text-xl font-bold text-pear-600 tracking-tight mb-2"><span class="brand-pear">PEAR</span> Platform · AI Virtual Try-On &amp; Measurement</span>\n          הלקוחות שלכם מודדים\n          <span class="block mt-2 text-pear-600">בלי להגיע לחנות.</span>',
       'hero.sub':           '<span class="brand-pear">PEAR</span> מלביש את הבגד על הלקוח בזמן אמת, ממליץ מידה מדויקת ומוריד החזרות.\n          <span class="font-semibold text-slate-700"><br> מודדים בבית, קונים בביטחון.</span>',
       'hero.ctaPrimary':    '✨ נסו את הוויג\'ט האמיתי · 30 שניות',
       'hero.ctaSecondary':  '▶ איך זה עובד? ב-17 שניות',
@@ -189,9 +191,17 @@
       'play.eyebrow':      'Live Widget · בלי הרשמה',
       'play.title':        'זה הוויג\'ט האמיתי. ממש כאן.',
       'play.sub':          'כך זה נראה בדף מוצר: לחצו על "מדידה חד-פעמית מהירה" וקבלו מדידה וירטואלית אמיתית, בלי הרשמה.',
-      'play.productAlt':   'הוידג\'ט PEAR AI Virtual Try-On בדף מוצר אופנה — חולצת אוברסייז בז\', מידות S–XXL',
-      'play.productName':  'חולצת <span class="brand-pear">PEAR</span> · Virtual Try-On',
+      'play.productAlt':   'הוידג\'ט PEAR AI Virtual Try-On בדף מוצר אופנה — חולצת הלוגו של PEAR, גזרה רפויה/אוברסייז, מידות S–XXL',
+      'play.modelAlt':     'חולצת PEAR האוברסייז לבושה על דוגמן/ית',
+      'play.modelPreview': 'תצוגה על דוגמן/ית',
+      'play.productBackAlt': 'חולצת הלוגו של PEAR — מבט מהגב',
+      'play.angleFront':   'חזית',
+      'play.angleBack':    'גב',
+      'play.productName':  'חולצת הלוגו של <span class="brand-pear">PEAR</span> · Virtual Try-On',
       'play.productMeta':  'בז\' · מידות S–XXL',
+      'play.fitTag':       'גזרה רפויה / אוברסייז',
+      'play.fitGuidance':  'סילואט אוברסייז — רדו מידה אחת להתאמה סטנדרטית, או בחרו את המידה הרגילה למראה בוקסי מכוון.',
+      'play.physicsNote':  'ה-AI בזמן אמת לא רק מותח תמונות שטוחות — הוא ממפה במדויק כתפיים מוטות, שרוולים רפויים ונפילת בד טבעית ישירות על צורת הגוף של המשתמש.',
       'play.cta':          '⚡ מדידה חד-פעמית מהירה',
       'play.ctaNote':      'דילוג על שלב ההרשמה — ישר למדידה, שימוש אחד בכל ביקור.',
       'play.ctaUsed':      '✓ המדידה נוצלה לביקור הזה',
@@ -225,7 +235,7 @@
       'value.card3Bullet2':  'מחזור מזומנים קצר יותר',
 
       /* — the PEAR solution panel — */
-      'market.solutionEyebrow': 'הפתרון של PEAR',
+      'market.solutionEyebrow': 'הפתרון של <span class="brand-pear">PEAR</span>',
       'market.solutionTitle':   'ודאות מלאה במידה — ישירות בדף המוצר',
       'market.potential':    '<span class="brand-pear">PEAR</span> משתלבת בדפי המוצר שלכם ב\n        <span class="text-pear-700 font-bold">שורת קוד אחת</span>\n        — ונותנת לקונים ודאות מלאה לגבי הגזרה והמראה, עוד לפני הלחיצה על הקנייה.',
       'market.potentialTag': 'Shopify · WooCommerce · Magento · פיתוח מותאם',
@@ -298,7 +308,7 @@
       'guide.reqCustom':   'Custom / פיתוח מותאם',
       'guide.stepsTitle':  'שלבי ההטמעה',
       'guide.step1Title':  'שלב 1 · הוספת סקריפט המערכת (CDN)',
-      'guide.step1Body':   'הדביקו את השורה הבאה לפני תג <code class="font-mono text-xs bg-slate-100 border border-slate-200 rounded px-1.5 py-0.5 text-slate-700" dir="ltr">&lt;/body&gt;</code> — פעם אחת, בכל עמודי המוצר.',
+      'guide.step1Body':   'הדביקו את השורה הבאה לפני תג <code dir="ltr">&lt;/body&gt;</code> — פעם אחת, בכל עמודי המוצר.',
       'guide.step2Title':  'שלב 2 · מיקום כפתור המדידה בדף המוצר',
       'guide.step2Body':   'הניחו את הקונטיינר בכל מקום בעמוד המוצר — לרוב מתחת לבורר המידות. הוויג\'ט יעצב את עצמו בהתאם למקום.',
       'guide.step3Title':  'שלב 3 · אתחול והגדרות מותאמות אישית',
@@ -308,10 +318,10 @@
       'guide.snipComment': '// נקרא כשהאלגוריתם מסיים לחשב מידה מומלצת',
       'guide.snipLog':     '\'המידה המומלצת:\'',
       'guide.helpTitle':   'צריכים עזרה טכנית בהטמעה?',
-      'guide.helpBody':    'צוות הפיתוח של PEAR זמין לעזור לכם לחבר את הווידג\'ט לחנות שלכם במהירות ובקלות.',
+      'guide.helpBody':    'צוות הפיתוח של <span class="brand-pear">PEAR</span> זמין לעזור לכם לחבר את הווידג\'ט לחנות שלכם במהירות ובקלות.',
       'guide.helpCta':     'דברו איתנו עכשיו',
       'guide.helpArrow':   '←',
-      'guide.note':        'אין לכם עדיין <span class="font-mono text-xs bg-white border border-pear-100 rounded px-1.5 py-0.5" dir="ltr">STORE_ID</span>?\n        <a href="mailto:pearytrank@gmail.com" class="font-semibold text-pear-700 underline underline-offset-2 hover:text-pear-600">צרו קשר</a>\n        ונקים לכם חשבון תוך יום עסקים.'
+      'guide.note':        'אין לכם עדיין <code dir="ltr">STORE_ID</code>?\n        <a href="mailto:pearytrank@gmail.com">צרו קשר</a>\n        ונקים לכם חשבון תוך יום עסקים.'
     },
 
     /* ──────────────────────────── ENGLISH ─────────────────────────── */
@@ -345,6 +355,8 @@
       'a11y.directMeasure': 'One-time virtual try-on, no signup step, once per visit',
       'a11y.fittingRoom':   'PEAR — one-time virtual try-on',
       'a11y.closeModal':    'Close',
+      'a11y.modelPreviewToggle': 'Show on-model preview',
+      'a11y.angleToggleGroup':   'Front / Back view',
 
       /* — navbar — */
       'nav.about':   'About',
@@ -360,7 +372,7 @@
       'hud.cta':        'Wrap-up',
 
       /* — hero — */
-      'hero.title':         '<span dir="ltr" class="block text-lg sm:text-xl font-bold text-pear-600 tracking-tight mb-2">PEAR Platform · Real-Time AI Virtual Try-On</span>\n          Your shoppers try garments on\n          <span class="block mt-2 text-pear-600">without ever stepping into a store.</span>',
+      'hero.title':         '<span dir="ltr" class="block text-lg sm:text-xl font-bold text-pear-600 tracking-tight mb-2"><span class="brand-pear">PEAR</span> Platform · Real-Time AI Virtual Try-On</span>\n          Your shoppers try garments on\n          <span class="block mt-2 text-pear-600">without ever stepping into a store.</span>',
       'hero.sub':           '<span class="brand-pear">PEAR</span> puts garments directly onto your shoppers in real time — delivering instant fit certainty, boosting purchase confidence and eliminating costly returns.\n          <span class="font-semibold text-slate-700"><br> They try it on at home. They buy with confidence.</span>',
       'hero.ctaPrimary':    '✨ Try the real widget · 30 seconds',
       'hero.ctaSecondary':  '▶ How does it work? In 17 seconds',
@@ -374,9 +386,17 @@
       'play.eyebrow':      'Live Widget · No Signup Required',
       'play.title':        'This is the real widget. Right here.',
       'play.sub':          'This is how it looks on a brand product page: tap “Quick one-time measurement” to experience real virtual fitting.',
-      'play.productAlt':   'PEAR AI Virtual Try-On Widget on a fashion product page — oversized beige tee, sizes S–XXL',
-      'play.productName':  '<span class="brand-pear">PEAR</span> tee · Virtual Try-On',
+      'play.productAlt':   'PEAR AI Virtual Try-On Widget on a fashion product page — PEAR Signature Logo Tee, cream, relaxed/oversized fit, sizes S–XXL',
+      'play.modelAlt':     'The PEAR oversized tee worn on a model',
+      'play.modelPreview': 'On Model Preview',
+      'play.productBackAlt': 'PEAR Signature Logo Tee — back view',
+      'play.angleFront':   'Front',
+      'play.angleBack':    'Back',
+      'play.productName':  '<span class="brand-pear">PEAR</span> Signature Logo Tee · Virtual Try-On',
       'play.productMeta':  'Beige · sizes S–XXL',
+      'play.fitTag':       'Relaxed / Oversized Fit',
+      'play.fitGuidance':  'Oversized silhouette — size down for a standard fit or select true size for an intentional boxy look.',
+      'play.physicsNote':  'Real-time AI doesn’t just stretch flat images—it accurately maps dropped shoulders, relaxed sleeve lengths, and natural fabric drape directly onto the user’s body shape.',
       'play.cta':          '⚡ Quick one-time measurement',
       'play.ctaNote':      'Skips the signup step — straight into the fitting room, once per visit.',
       'play.ctaUsed':      '✓ Fitting already used this visit',
@@ -413,7 +433,7 @@
       'value.card3Bullet2':  'Shorter cash-conversion cycle',
 
       /* — the PEAR solution panel — */
-      'market.solutionEyebrow': 'The PEAR solution',
+      'market.solutionEyebrow': 'The <span class="brand-pear">PEAR</span> solution',
       'market.solutionTitle':   'Real-time fit certainty on your product page',
       'market.potential':       '<span class="brand-pear">PEAR</span> embeds seamlessly into your product pages with\n        <span class="text-pear-700 font-bold">a single line of code</span>\n        — giving online shoppers total certainty on fit and look before they click buy.',
       'market.potentialTag':    'Shopify · WooCommerce · Magento · custom builds',
@@ -486,7 +506,7 @@
       'guide.reqCustom':   'Custom / in-house build',
       'guide.stepsTitle':  'Integration steps',
       'guide.step1Title':  'Step 1 · Add the SDK script (CDN)',
-      'guide.step1Body':   'Paste the line below just before the <code class="font-mono text-xs bg-slate-100 border border-slate-200 rounded px-1.5 py-0.5 text-slate-700" dir="ltr">&lt;/body&gt;</code> tag — once, on every product page.',
+      'guide.step1Body':   'Paste the line below just before the <code dir="ltr">&lt;/body&gt;</code> tag — once, on every product page.',
       'guide.step2Title':  'Step 2 · Place the try-on button on the product page',
       'guide.step2Body':   'Drop the container anywhere on the product page — usually under the size picker. The widget styles itself to fit its surroundings.',
       'guide.step3Title':  'Step 3 · Initialise and customise',
@@ -496,10 +516,10 @@
       'guide.snipComment': '// Called once the algorithm has computed a recommended size',
       'guide.snipLog':     '\'Recommended size:\'',
       'guide.helpTitle':   'Need a hand with the integration?',
-      'guide.helpBody':    'The PEAR engineering team is available to help you wire the widget into your store quickly and painlessly.',
+      'guide.helpBody':    'The <span class="brand-pear">PEAR</span> engineering team is available to help you wire the widget into your store quickly and painlessly.',
       'guide.helpCta':     'Talk to us now',
       'guide.helpArrow':   '→',
-      'guide.note':        'Do not have a <span class="font-mono text-xs bg-white border border-pear-100 rounded px-1.5 py-0.5" dir="ltr">STORE_ID</span> yet?\n        <a href="mailto:pearytrank@gmail.com" class="font-semibold text-pear-700 underline underline-offset-2 hover:text-pear-600">Get in touch</a>\n        and we will set an account up within one business day.'
+      'guide.note':        'Do not have a <code dir="ltr">STORE_ID</code> yet?\n        <a href="mailto:pearytrank@gmail.com">Get in touch</a>\n        and we will set an account up within one business day.'
     }
   };
 

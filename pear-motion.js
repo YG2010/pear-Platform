@@ -65,6 +65,7 @@
       initCursor();
       initMagnetic();
       initTilt();
+      initTouch();
       initReveals();
       initParallax();
       initNav();
@@ -235,6 +236,171 @@
     });
   }
 
+  /* ─────────────────── TOUCH · DIRECT MANIPULATION ───────────────── */
+  /* The hover layer above (cursor, magnetic lean, tilt) is all gated on
+     a fine pointer, which leaves a phone visitor tapping surfaces that
+     never answer. This is the answer: the card follows the finger.
+
+     Three states, in order: press (the surface dips), drag (it leans
+     toward the finger and rubber-bands as it is pulled further), release
+     (it springs home). The spring overshoot is the point — a linear
+     return reads as an animation, an elastic one reads as the object
+     having weight.
+
+     Bound to the same [data-pa-tilt] elements the desktop uses, plus
+     anything opted in with [data-pa-touch], so a card gets exactly one
+     interaction model per device and never both.
+
+     Deliberately NOT preventDefault() on touchmove: these cards sit in
+     the middle of a scrolling page, and swallowing the gesture would
+     mean a finger landing on a card cannot scroll past it. Instead the
+     first few pixels of movement decide — mostly vertical hands the
+     gesture back to the scroller and the lean is abandoned. */
+
+  function initTouch() {
+    if (FINE) return;                      // a mouse is present; hover owns these
+
+    var TARGETS = '[data-pa-tilt], [data-pa-touch]';
+    var MAX_LEAN = 7;                      // degrees, matches the desktop tilt
+    var MAX_SHIFT = 10;                    // px of travel before the rubber band
+    var SLOP = 9;                          // px before the gesture commits
+
+    $$(TARGETS).forEach(function (el) {
+      var rect = null;
+      var start = null;
+      var axis = '';                       // '', 'lean' or 'scroll'
+      var raf = 0;
+
+      /* quickTo keeps one tween per property alive rather than spawning a
+         new one per touchmove event — at 120Hz that is the difference
+         between a lean and a stutter. */
+      var rx = gsap.quickTo(el, 'rotationX', { duration: .35, ease: 'power3' });
+      var ry = gsap.quickTo(el, 'rotationY', { duration: .35, ease: 'power3' });
+      var tx = gsap.quickTo(el, 'x', { duration: .35, ease: 'power3' });
+      var ty = gsap.quickTo(el, 'y', { duration: .35, ease: 'power3' });
+
+      /* Rubber band: linear for the first few pixels, then asymptotic.
+         Past the limit the card keeps answering the finger but refuses
+         to keep up with it, which is what communicates "held". */
+      function band(d, limit) {
+        return limit * (1 - Math.exp(-Math.abs(d) / (limit * 1.6))) * (d < 0 ? -1 : 1);
+      }
+
+      /* Takes plain numbers, never the Touch object: Safari recycles Touch
+         instances between events, so a reference read one frame later can
+         report a position the finger has already left. */
+      function paint(cx, cy) {
+        raf = 0;
+        if (!rect || !start) return;
+        var px = (cx - rect.left) / rect.width;
+        var py = (cy - rect.top) / rect.height;
+        el.style.setProperty('--mx', clamp(px * 100, 0, 100) + '%');
+        el.style.setProperty('--my', clamp(py * 100, 0, 100) + '%');
+        if (REDUCED) return;
+        ry((clamp(px, 0, 1) - .5) * 2 * MAX_LEAN);
+        rx((.5 - clamp(py, 0, 1)) * 2 * MAX_LEAN);
+        tx(band(cx - start.x, MAX_SHIFT));
+        ty(band(cy - start.y, MAX_SHIFT));
+      }
+
+      el.addEventListener('touchstart', function (e) {
+        if (e.touches.length !== 1) return;     // a pinch is not a press
+        var t = e.touches[0];
+        rect = el.getBoundingClientRect();
+        start = { x: t.clientX, y: t.clientY };
+        axis = '';
+        el.classList.add('is-pressed', 'is-touching');
+        if (!REDUCED) gsap.to(el, { scale: .978, duration: .18, ease: 'power2.out' });
+        el.style.setProperty('--mx', ((t.clientX - rect.left) / rect.width * 100) + '%');
+        el.style.setProperty('--my', ((t.clientY - rect.top) / rect.height * 100) + '%');
+      }, { passive: true });
+
+      el.addEventListener('touchmove', function (e) {
+        if (!start || e.touches.length !== 1) return;
+        var t = e.touches[0];
+        var dx = t.clientX - start.x;
+        var dy = t.clientY - start.y;
+
+        if (!axis) {
+          if (Math.abs(dx) < SLOP && Math.abs(dy) < SLOP) return;
+          /* A mostly-vertical drag is the visitor scrolling the page with
+             their finger where a card happens to be. Let go of it
+             completely — a card that keeps leaning while the page moves
+             under it reads as the page being stuck. */
+          axis = Math.abs(dy) > Math.abs(dx) * 1.25 ? 'scroll' : 'lean';
+          if (axis === 'scroll') return release();
+        }
+        if (axis !== 'lean') return;
+
+        el.classList.remove('is-pressed');
+        var cx = t.clientX, cy = t.clientY;
+        if (!raf) raf = requestAnimationFrame(function () { paint(cx, cy); });
+      }, { passive: true });
+
+      function release() {
+        if (!start) return;
+        start = null; rect = null; axis = '';
+        if (raf) { cancelAnimationFrame(raf); raf = 0; }
+        el.classList.remove('is-pressed', 'is-touching');
+        if (REDUCED) return;
+        /* One tween over all five properties so they arrive together;
+           elastic.out is the spring, and the low amplitude keeps the
+           overshoot to a single visible bounce rather than a wobble. */
+        gsap.to(el, {
+          x: 0, y: 0, rotationX: 0, rotationY: 0, scale: 1,
+          duration: .9, ease: 'elastic.out(0.9, 0.42)',
+        });
+      }
+
+      el.addEventListener('touchend', release, { passive: true });
+      el.addEventListener('touchcancel', release, { passive: true });
+    });
+
+    /* Buttons and links get the press dip without the lean: they are
+       small, often inside a scrolling list, and a leaning button is a
+       button whose hit area moved out from under the finger.
+
+       Delegated rather than bound per element — the guide's markup and
+       the widget's CTA arrive long after this runs. */
+    var TAPPABLE = '.pa-btn, .pa-nav__link, .pa-lang button, .pa-guide__copy, .pa-field__input, .pa-submit';
+
+    document.addEventListener('touchstart', function (e) {
+      var el = e.target.closest && e.target.closest(TAPPABLE);
+      if (el) el.classList.add('is-tapped');
+    }, { passive: true });
+
+    ['touchend', 'touchcancel', 'touchmove'].forEach(function (evt) {
+      document.addEventListener(evt, function (e) {
+        var el = e.target.closest && e.target.closest(TAPPABLE);
+        if (el) el.classList.remove('is-tapped');
+      }, { passive: true });
+    });
+  }
+
+  /* ─────────── PRODUCT SHOT · MODEL REVEAL FLIP ───────────
+     Desktop hover/focus flips the card via CSS alone (see .pa-flip:hover
+     in the stylesheet). This wires the tap/click toggle touch devices
+     need — and works for any pointer, since click-to-pin is a harmless
+     superset of hover-to-preview. Runs unconditionally, outside the
+     GSAP boot gate, so the shot still answers a tap even if GSAP never
+     loads and the rest of the motion layer stays dark. */
+  function initFlip() {
+    var el = $('[data-pa-flip]');
+    if (!el) return;
+
+    function toggle() {
+      var flipped = el.classList.toggle('is-flipped');
+      el.setAttribute('aria-pressed', String(flipped));
+    }
+
+    el.addEventListener('click', toggle);
+    el.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      toggle();
+    });
+  }
+
   /* ──────────────────── SCROLL REVEALS ──────────────────────────── */
 
   function initReveals() {
@@ -344,8 +510,8 @@
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', boot);
+    document.addEventListener('DOMContentLoaded', function () { boot(); initFlip(); });
   } else {
-    boot();
+    boot(); initFlip();
   }
 })();

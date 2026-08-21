@@ -154,131 +154,112 @@ function passesOriginCheck(req) {
    client already does correctly for the rest of the page.
    ════════════════════════════════════════════════════════════════════ */
 const GUIDE_HTML = `
-<div class="max-w-3xl mx-auto px-5 sm:px-8 py-14 sm:py-16 space-y-14">
+<div class="pa-guide">
 
   <!-- ── 01 · Requirements ── -->
   <section>
-    <div class="flex items-center gap-3 mb-5">
-      <span class="font-mono text-xs font-bold text-pear-600 bg-pear-50 border border-pear-100 rounded-md px-2 py-1">01</span>
-      <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" data-i18n="guide.reqTitle">הקדמה ודרישות מערכת</h2>
+    <div class="pa-guide__head">
+      <span class="pa-guide__index">01</span>
+      <h2 class="pa-guide__title" data-i18n="guide.reqTitle">הקדמה ודרישות מערכת</h2>
     </div>
-    <div class="rounded-2xl glass p-7">
-      <p class="text-slate-600 mb-6" data-i18n="guide.reqBody">
-        הוויג'ט הוא סקריפט JavaScript קל-משקל שנטען אסינכרונית ואינו משפיע על מהירות האתר.
-        אין תלות בפלטפורמה — הוא עובד עם כל פלטפורמות האיקומרס:
-      </p>
-      <div class="flex flex-wrap gap-2">
-        <span class="font-mono text-xs px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-600">Shopify</span>
-        <span class="font-mono text-xs px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-600">WooCommerce</span>
-        <span class="font-mono text-xs px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-600">Magento</span>
-        <span class="font-mono text-xs px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-600" data-i18n="guide.reqCustom">Custom / פיתוח מותאם</span>
+    <div class="pa-panel">
+      <div class="pa-panel__pad">
+        <p class="pa-panel__lede" data-i18n="guide.reqBody">
+          הוויג'ט הוא סקריפט JavaScript קל-משקל שנטען אסינכרונית ואינו משפיע על מהירות האתר.
+          אין תלות בפלטפורמה — הוא עובד עם כל פלטפורמות האיקומרס:
+        </p>
+        <div class="pa-chips">
+          <span>Shopify</span>
+          <span>WooCommerce</span>
+          <span>Magento</span>
+          <span data-i18n="guide.reqCustom">Custom / פיתוח מותאם</span>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- ── 02 · Steps + code blocks ── -->
+  <!-- ── 02 · Steps + code blocks ──
+       Each step is rail + card. The rail's connector is a flex child, so
+       it fills whatever height the card beside it ends up being — the
+       three cards are different heights in every language and there is
+       nothing here to re-tune when the copy changes. -->
   <section>
-    <div class="flex items-center gap-3 mb-5">
-      <span class="font-mono text-xs font-bold text-pear-600 bg-pear-50 border border-pear-100 rounded-md px-2 py-1">02</span>
-      <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" data-i18n="guide.stepsTitle">שלבי ההטמעה</h2>
+    <div class="pa-guide__head">
+      <span class="pa-guide__index">02</span>
+      <h2 class="pa-guide__title" data-i18n="guide.stepsTitle">שלבי ההטמעה</h2>
     </div>
 
-    <div>
-      <!-- Step 1: CDN -->
-      <div class="relative flex gap-5">
-        <div class="flex flex-col items-center shrink-0">
-          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pear-400 to-pear-600 text-white font-mono font-bold text-sm flex items-center justify-center shadow-[0_0_0_4px_rgb(16_185_129/0.12),0_8px_20px_-6px_rgb(16_185_129/0.55)]">1</div>
-          <div class="w-px flex-1 bg-gradient-to-b from-pear-400/50 to-transparent mt-2 mb-1"></div>
+    <div class="pa-steps">
+
+      <div class="pa-step">
+        <div class="pa-step__rail" aria-hidden="true">
+          <span class="pa-step__num">1</span>
+          <span class="pa-step__line"></span>
         </div>
-        <div class="flex-1 min-w-0 pb-8">
-          <div class="rounded-2xl glass overflow-hidden">
-            <div class="p-7 pb-5">
-              <h3 class="font-bold text-slate-900 text-lg mb-1.5" data-i18n="guide.step1Title">שלב 1 · הוספת סקריפט המערכת (CDN)</h3>
-              <p class="text-sm text-slate-500" data-i18n-html="guide.step1Body">הדביקו את השורה הבאה לפני תג <code class="font-mono text-xs bg-slate-100 border border-slate-200 rounded px-1.5 py-0.5 text-slate-700" dir="ltr">&lt;/body&gt;</code> — פעם אחת, בכל עמודי המוצר.</p>
-            </div>
-            <div class="mx-7 mb-7 rounded-xl overflow-hidden border border-white/5 bg-[#0d1117] shadow-[0_20px_50px_-24px_rgb(0_0_0/0.6)]">
-              <div class="flex items-center gap-4 px-4 py-3 bg-[#161b22] border-b border-white/5" dir="ltr">
-                <div class="flex items-center gap-1.5" aria-hidden="true">
-                  <span class="w-3 h-3 rounded-full bg-[#ff5f56]"></span>
-                  <span class="w-3 h-3 rounded-full bg-[#ffbd2e]"></span>
-                  <span class="w-3 h-3 rounded-full bg-[#27c93f]"></span>
-                </div>
-                <span class="font-mono text-[11px] text-slate-400 tracking-wider">index.html</span>
-                <button class="copy-btn group ml-auto inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold text-slate-300 bg-white/5 hover:bg-white/10 border border-white/10 rounded-md px-3 py-1.5 transition-colors" data-copy="snippet-cdn">
-                  <svg class="copy-icon w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>
-                  <svg class="check-icon hidden w-3.5 h-3.5 text-pear-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
-                  <span class="copy-label">Copy</span>
-                </button>
-              </div>
-              <pre class="code-scroll p-5 text-[13px] leading-relaxed font-mono"><code id="snippet-cdn"><span class="text-slate-500">&lt;!-- PEAR Virtual Try-On SDK --&gt;</span>
-<span class="text-sky-300">&lt;script</span> <span class="text-emerald-300">src</span><span class="text-slate-400">=</span><span class="text-amber-200">"https://cdn.pear-tryon.com/sdk/v2/widget.js"</span> <span class="text-emerald-300">async</span><span class="text-sky-300">&gt;&lt;/script&gt;</span></code></pre>
-            </div>
+        <div class="pa-step__body pa-panel">
+          <h3 class="pa-step__title" data-i18n="guide.step1Title">שלב 1 · הוספת סקריפט המערכת (CDN)</h3>
+          <p class="pa-step__note" data-i18n-html="guide.step1Body">הדביקו את השורה הבאה לפני תג <code dir="ltr">&lt;/body&gt;</code> — פעם אחת, בכל עמודי המוצר.</p>
+        <div class="pa-code">
+          <div class="pa-code__bar" dir="ltr">
+            <span class="pa-code__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="pa-code__file">index.html</span>
+            <button type="button" class="copy-btn pa-guide__copy" data-copy="snippet-cdn">
+              <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>
+              <svg class="check-icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+              <span class="copy-label">Copy</span>
+            </button>
           </div>
+          <pre class="pa-code__pre code-scroll"><code id="snippet-cdn"><span class="text-slate-500">&lt;!-- PEAR Virtual Try-On SDK --&gt;</span>
+<span class="text-sky-300">&lt;script</span> <span class="text-emerald-300">src</span><span class="text-slate-400">=</span><span class="text-amber-200">"https://cdn.pear-tryon.com/sdk/v2/widget.js"</span> <span class="text-emerald-300">async</span><span class="text-sky-300">&gt;&lt;/script&gt;</span></code></pre>
+        </div>
         </div>
       </div>
 
-      <!-- Step 2: container -->
-      <div class="relative flex gap-5">
-        <div class="flex flex-col items-center shrink-0">
-          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pear-400 to-pear-600 text-white font-mono font-bold text-sm flex items-center justify-center shadow-[0_0_0_4px_rgb(16_185_129/0.12),0_8px_20px_-6px_rgb(16_185_129/0.55)]">2</div>
-          <div class="w-px flex-1 bg-gradient-to-b from-pear-400/50 to-transparent mt-2 mb-1"></div>
+      <div class="pa-step">
+        <div class="pa-step__rail" aria-hidden="true">
+          <span class="pa-step__num">2</span>
+          <span class="pa-step__line"></span>
         </div>
-        <div class="flex-1 min-w-0 pb-8">
-          <div class="rounded-2xl glass overflow-hidden">
-            <div class="p-7 pb-5">
-              <h3 class="font-bold text-slate-900 text-lg mb-1.5" data-i18n="guide.step2Title">שלב 2 · מיקום כפתור המדידה בדף המוצר</h3>
-              <p class="text-sm text-slate-500" data-i18n="guide.step2Body">הניחו את הקונטיינר בכל מקום בעמוד המוצר — לרוב מתחת לבורר המידות. הוויג'ט יעצב את עצמו בהתאם למקום.</p>
-            </div>
-            <div class="mx-7 mb-7 rounded-xl overflow-hidden border border-white/5 bg-[#0d1117] shadow-[0_20px_50px_-24px_rgb(0_0_0/0.6)]">
-              <div class="flex items-center gap-4 px-4 py-3 bg-[#161b22] border-b border-white/5" dir="ltr">
-                <div class="flex items-center gap-1.5" aria-hidden="true">
-                  <span class="w-3 h-3 rounded-full bg-[#ff5f56]"></span>
-                  <span class="w-3 h-3 rounded-full bg-[#ffbd2e]"></span>
-                  <span class="w-3 h-3 rounded-full bg-[#27c93f]"></span>
-                </div>
-                <span class="font-mono text-[11px] text-slate-400 tracking-wider">product-page.html</span>
-                <button class="copy-btn group ml-auto inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold text-slate-300 bg-white/5 hover:bg-white/10 border border-white/10 rounded-md px-3 py-1.5 transition-colors" data-copy="snippet-container">
-                  <svg class="copy-icon w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>
-                  <svg class="check-icon hidden w-3.5 h-3.5 text-pear-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
-                  <span class="copy-label">Copy</span>
-                </button>
-              </div>
-              <pre class="code-scroll p-5 text-[13px] leading-relaxed font-mono"><code id="snippet-container"><span class="text-sky-300">&lt;div</span>
+        <div class="pa-step__body pa-panel">
+          <h3 class="pa-step__title" data-i18n="guide.step2Title">שלב 2 · מיקום כפתור המדידה בדף המוצר</h3>
+          <p class="pa-step__note" data-i18n="guide.step2Body">הניחו את הקונטיינר בכל מקום בעמוד המוצר — לרוב מתחת לבורר המידות. הוויג'ט יעצב את עצמו בהתאם למקום.</p>
+        <div class="pa-code">
+          <div class="pa-code__bar" dir="ltr">
+            <span class="pa-code__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="pa-code__file">product-page.html</span>
+            <button type="button" class="copy-btn pa-guide__copy" data-copy="snippet-container">
+              <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>
+              <svg class="check-icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+              <span class="copy-label">Copy</span>
+            </button>
+          </div>
+          <pre class="pa-code__pre code-scroll"><code id="snippet-container"><span class="text-sky-300">&lt;div</span>
   <span class="text-emerald-300">id</span><span class="text-slate-400">=</span><span class="text-amber-200">"pear-widget-container"</span>
   <span class="text-emerald-300">data-product-id</span><span class="text-slate-400">=</span><span class="text-amber-200">"12345"</span>
   <span class="text-emerald-300">data-store-id</span><span class="text-slate-400">=</span><span class="text-amber-200">"YOUR_STORE_ID"</span><span class="text-sky-300">&gt;
 &lt;/div&gt;</span></code></pre>
-            </div>
-          </div>
+        </div>
         </div>
       </div>
 
-      <!-- Step 3: init -->
-      <div class="relative flex gap-5">
-        <div class="flex flex-col items-center shrink-0">
-          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pear-400 to-pear-600 text-white font-mono font-bold text-sm flex items-center justify-center shadow-[0_0_0_4px_rgb(16_185_129/0.12),0_8px_20px_-6px_rgb(16_185_129/0.55)]">3</div>
+      <div class="pa-step">
+        <div class="pa-step__rail" aria-hidden="true">
+          <span class="pa-step__num">3</span>
         </div>
-        <div class="flex-1 min-w-0">
-          <div class="rounded-2xl glass overflow-hidden">
-            <div class="p-7 pb-5">
-              <h3 class="font-bold text-slate-900 text-lg mb-1.5" data-i18n="guide.step3Title">שלב 3 · אתחול והגדרות מותאמות אישית</h3>
-              <p class="text-sm text-slate-500" data-i18n="guide.step3Body">שליטה מלאה על שפה, ערכת נושא, טקסט הכפתור ו-callbacks — הכל מאובייקט קונפיגורציה אחד.</p>
-            </div>
-            <div class="mx-7 mb-7 rounded-xl overflow-hidden border border-white/5 bg-[#0d1117] shadow-[0_20px_50px_-24px_rgb(0_0_0/0.6)]">
-              <div class="flex items-center gap-4 px-4 py-3 bg-[#161b22] border-b border-white/5" dir="ltr">
-                <div class="flex items-center gap-1.5" aria-hidden="true">
-                  <span class="w-3 h-3 rounded-full bg-[#ff5f56]"></span>
-                  <span class="w-3 h-3 rounded-full bg-[#ffbd2e]"></span>
-                  <span class="w-3 h-3 rounded-full bg-[#27c93f]"></span>
-                </div>
-                <span class="font-mono text-[11px] text-slate-400 tracking-wider">pear-init.js</span>
-                <button class="copy-btn group ml-auto inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold text-slate-300 bg-white/5 hover:bg-white/10 border border-white/10 rounded-md px-3 py-1.5 transition-colors" data-copy="snippet-init">
-                  <svg class="copy-icon w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>
-                  <svg class="check-icon hidden w-3.5 h-3.5 text-pear-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
-                  <span class="copy-label">Copy</span>
-                </button>
-              </div>
-              <pre class="code-scroll p-5 text-[13px] leading-relaxed font-mono"><code id="snippet-init"><span class="text-slate-300">window</span><span class="text-slate-400">.</span><span class="text-slate-300">PearWidget</span><span class="text-slate-400">.</span><span class="text-sky-300">init</span><span class="text-slate-400">({</span>
+        <div class="pa-step__body pa-panel">
+          <h3 class="pa-step__title" data-i18n="guide.step3Title">שלב 3 · אתחול והגדרות מותאמות אישית</h3>
+          <p class="pa-step__note" data-i18n="guide.step3Body">שליטה מלאה על שפה, ערכת נושא, טקסט הכפתור ו-callbacks — הכל מאובייקט קונפיגורציה אחד.</p>
+        <div class="pa-code">
+          <div class="pa-code__bar" dir="ltr">
+            <span class="pa-code__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="pa-code__file">pear-init.js</span>
+            <button type="button" class="copy-btn pa-guide__copy" data-copy="snippet-init">
+              <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>
+              <svg class="check-icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+              <span class="copy-label">Copy</span>
+            </button>
+          </div>
+          <pre class="pa-code__pre code-scroll"><code id="snippet-init"><span class="text-slate-300">window</span><span class="text-slate-400">.</span><span class="text-slate-300">PearWidget</span><span class="text-slate-400">.</span><span class="text-sky-300">init</span><span class="text-slate-400">({</span>
   <span class="text-emerald-300">storeId</span><span class="text-slate-400">:</span> <span class="text-amber-200">'YOUR_STORE_ID'</span><span class="text-slate-400">,</span>
   <span class="text-emerald-300">theme</span><span class="text-slate-400">:</span> <span class="text-amber-200">'light'</span><span class="text-slate-400">,</span>          <span class="text-slate-500">// 'light' | 'dark'</span>
   <span class="text-emerald-300">locale</span><span class="text-slate-400">:</span> <span class="text-amber-200" data-i18n="guide.snipLocale">'he'</span><span class="text-slate-400">,</span>
@@ -289,29 +270,26 @@ const GUIDE_HTML = `
     <span class="text-slate-300">console</span><span class="text-slate-400">.</span><span class="text-sky-300">log</span><span class="text-slate-400">(</span><span class="text-amber-200" data-i18n="guide.snipLog">'המידה המומלצת:'</span><span class="text-slate-400">,</span> <span class="text-slate-300">result</span><span class="text-slate-400">.</span><span class="text-slate-300">size</span><span class="text-slate-400">);</span>
   <span class="text-slate-400">},</span>
 <span class="text-slate-400">});</span></code></pre>
-            </div>
-          </div>
+        </div>
         </div>
       </div>
+
     </div>
   </section>
 
   <!-- Dev-help helper card -->
   <section>
-    <div class="relative overflow-hidden rounded-2xl glass-dark text-white px-7 py-6 flex flex-col sm:flex-row sm:items-center gap-5">
-      <div class="pointer-events-none absolute inset-0" aria-hidden="true"
-           style="background:
-             radial-gradient(420px 220px at 15% 0%, rgb(16 185 129 / .22), transparent 65%),
-             radial-gradient(360px 200px at 100% 100%, rgb(56 189 248 / .16), transparent 65%);"></div>
-      <div class="relative flex-1">
-        <h3 class="font-bold text-lg mb-1" data-i18n="guide.helpTitle">צריכים עזרה טכנית בהטמעה?</h3>
-        <p class="text-sm text-slate-300 leading-relaxed" data-i18n="guide.helpBody">צוות הפיתוח של PEAR זמין לעזור לכם לחבר את הווידג'ט לחנות שלכם במהירות ובקלות.</p>
+    <div class="pa-guide__help">
+      <div class="pa-guide__help-copy">
+        <h3 data-i18n="guide.helpTitle">צריכים עזרה טכנית בהטמעה?</h3>
+        <!-- data-i18n-HTML, not data-i18n: the copy carries the brand
+             name and every "PEAR" on the site is wrapped in a span. -->
+        <p data-i18n-html="guide.helpBody">צוות הפיתוח של <span class="brand-pear">PEAR</span> זמין לעזור לכם לחבר את הווידג'ט לחנות שלכם במהירות ובקלות.</p>
       </div>
-      <button data-scroll="contact-section" data-view="contact" data-prefill="integration"
-         class="group relative shrink-0 cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl bg-pear-600 text-white font-bold px-6 py-3 shadow-btn hover:bg-pear-700 hover:-translate-y-0.5 transition-all whitespace-nowrap">
+      <button type="button" class="pa-btn pa-btn--pear group" data-scroll="contact-section" data-view="contact" data-prefill="integration">
         <span data-i18n="guide.helpCta">דברו איתנו עכשיו</span>
-        <!-- The glyph flips with the language; the hover nudge that moves it
-             is corrected for LTR by a rule in index.html's <style> block. -->
+        <!-- The glyph flips with the language; the hover nudge that moves
+             it is corrected for LTR by a rule in index.html's style block. -->
         <span class="inline-block transition-transform duration-300 group-hover:-translate-x-1" data-i18n="guide.helpArrow">←</span>
       </button>
     </div>
@@ -319,11 +297,11 @@ const GUIDE_HTML = `
 
   <!-- Support note -->
   <section>
-    <div class="rounded-2xl bg-pear-50 border border-pear-100 px-7 py-6 flex items-start gap-4">
-      <span class="text-xl leading-none mt-0.5">💡</span>
-      <p class="text-sm text-slate-600 leading-relaxed" data-i18n-html="guide.note">
-        אין לכם עדיין <span class="font-mono text-xs bg-white border border-pear-100 rounded px-1.5 py-0.5" dir="ltr">STORE_ID</span>?
-        <a href="mailto:pearytrank@gmail.com" class="font-semibold text-pear-700 underline underline-offset-2 hover:text-pear-600">צרו קשר</a>
+    <div class="pa-guide__note">
+      <b aria-hidden="true">💡</b>
+      <p data-i18n-html="guide.note">
+        אין לכם עדיין <code dir="ltr">STORE_ID</code>?
+        <a href="mailto:pearytrank@gmail.com">צרו קשר</a>
         ונקים לכם חשבון תוך יום עסקים.
       </p>
     </div>

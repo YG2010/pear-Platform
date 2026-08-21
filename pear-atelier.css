@@ -165,14 +165,58 @@ body.pa :focus-visible {
   -webkit-background-clip: text; background-clip: text;
   color: transparent;
 }
-/* i18n copy ships the wordmark as <span class="brand-pear">; adopt it
-   rather than asking the dictionary to learn a second class name. */
-body.pa .brand-pear {
+/* ─────────── 2a · THE BRAND NAME · one rule, every occurrence ──────
+   Every visible "PEAR" on the site — headings, body copy, badges,
+   buttons, the nav and footer wordmarks, the guide, the contact view,
+   Hebrew and English alike — is wrapped in <span class="brand-pear">
+   and styled from here. i18n copy already ships that class inside its
+   markup keys, so the dictionary needs no second class name.
+
+   This rule is UNSCOPED on purpose. The docs and contact views are not
+   under the atelier palette, but they carry the brand name too, and the
+   name has to look the same in all three views or the "one brand" claim
+   fails on the two pages a developer actually reads.
+
+   What is enforced here: family, weight, case and tracking. COLOUR is
+   not — it is layered on below, per surface, so the name can sit on
+   cream, on onyx and inside a filled button without a second wrapper
+   class.
+
+   Playfair Display is Latin-only with no Hebrew coverage, which is
+   exactly why this is safe where the old Didot rule was not: the span
+   this class lands on NEVER contains Hebrew — every occurrence wraps
+   only the four Latin letters "PEAR", even mid-sentence in the Hebrew
+   UI, so there is no glyph for the font to fail to draw and nothing to
+   fall back out of. text-transform:uppercase is redundant on top of
+   that (the dictionary already spells the word in caps everywhere) but
+   costs nothing and guarantees it if that ever changes. */
+.brand-pear {
+  font-family: 'Playfair Display', Didot, 'Bodoni MT', 'Cinzel', serif;
   font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  /* display:inline-block is what the brief specifies, and it is safe
+     here specifically because every .brand-pear span is a single
+     no-wrap word (white-space below) sitting inline in a text run —
+     never a multi-word phrase. An inline-block that could line-wrap
+     mid-content is what breaks vertical rhythm; a single atomic word
+     does not. */
+  display: inline-block;
+  font-feature-settings: 'kern' 1, 'liga' 1;
+  white-space: nowrap;
+}
+
+/* The wordmark takes the pear gradient in running copy. Excluded:
+   --ink (the nav/footer lockups, which sit beside the logo mark and
+   must match its solid black) and --on-dark (onyx surfaces, handled
+   further down). A gradient clipped to text renders as transparent
+   wherever it is NOT wanted, so every exclusion here is load-bearing. */
+body.pa .brand-pear:not(.brand-pear--ink) {
   background: linear-gradient(96deg, var(--pa-pear-deep), var(--pa-pear));
   -webkit-background-clip: text; background-clip: text;
   color: transparent;
 }
+.brand-pear--ink { color: inherit; }
 
 /* ───────────── 2b · LEGACY CLASS COMPATIBILITY LAYER ─────────────
    The dictionary does not ship plain strings — several entries carry
@@ -190,14 +234,6 @@ body.pa .text-pear-600,
 body.pa .text-pear-700,
 body.pa .hover\:text-pear-600:hover { color: var(--pa-pear-deep); }
 
-/* Didot on a Hebrew page falls back per-glyph and never matched the
-   grotesque anyway; the wordmark takes the page's own stack. */
-body.pa .brand-pear {
-  font-family: var(--pa-sans) !important;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
 body.pa .text-slate-700 { color: var(--pa-ink); }
 body.pa .border-pear-100 { border-color: rgba(155,181,58,.3); }
 body.pa .border-slate-200 { border-color: var(--pa-hair); }
@@ -212,53 +248,29 @@ body.pa .pa-demo .text-pear-600,
 body.pa .pa-close .text-pear-600,
 body.pa .pa-demo .text-pear-700,
 body.pa .pa-close .text-pear-700 { color: var(--pa-pear); }
+/* Every dark surface on the site, in one list: the demo band, the
+   closing CTA, the onyx bento cell, the contact aside, the guide's help
+   card and the access gate. The name is lifted off near-black rather
+   than clipped to the deep-pear gradient, which goes muddy on onyx. */
 body.pa .pa-demo .brand-pear,
-body.pa .pa-close .brand-pear {
+body.pa .pa-close .brand-pear,
+body.pa .pa-cell--onyx .brand-pear,
+body.pa .pa-contact__card .brand-pear,
+body.pa .pa-guide__help .brand-pear,
+body.pa .pa-gate__card .brand-pear {
   background: linear-gradient(96deg, var(--pa-pear), #C6DA6B);
   -webkit-background-clip: text; background-clip: text;
   color: transparent;
 }
 
 /* ───────────────────── 3 · WEBGL + ATMOSPHERE ───────────────────── */
-/* z-index is driven per chapter from the 3D module, not fixed here.
-   One canvas cannot be both "in front of the cards" and "behind the
-   copy", so the layer moves with the story: the model sits BEHIND while
-   the hero device and the product card lead, and comes FORWARD through
-   the middle sections, where the layout below reserves an empty lane
-   for it. This value is the safe fallback if that script never runs. */
 #pearStage {
   position: fixed;
   inset: 0;
   z-index: 1;
-  pointer-events: none;   /* never intercepts a click on a CTA */
+  pointer-events: none;
   opacity: 0;
   transition: opacity 1.2s var(--pa-ease-out);
-}
-
-/* ── the 3D travel lane ───────────────────────────────────────────
-   The middle sections give up ~28% of their width so the model has
-   somewhere to be that is not on top of a paragraph. The reserved side
-   alternates — value keeps its lane at the inline end, market at the
-   inline start — so the model crosses the page as it explodes rather
-   than sliding down one edge. Below 1200px there is no width to spare
-   and the lane closes; the model is hidden under 1024px anyway. */
-@media (min-width: 1200px) {
-  #value .pa-head,
-  #value .pa-bento,
-  #demo .pa-head,
-  #demo .pa-demo__frame {
-    max-width: 72%;
-    margin-inline-start: 0;
-    margin-inline-end: auto;
-  }
-  #market-section .pa-solution {
-    max-width: 72%;
-    margin-inline-start: auto;
-    margin-inline-end: 0;
-  }
-  /* the closing panel keeps its full width but pulls its centred column
-     in, which opens a usable band on both sides of the copy */
-  #cta .pa-close > * { max-width: 58%; margin-inline: auto; }
 }
 #pearStage.is-ready { opacity: 1; }
 #pearStage canvas { width: 100% !important; height: 100% !important; display: block; }
@@ -355,7 +367,9 @@ body.pa .pa-nav {
 }
 .pa-nav__brand { display: flex; align-items: center; gap: .65rem; flex: none; }
 .pa-nav__brand img { width: 22px; height: auto; }
-.pa-nav__word { font-weight: 700; letter-spacing: -0.03em; font-size: 1.02rem; }
+/* The lockup beside the logo mark: same face and weight as every other
+   "PEAR" on the page (it carries .brand-pear--ink), sized for the bar. */
+.pa-nav__word { font-size: 1.02rem; }
 .pa-nav__links { display: flex; align-items: center; gap: clamp(.15rem, .8vw, .75rem); margin-inline: auto; }
 .pa-nav__link {
   position: relative; padding: .55rem .85rem;
@@ -584,6 +598,40 @@ body.pa .pa-btn--ghost:hover { color: var(--pa-beige); border-color: var(--pa-on
 }
 .pa-head__title { margin-top: 1rem; }
 
+/* One section's header set larger than the shared scale: the three
+   pillars. Its title is the longest on the page in both languages
+   ("שלושה עמודי תווך לרווחיות באופנה" / "Three pillars of fashion
+   profitability"), and at .pa-d-lg it broke to three tight lines that
+   read as a caption above the cards rather than as the claim they are
+   evidence for.
+
+   Set as its own step rather than by raising .pa-d-lg, which is shared
+   with four other sections that are already correctly sized. The
+   leading is opened alongside the size — a display line-height of .92
+   is tuned for two words, not seven, and the Hebrew ascenders collide
+   at that value. */
+.pa-head--major { align-items: end; }
+.pa-head__title--xl {
+  font-size: clamp(2.5rem, 5.6vw, 5.1rem);
+  line-height: 1.02;
+  letter-spacing: -0.042em;
+  font-weight: 650;
+  max-width: 15ch;
+  text-wrap: balance;
+}
+[lang="he"] .pa-head__title--xl,
+[dir="rtl"] .pa-head__title--xl {
+  /* Heebo has no true optical sizing and its ascenders run tall, so the
+     same figure that reads as tight-and-tailored in Inter reads as
+     collided here. Both values are relaxed, and the measure is widened
+     because Hebrew words in this line are long. */
+  font-size: clamp(2.25rem, 5vw, 4.5rem);
+  line-height: 1.22;
+  letter-spacing: -0.01em;
+  font-weight: 700;
+  max-width: 19ch;
+}
+
 /* ───────────────────── 10 · BENTO / CARDS ───────────────────────── */
 .pa-bento {
   display: grid;
@@ -614,11 +662,10 @@ body.pa .pa-btn--ghost:hover { color: var(--pa-beige); border-color: var(--pa-on
 .pa-cell:hover .pa-cell__glow { opacity: 1; }
 .pa-cell > *:not(.pa-cell__glow) { position: relative; z-index: 1; transform: translateZ(30px); }
 
-/* The head stays at the top and the bullets are pinned to the bottom,
-   so titles line up across the row whatever the body copy does. With
-   `margin-bottom: auto` on the head instead, each title floated to a
-   different height as soon as the lane narrowed the cards. */
-.pa-cell__head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+/* start, not space-between: the row used to hold a tag at one end and a
+   status dot at the other. With the dot gone the mark and its tag are
+   one label and belong beside each other. */
+.pa-cell__head { display: flex; align-items: center; justify-content: flex-start; gap: .85rem; margin-bottom: auto; }
 .pa-cell__tag {
   font-family: var(--pa-mono); font-size: .58rem; letter-spacing: .16em;
   text-transform: uppercase; color: var(--pa-ink-35);
@@ -627,33 +674,137 @@ body.pa .pa-btn--ghost:hover { color: var(--pa-beige); border-color: var(--pa-on
   font-family: var(--pa-sans); text-transform: none; letter-spacing: .02em;
   font-size: .68rem; font-weight: 600;
 }
-.pa-status {
-  display: inline-flex; align-items: center; gap: .45rem;
-  font-family: var(--pa-mono); font-size: .55rem; letter-spacing: .12em;
-  text-transform: uppercase; color: var(--pa-ink-35);
+/* .pa-status / @keyframes pa-blip lived here: a pulsing dot in the head
+   of each pillar card. Removed with the markup that carried it — three
+   identical blinking dots labelled nothing, distinguished nothing, and
+   ran an infinite animation beside body copy. The drawn marks below
+   replace them. */
+
+/* ── the pillar marks ──
+   One 24-unit grid, one 1.6 stroke, three drawings. The tile is drawn
+   here so the SVGs stay pure geometry: no fills, no colours, no size —
+   they inherit all three, which is what lets the same three files sit on
+   cream, on glass and on onyx without a variant each. */
+.pa-mark {
+  flex: none;
+  display: grid; place-items: center;
+  width: 46px; height: 46px;
+  border-radius: 14px;
+  color: var(--pa-pear-deep);
+  background: linear-gradient(150deg, rgba(155,181,58,.16), rgba(155,181,58,.05));
+  border: 1px solid rgba(155,181,58,.24);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
+  transition:
+    transform .55s var(--pa-ease-out),
+    background-color .45s var(--pa-ease-out),
+    border-color .45s var(--pa-ease-out),
+    box-shadow .45s var(--pa-ease-out);
 }
-.pa-status i {
-  width: 6px; height: 6px; border-radius: 50%; background: var(--pa-pear);
-  animation: pa-blip 2.4s var(--pa-ease-io) infinite;
+.pa-mark svg { width: 23px; height: 23px; overflow: visible; }
+
+/* The three strokes inside every mark carry the same three roles, so the
+   set reads as one drawing system rather than three sketches: __body is
+   the subject at full weight, __hair is the supporting geometry held
+   back, __tick is the single accent that says what the pillar DOES. */
+.pa-mark__body { opacity: 1; }
+.pa-mark__hair { opacity: .42; }
+.pa-mark__tick { color: var(--pa-pear); opacity: .9; stroke: currentColor; }
+
+/* On hover the mark lifts and its accent completes — the drawn
+   equivalent of the state the blinking dot was gesturing at, except it
+   fires on intent instead of forever. */
+.pa-cell:hover .pa-mark,
+.pa-cell.is-touching .pa-mark {
+  transform: translateY(-2px) scale(1.05);
+  background: linear-gradient(150deg, rgba(155,181,58,.28), rgba(155,181,58,.10));
+  border-color: rgba(155,181,58,.45);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.8), 0 8px 22px -12px var(--pa-pear-glow);
 }
-@keyframes pa-blip {
-  0%, 100% { box-shadow: 0 0 0 0 var(--pa-pear-glow); }
-  50%      { box-shadow: 0 0 0 5px rgba(155,181,58,0); }
+.pa-cell:hover .pa-mark__hair,
+.pa-cell.is-touching .pa-mark__hair { opacity: .62; }
+
+.pa-cell--onyx .pa-mark {
+  color: var(--pa-pear);
+  background: linear-gradient(150deg, rgba(155,181,58,.20), rgba(155,181,58,.06));
+  border-color: rgba(155,181,58,.28);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.10);
 }
 
 .pa-cell__title {
-  margin: 1.6rem 0 .6rem;
+  margin: 1.5rem 0 .6rem;
   letter-spacing: -0.03em; font-weight: 600;
   font-size: clamp(1.15rem, 1.6vw, 1.5rem); line-height: 1.12;
 }
 [lang="he"] .pa-cell__title, [dir="rtl"] .pa-cell__title { letter-spacing: 0; line-height: 1.25; font-weight: 700; }
 .pa-cell__body { font-size: .88rem; color: var(--pa-ink-70); text-wrap: pretty; }
-.pa-cell__list { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--pa-hair-soft); display: grid; gap: .45rem; }
+.pa-cell__list { margin-top: 1.1rem; padding-top: 1rem; border-top: 1px solid var(--pa-hair-soft); display: grid; gap: .45rem; }
 .pa-cell__list li { display: flex; align-items: baseline; gap: .55rem; font-size: .78rem; color: var(--pa-ink-50); list-style: none; }
 .pa-cell__list li::before {
   content: ''; flex: none;
   width: 5px; height: 5px; border-radius: 50%;
   background: var(--pa-pear); transform: translateY(-2px);
+}
+
+/* ── the three pillars · glass ──
+   The base .pa-cell is an opaque white panel. These three sit directly
+   over the 3D layer, which is the one place on the page where a
+   translucent surface earns its cost: the silk and the pear drift behind
+   the copy and the card reads as glass held over them rather than as a
+   card with a blurry photo in it.
+
+   backdrop-filter is the expensive part. It is confined to these three
+   cards and gated on @supports, because where it is unsupported the
+   fallback must be the OPAQUE panel — a semi-transparent card with no
+   blur puts the 3D scene straight through the body copy, which is the
+   exact failure this section is being redesigned away from. */
+.pa-cell--pillar {
+  background: var(--pa-white);
+  border-color: rgba(13, 13, 13, .07);
+  box-shadow: var(--pa-lift-1);
+  transition:
+    transform .5s var(--pa-ease-out),
+    border-color .5s var(--pa-ease-out),
+    box-shadow .5s var(--pa-ease-out),
+    background-color .5s var(--pa-ease-out);
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .pa-cell--pillar {
+    background: linear-gradient(155deg, rgba(255,255,255,.82), rgba(255,255,255,.62));
+    -webkit-backdrop-filter: blur(20px) saturate(1.6);
+            backdrop-filter: blur(20px) saturate(1.6);
+    box-shadow:
+      var(--pa-lift-1),
+      inset 0 1px 0 rgba(255,255,255,.85);
+  }
+}
+
+/* A hairline of light along the top edge, brightest at the corner the
+   key light comes from. One pseudo-element instead of a second border,
+   so it does not fight the rounded corners. */
+.pa-cell--pillar::before {
+  content: ''; position: absolute; z-index: 2;
+  inset-inline: 12%; top: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.95), transparent);
+  pointer-events: none;
+}
+
+.pa-cell--pillar:hover,
+.pa-cell--pillar.is-touching {
+  transform: translateY(-4px);
+  border-color: rgba(155, 181, 58, .38);
+  box-shadow:
+    var(--pa-lift-3),
+    inset 0 1px 0 rgba(255,255,255,.9),
+    0 0 0 1px rgba(155,181,58,.12);
+}
+
+/* The tilt writes rotationX/rotationY into the same transform this rule
+   animates, so on a fine pointer the lift is handed to the highlight
+   instead — two writers on one property is a card that snaps flat the
+   moment the cursor enters it. */
+@media (hover: hover) and (pointer: fine) {
+  .pa-cell--pillar:hover { transform: none; }
 }
 
 .pa-w2 { grid-column: span 2; }
@@ -662,7 +813,7 @@ body.pa .pa-btn--ghost:hover { color: var(--pa-beige); border-color: var(--pa-on
 .pa-w6 { grid-column: span 6; }
 
 .pa-cell--onyx { background: var(--pa-onyx); border-color: var(--pa-onyx); color: var(--pa-beige); }
-.pa-cell--onyx .pa-cell__tag, .pa-cell--onyx .pa-status { color: rgba(244,241,234,.45); }
+.pa-cell--onyx .pa-cell__tag { color: rgba(244,241,234,.45); }
 .pa-cell--onyx .pa-cell__body { color: rgba(244,241,234,.72); }
 .pa-cell--onyx .pa-cell__list { border-color: rgba(244,241,234,.14); }
 .pa-cell--onyx .pa-cell__list li { color: rgba(244,241,234,.6); }
@@ -713,6 +864,90 @@ body.pa .pa-btn--ghost:hover { color: var(--pa-beige); border-color: var(--pa-on
   20%, 80%  { opacity: 1; }
   92%, 100% { transform: translateY(320%); opacity: 0; }
 }
+
+/* flat shot → on-model reveal.
+   .pa-flip owns its own 3D stage (perspective) on top of .pa-play__shot's
+   box; it never touches .pa-play__card's transform, which the tilt script
+   already drives via rotationX/Y, so the two animations compose instead
+   of fighting over the same property. Hover/focus flip via CSS alone;
+   [data-pa-flip] additionally gets a tap-toggle in pear-motion.js for
+   coarse pointers, via the same .is-flipped class. */
+.pa-flip { perspective: 1400px; cursor: pointer; }
+.pa-flip__inner {
+  position: relative; width: 100%; height: 100%;
+  transform-style: preserve-3d;
+  transition: transform .9s var(--pa-ease-io), box-shadow .5s var(--pa-ease-out);
+}
+.pa-flip:hover .pa-flip__inner,
+.pa-flip:focus-visible .pa-flip__inner,
+.pa-flip.is-flipped .pa-flip__inner {
+  transform: rotateY(180deg);
+  box-shadow: 0 30px 60px -24px rgba(13,13,13,.35);
+}
+.pa-flip__face {
+  position: absolute; inset: 0;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+}
+.pa-flip__face--back { transform: rotateY(180deg); }
+
+/* shine sweep — armed only while the back face actually faces the
+   viewer, so the animation never plays behind the front face unseen */
+.pa-flip__shine {
+  position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.55) 48%, transparent 62%);
+  transform: translateX(-120%);
+  opacity: 0;
+}
+.pa-flip:hover .pa-flip__shine,
+.pa-flip:focus-visible .pa-flip__shine,
+.pa-flip.is-flipped .pa-flip__shine {
+  opacity: 1;
+  animation: pa-shine 1.1s var(--pa-ease-out) .2s 1;
+}
+@keyframes pa-shine {
+  from { transform: translateX(-120%); }
+  to   { transform: translateX(120%); }
+}
+
+/* glassmorphic "On Model Preview" badge — sibling of .pa-flip__inner so
+   it stays upright through the rotation instead of mirroring with it */
+.pa-flip__badge {
+  z-index: 4;
+  inset-inline: 0; bottom: .7rem; margin-inline: auto; width: max-content;
+  justify-content: center;
+  opacity: 0; transform: translateY(6px) scale(.96);
+  transition: opacity .35s var(--pa-ease-out), transform .35s var(--pa-ease-out);
+}
+.pa-flip:hover .pa-flip__badge,
+.pa-flip:focus-visible .pa-flip__badge,
+.pa-flip.is-flipped .pa-flip__badge {
+  opacity: 1; transform: translateY(0) scale(1);
+}
+
+/* front/back garment angle — both images are in the DOM and decoded from
+   first paint; toggling only flips which one is opacity:1, so there is
+   never a decode stall or a broken src mid-switch */
+.pa-angle__img {
+  position: absolute; inset: 0;
+  opacity: 0;
+  transition: opacity .4s var(--pa-ease-out);
+}
+.pa-angle__img.is-active { opacity: 1; }
+
+.pa-angle-toggle {
+  display: inline-flex; gap: .2rem; margin: 0 .85rem .8rem;
+  padding: .2rem; border: 1px solid var(--pa-hair); border-radius: var(--pa-pill);
+}
+.pa-angle-toggle__btn {
+  font-family: var(--pa-mono); font-size: .64rem; letter-spacing: .04em;
+  padding: .32rem .85rem; border: none; border-radius: var(--pa-pill);
+  background: transparent; color: var(--pa-ink-50);
+  cursor: pointer;
+  transition: background-color .3s var(--pa-ease-out), color .3s var(--pa-ease-out);
+}
+.pa-angle-toggle__btn.is-active { background: var(--pa-pear); color: var(--pa-onyx); }
+.pa-angle-toggle__btn:not(.is-active):hover { color: var(--pa-ink); }
+
 .pa-play__meta { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: 1rem .85rem .5rem; }
 .pa-play__name { font-weight: 600; letter-spacing: -0.02em; font-size: .96rem; }
 .pa-play__sub { font-size: .78rem; color: var(--pa-ink-50); margin-top: .15rem; }
@@ -724,6 +959,25 @@ body.pa .pa-btn--ghost:hover { color: var(--pa-beige); border-color: var(--pa-on
 }
 .pa-sizes b.is-fit { background: var(--pa-pear); border-color: var(--pa-pear); color: var(--pa-onyx); }
 .pa-play__note { font-size: .72rem; color: var(--pa-ink-35); text-align: center; padding: .6rem .85rem .2rem; line-height: 1.5; }
+
+/* Fit-type pill under the product name. Inline flow (not position:absolute
+   like .pa-badge) so it wraps instead of clipping at narrow widths. */
+.pa-fit-tag {
+  display: inline-flex; align-items: center;
+  margin-top: .45rem; padding: .22rem .6rem;
+  background: var(--pa-beige-deep); border: 1px solid var(--pa-hair);
+  border-radius: var(--pa-pill);
+  font-size: .66rem; font-weight: 600; letter-spacing: .01em;
+  color: var(--pa-pear-deep); white-space: normal;
+}
+.pa-play__fitnote {
+  font-size: .72rem; color: var(--pa-ink-35);
+  padding: 0 .85rem .6rem; line-height: 1.5;
+}
+.pa-play__physics {
+  font-size: .84rem; color: var(--pa-ink-50);
+  margin-top: .85rem; line-height: 1.6; max-width: 46ch;
+}
 
 /* ─────────────────────── 12 · DEMO BAND ─────────────────────────── */
 .pa-demo { position: relative; z-index: 3; background: var(--pa-onyx); color: var(--pa-beige); overflow: hidden; }
@@ -862,11 +1116,675 @@ body.pa #hudLabel {
   .pa-badge--size { inset-inline-start: .6rem; }
   .pa-badge--live { inset-inline-end: .6rem; }
 }
+@media (max-width: 767.98px) {
+  /* The hero try-on stage is dropped whole below 768px.
+
+     Two reasons, and the second is the one that matters: it costs a
+     phone visitor 800KB of video before the fold (index.html block 7b
+     withholds the src so that download never starts), and it costs them
+     most of a screen height of scrolling to get past a clip that repeats
+     what the demo band shows later at full width. The headline, the two
+     CTAs and the three proof lines now open the page on their own.
+
+     display:none rather than a visibility trick: the <video> must be
+     genuinely absent from layout, and block 7b keys off this same
+     768px threshold, so the two must agree exactly. */
+  #heroStage { display: none; }
+  .pa-hero { padding-block-start: clamp(6rem, 22vw, 8rem); }
+}
 @media (max-width: 560px) {
   .pa-bento { grid-template-columns: minmax(0, 1fr); }
   .pa-w2, .pa-w3, .pa-w4, .pa-w6 { grid-column: span 1; }
   .pa-hero__actions .pa-btn { flex: 1 1 100%; justify-content: center; }
 }
+
+/* ───────────────── 16b · TOUCH · TACTILE FEEDBACK ────────────────
+   Coarse-pointer visitors get none of the hover affordances the rest of
+   this sheet is built on — no tilt, no cursor highlight, no magnetic
+   lean. What replaces them is direct manipulation: pressing a card
+   pushes it in, dragging it lets it lean and rubber-band, releasing it
+   springs back. The transforms are written by initTouch() in
+   pear-motion.js; everything here is the surface it needs to land on.
+
+   Scoped to (pointer: coarse) so a desktop with a touchscreen keeps its
+   hover behaviour and does not run both systems against one transform. */
+@media (pointer: coarse) {
+  body.pa {
+    /* Kills the grey flash Chrome/Android paints over a tapped element,
+       which fires ~100ms before our own press state and reads as a
+       double-response. */
+    -webkit-tap-highlight-color: transparent;
+    /* Momentum scrolling that stops at the page edges instead of
+       handing the gesture to the browser's pull-to-refresh mid-read. */
+    overscroll-behavior-y: contain;
+  }
+
+  /* Waiting out the 300ms tap delay makes every button feel broken on a
+     phone regardless of how fast the handler is. */
+  body.pa button, body.pa a, body.pa [data-pa-touch] { touch-action: manipulation; }
+
+  [data-pa-touch] {
+    /* The spring is driven from JS; CSS only owns the resting state and
+       the projection the lean is drawn in. */
+    transform-style: preserve-3d;
+    will-change: transform;
+    -webkit-user-select: none; user-select: none;
+  }
+
+  /* Pressed state: a real inset, not a colour swap. The card dips toward
+     the finger and its shadow tightens under it, which is what makes the
+     surface read as physical rather than as a hover style firing late. */
+  [data-pa-touch].is-pressed {
+    box-shadow: var(--pa-lift-1);
+  }
+
+  /* The touched card lifts out of the stack so a neighbour's border
+     cannot draw across the edge it is leaning over. */
+  [data-pa-touch].is-touching { z-index: 5; }
+
+  /* The cursor-tracked glow doubles as a touch-point highlight: the
+     same --mx/--my the pointer wrote are written by the touch handler,
+     so the card lights up under the finger with no second mechanism. */
+  .pa-cell.is-touching .pa-cell__glow,
+  .pa-solution.is-touching .pa-cell__glow { opacity: 1; }
+}
+
+/* ═══════════ 18 · DEVELOPER GUIDE (#view-docs) ═══════════════════
+   The integration guide is the only page on this site written for
+   someone who is going to paste from it. That changes what "high-end"
+   means here: it is not more decoration, it is a code block you can
+   read at a glance, a copy button that confirms itself, and steps that
+   stay legible on the phone a developer is holding while their laptop
+   shows the store.
+
+   WHERE THIS MARKUP LIVES: not in index.html. The guide is served from
+   api/get-docs.js and injected into #docs-secure-viewport after the
+   passcode check. pear-tailwind.css is a static build with
+   content:["index.html"], so it never sees these class names — which is
+   exactly why the guide is styled from here, in hand-written CSS, and
+   not in utilities. Adding a class over there means adding a rule here.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.pa-guide {
+  width: 100%;
+  max-width: 62rem;
+  margin-inline: auto;
+  padding-inline: var(--pa-gutter);
+  padding-block: clamp(3rem, 7vw, 5.5rem);
+  display: grid;
+  gap: clamp(3rem, 6vw, 4.5rem);
+}
+
+/* ── section headers ── */
+.pa-guide__head {
+  display: flex; align-items: center; gap: .85rem;
+  margin-bottom: 1.4rem;
+}
+.pa-guide__index {
+  flex: none;
+  font-family: var(--pa-mono); font-size: .7rem; font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--pa-pear-deep);
+  background: rgba(155,181,58,.10);
+  border: 1px solid rgba(155,181,58,.28);
+  border-radius: 8px;
+  padding: .3rem .55rem;
+  direction: ltr;
+}
+.pa-guide__title {
+  font-size: clamp(1.35rem, 2.6vw, 1.85rem);
+  font-weight: 700; letter-spacing: -0.03em; line-height: 1.15;
+  color: var(--pa-ink); margin: 0;
+}
+[lang="he"] .pa-guide__title, [dir="rtl"] .pa-guide__title { letter-spacing: 0; line-height: 1.3; }
+
+/* ── the glass panel every card is cut from ── */
+.pa-panel {
+  position: relative;
+  border-radius: var(--pa-radius);
+  border: 1px solid var(--pa-hair);
+  background: var(--pa-white);
+  box-shadow: var(--pa-lift-1);
+  overflow: hidden;
+}
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .pa-panel {
+    background: linear-gradient(155deg, rgba(255,255,255,.86), rgba(255,255,255,.66));
+    -webkit-backdrop-filter: blur(20px) saturate(1.6);
+            backdrop-filter: blur(20px) saturate(1.6);
+    box-shadow: var(--pa-lift-1), inset 0 1px 0 rgba(255,255,255,.85);
+  }
+}
+.pa-panel__pad { padding: clamp(1.4rem, 3vw, 1.9rem); }
+.pa-panel__lede { color: var(--pa-ink-70); font-size: .95rem; margin: 0 0 1.3rem; text-wrap: pretty; }
+.pa-panel__lede:last-child { margin-bottom: 0; }
+
+/* ── platform chips ── */
+.pa-chips { display: flex; flex-wrap: wrap; gap: .5rem; }
+.pa-chips span {
+  font-family: var(--pa-mono); font-size: .72rem;
+  color: var(--pa-ink-70);
+  background: var(--pa-beige-deep);
+  border: 1px solid var(--pa-hair);
+  border-radius: 10px;
+  padding: .4rem .7rem;
+  transition: border-color .3s var(--pa-ease-out), color .3s var(--pa-ease-out);
+}
+.pa-chips span:hover { border-color: rgba(155,181,58,.45); color: var(--pa-pear-deep); }
+
+/* ── the numbered steps ──
+   Rail on the inline-start edge, card beside it. The rail is a grid
+   column rather than an absolutely positioned line, so the connector
+   between two steps is simply a flex child that fills whatever height
+   the card beside it turned out to be — no magic offsets to re-tune
+   when the copy or the language changes. */
+.pa-steps { display: grid; gap: 0; }
+.pa-step { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); gap: 1.15rem; }
+.pa-step + .pa-step { margin-top: 1.4rem; }
+.pa-step__rail { display: flex; flex-direction: column; align-items: center; }
+.pa-step__num {
+  flex: none;
+  width: 2.5rem; height: 2.5rem; border-radius: 50%;
+  display: grid; place-items: center;
+  font-family: var(--pa-mono); font-size: .85rem; font-weight: 700;
+  color: #fff;
+  background: linear-gradient(150deg, var(--pa-pear), var(--pa-pear-deep));
+  box-shadow: 0 0 0 4px rgba(155,181,58,.12), 0 8px 20px -8px var(--pa-pear-glow);
+  direction: ltr;
+}
+.pa-step__line {
+  width: 1px; flex: 1; margin-block: .55rem .2rem;
+  background: linear-gradient(to bottom, rgba(155,181,58,.5), transparent);
+}
+/* The step card. It is a .pa-panel too, so it takes the same glass as
+   the requirements card above it and the same opaque fallback — one
+   material for the whole guide.
+
+   The code block inside is deliberately allowed to run to the panel's
+   own edges on its inline axis (negative margin equal to the padding):
+   a snippet inset inside a card inside a page is three nested rounded
+   rectangles, and the innermost one is where the actual content is. */
+.pa-step__body {
+  min-width: 0;
+  padding: clamp(1.25rem, 2.6vw, 1.6rem);
+}
+.pa-step__body .pa-code {
+  margin-top: 1.25rem;
+  margin-inline: calc(clamp(1.25rem, 2.6vw, 1.6rem) * -1);
+  margin-bottom: calc(clamp(1.25rem, 2.6vw, 1.6rem) * -1);
+  border-radius: 0;
+  border-inline: 0;
+  border-bottom: 0;
+}
+.pa-step__title {
+  font-size: 1.06rem; font-weight: 700; letter-spacing: -0.02em;
+  color: var(--pa-ink); margin: 0 0 .35rem;
+}
+[lang="he"] .pa-step__title, [dir="rtl"] .pa-step__title { letter-spacing: 0; }
+.pa-step__note { font-size: .88rem; color: var(--pa-ink-50); margin: 0; text-wrap: pretty; }
+.pa-step__note code {
+  font-family: var(--pa-mono); font-size: .8em;
+  background: var(--pa-beige-deep); border: 1px solid var(--pa-hair);
+  border-radius: 5px; padding: .1em .4em;
+  color: var(--pa-ink); direction: ltr; unicode-bidi: isolate;
+}
+
+/* ── code cards ──
+   Onyx, not GitHub navy: the page already owns a near-black, and a
+   second dark surface a few degrees off it reads as a mistake rather
+   than as a second material. */
+.pa-code {
+  margin: 1.15rem 0 0;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--pa-onyx);
+  border: 1px solid rgba(255,255,255,.07);
+  box-shadow: 0 24px 60px -30px rgba(13,13,13,.75);
+}
+.pa-code__bar {
+  display: flex; align-items: center; gap: .9rem;
+  padding: .6rem .85rem;
+  background: var(--pa-onyx-soft);
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  direction: ltr;
+}
+.pa-code__dots { display: flex; gap: .35rem; flex: none; }
+.pa-code__dots i { width: 10px; height: 10px; border-radius: 50%; display: block; }
+.pa-code__dots i:nth-child(1) { background: #ff5f56; }
+.pa-code__dots i:nth-child(2) { background: #ffbd2e; }
+.pa-code__dots i:nth-child(3) { background: #27c93f; }
+.pa-code__file {
+  font-family: var(--pa-mono); font-size: .72rem; letter-spacing: .04em;
+  color: rgba(244,241,234,.5);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.pa-code__pre {
+  direction: ltr; text-align: left;
+  overflow-x: auto; overscroll-behavior-x: contain;
+  margin: 0; padding: 1.1rem 1.15rem;
+  font-family: var(--pa-mono); font-size: .8rem; line-height: 1.75;
+  color: rgba(244,241,234,.9);
+  -webkit-overflow-scrolling: touch;
+}
+.pa-code__pre::-webkit-scrollbar { height: 6px; }
+.pa-code__pre::-webkit-scrollbar-thumb { background: rgba(244,241,234,.16); border-radius: 3px; }
+.pa-code__pre code { font: inherit; background: none; }
+
+/* ── copy button ──
+   Three things move on a successful copy and they are staged, not
+   simultaneous: the icon swaps to a tick, the label changes, and a ring
+   expands out of the button and dissolves. The ring is what carries the
+   confirmation at a glance — the tick is 14px and lands where the finger
+   or cursor already is, so on its own it is easy to miss entirely. */
+.pa-guide__copy {
+  position: relative;
+  margin-inline-start: auto;
+  flex: none;
+  display: inline-flex; align-items: center; gap: .4rem;
+  font-family: var(--pa-mono); font-size: .7rem; font-weight: 600;
+  color: rgba(244,241,234,.75);
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 9px;
+  padding: .38rem .65rem;
+  cursor: pointer;
+  transition: background-color .25s, color .25s, border-color .25s, transform .25s var(--pa-ease-out);
+}
+.pa-guide__copy:hover { background: rgba(255,255,255,.12); color: var(--pa-beige); border-color: rgba(255,255,255,.22); }
+.pa-guide__copy:active, .pa-guide__copy.is-tapped { transform: scale(.94); }
+.pa-guide__copy svg { width: 13px; height: 13px; flex: none; }
+.pa-guide__copy .check-icon { color: var(--pa-pear); }
+.pa-guide__copy .hidden { display: none; }
+
+/* copied state */
+.pa-guide__copy.copy-flash {
+  color: var(--pa-pear);
+  border-color: rgba(155,181,58,.5);
+  background: rgba(155,181,58,.14);
+}
+.pa-guide__copy.copy-flash::after {
+  content: ''; position: absolute; inset: -1px; border-radius: inherit;
+  border: 1px solid var(--pa-pear);
+  animation: pa-copy-ring .7s var(--pa-ease-out) forwards;
+  pointer-events: none;
+}
+@keyframes pa-copy-ring {
+  from { opacity: .9; transform: scale(1); }
+  to   { opacity: 0;  transform: scale(1.32); }
+}
+
+/* ── the help card + the note ── */
+.pa-guide__help {
+  position: relative; overflow: hidden;
+  border-radius: var(--pa-radius);
+  background: var(--pa-onyx);
+  color: var(--pa-beige);
+  padding: clamp(1.5rem, 3vw, 2rem);
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: 1.25rem;
+}
+.pa-guide__help::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(420px 220px at 12% 0%, rgba(155,181,58,.26), transparent 65%),
+    radial-gradient(360px 200px at 100% 100%, rgba(155,181,58,.10), transparent 65%);
+}
+.pa-guide__help > * { position: relative; }
+.pa-guide__help-copy { flex: 1 1 18rem; min-width: 0; }
+.pa-guide__help h3 {
+  font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 .3rem;
+}
+.pa-guide__help p { font-size: .88rem; color: rgba(244,241,234,.68); margin: 0; line-height: 1.6; }
+
+.pa-guide__note {
+  display: flex; align-items: flex-start; gap: .9rem;
+  border-radius: var(--pa-radius);
+  border: 1px solid rgba(155,181,58,.26);
+  background: rgba(155,181,58,.07);
+  padding: clamp(1.2rem, 2.6vw, 1.6rem);
+}
+.pa-guide__note b { flex: none; font-size: 1.15rem; line-height: 1.3; }
+.pa-guide__note p { margin: 0; font-size: .88rem; color: var(--pa-ink-70); line-height: 1.65; }
+.pa-guide__note code {
+  font-family: var(--pa-mono); font-size: .8em;
+  background: var(--pa-white); border: 1px solid rgba(155,181,58,.3);
+  border-radius: 5px; padding: .1em .4em; direction: ltr; unicode-bidi: isolate;
+}
+.pa-guide__note a { color: var(--pa-pear-deep); font-weight: 600; text-underline-offset: 3px; }
+
+/* ── guide · phone ──
+   The rail collapses rather than shrinking: 2.5rem of gutter beside a
+   code block on a 360px screen is the difference between a readable
+   snippet and a horizontally-scrolled one. The number moves inline with
+   the step title, where it still numbers the step. */
+@media (max-width: 640px) {
+  .pa-step { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .pa-step__rail { flex-direction: row; align-items: center; gap: .7rem; margin-bottom: .8rem; }
+  .pa-step__num { width: 2rem; height: 2rem; font-size: .75rem; }
+  /* Turned on its side: the connector runs from the number out toward
+     the far edge instead of down to the next step.
+
+     linear-gradient takes no logical direction keyword — `to inline-end`
+     is not a thing, and a gradient with an invalid direction drops the
+     whole background declaration, which is a connector that silently
+     does not render. Hence the explicit angle and the RTL mirror. */
+  .pa-step__line {
+    width: auto; height: 1px; flex: 1; margin: 0;
+    background: linear-gradient(90deg, rgba(155,181,58,.45), rgba(155,181,58,.04));
+  }
+  [dir="rtl"] .pa-step__line {
+    background: linear-gradient(270deg, rgba(155,181,58,.45), rgba(155,181,58,.04));
+  }
+  .pa-code__pre { font-size: .74rem; padding: .9rem; }
+  .pa-guide__help { flex-direction: column; align-items: stretch; }
+  .pa-guide__help .pa-btn { width: 100%; justify-content: center; }
+}
+
+/* ── the access gate ──
+   The guide is not in the page until the passcode clears, so this stage
+   is standing over nothing: the scrim is atmosphere, not a redaction.
+   It is kept because a card floating on bare cream reads as an error
+   state, and because it tells the visitor there IS something here. */
+.pa-gate {
+  position: relative;
+  min-height: 34rem;
+  display: grid; place-items: center;
+  padding: clamp(2rem, 6vw, 4rem) var(--pa-gutter);
+}
+.pa-gate__scrim {
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(60rem 26rem at 50% 0%, rgba(155,181,58,.13), transparent 62%),
+    linear-gradient(to bottom, rgba(244,241,234,.4), rgba(244,241,234,.9));
+}
+.pa-gate__card {
+  position: relative;
+  width: 100%; max-width: 27rem;
+  border-radius: var(--pa-radius-lg);
+  background: var(--pa-onyx);
+  color: var(--pa-beige);
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 40px 90px -40px rgba(13,13,13,.7);
+  padding: clamp(1.7rem, 4vw, 2.3rem);
+  text-align: center;
+}
+.pa-gate__lock {
+  display: grid; place-items: center;
+  width: 3.6rem; height: 3.6rem; margin: 0 auto 1.3rem;
+  border-radius: 18px;
+  background: linear-gradient(150deg, var(--pa-pear), var(--pa-pear-deep));
+  color: #fff;
+}
+.pa-gate__lock svg { width: 26px; height: 26px; }
+.pa-gate__card h2 { font-size: 1.2rem; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 .5rem; }
+.pa-gate__card > p { font-size: .87rem; color: rgba(244,241,234,.65); line-height: 1.6; margin: 0 0 1.6rem; }
+
+.pa-gate__form { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: .8rem; }
+.pa-gate__input {
+  flex: 1 1 10rem; min-width: 0;
+  font-family: var(--pa-mono); font-size: .88rem;
+  letter-spacing: .16em; text-align: center;
+  color: #fff;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 12px;
+  padding: .78rem .9rem;
+  transition: border-color .3s var(--pa-ease-out), box-shadow .3s var(--pa-ease-out), background-color .3s;
+}
+.pa-gate__input::placeholder { font-family: var(--pa-sans); letter-spacing: 0; color: rgba(244,241,234,.4); }
+.pa-gate__input:focus {
+  outline: none;
+  background: rgba(255,255,255,.1);
+  border-color: var(--pa-pear);
+  box-shadow: 0 0 0 3px rgba(155,181,58,.2);
+}
+.pa-gate__input.is-invalid {
+  border-color: rgba(240, 110, 110, .7);
+  box-shadow: 0 0 0 3px rgba(240, 110, 110, .16);
+  animation: pa-shake .4s var(--pa-ease-io);
+}
+.pa-gate__submit { flex: 0 0 auto; width: auto; }
+
+.pa-gate__error { font-size: .76rem; font-weight: 600; color: #f08b8b; margin: 0 0 .9rem; }
+.pa-gate__ask {
+  display: inline-block;
+  font-size: .84rem; font-weight: 600;
+  color: var(--pa-pear);
+  transition: color .25s;
+}
+.pa-gate__ask:hover { color: #C6DA6B; }
+
+@media (max-width: 420px) {
+  .pa-gate__submit { flex: 1 1 100%; width: 100%; }
+}
+
+/* ═══════════ 19 · CONTACT (#view-contact) ═══════════════════════ */
+
+.pa-contact {
+  position: relative;
+  /* Clips the wash below, which deliberately overhangs the layout so its
+     blur has somewhere to fall off. `clip` rather than `hidden`: hidden
+     turns this into a scroll container, which would break the anchor
+     scrolling the contact CTAs rely on. */
+  overflow: clip;
+}
+.pa-contact__wash {
+  position: absolute; pointer-events: none;
+  inset: -4rem -2.5rem;
+  background:
+    radial-gradient(700px 420px at 20% 10%, rgba(155,181,58,.14), transparent 60%),
+    radial-gradient(600px 360px at 90% 90%, rgba(155,181,58,.07), transparent 60%);
+  filter: blur(28px);
+}
+.pa-contact__grid {
+  width: 100%; max-width: var(--pa-measure);
+  margin-inline: auto;
+  padding-inline: var(--pa-gutter);
+  padding-block: clamp(2.5rem, 6vw, 4.5rem);
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  gap: clamp(1.25rem, 3vw, 2rem);
+  align-items: start;
+}
+.pa-contact__aside { display: grid; gap: 1.1rem; }
+
+/* ── fields ──
+   Boxed rather than the underline treatment this form used to carry.
+   An underline field gives focus one pixel of feedback and gives an
+   invalid value nowhere to show itself; a bordered field can glow, can
+   go red, and reads as a target on a touchscreen. */
+.pa-form { display: grid; gap: 1.15rem; }
+.pa-form__row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.15rem; }
+
+.pa-field { display: block; min-width: 0; }
+.pa-field__label {
+  display: block; font-size: .78rem; font-weight: 600;
+  color: var(--pa-ink-70); margin-bottom: .45rem; letter-spacing: -0.005em;
+}
+.pa-field__input {
+  width: 100%;
+  font: inherit; font-size: .9rem;
+  color: var(--pa-ink);
+  background: rgba(255,255,255,.72);
+  border: 1px solid var(--pa-hair);
+  border-radius: 12px;
+  padding: .75rem .9rem;
+  transition:
+    border-color .3s var(--pa-ease-out),
+    box-shadow .3s var(--pa-ease-out),
+    background-color .3s var(--pa-ease-out),
+    transform .25s var(--pa-ease-out);
+}
+textarea.pa-field__input { resize: vertical; min-height: 7.5rem; line-height: 1.6; }
+.pa-field__input::placeholder { color: var(--pa-ink-35); }
+.pa-field__input:hover { border-color: var(--pa-ink-20); }
+
+/* The glow, and the reason it is a box-shadow rather than an outline:
+   an outline cannot be feathered, and a hard 2px ring on a glass form
+   reads as a validation error before the visitor has typed anything. */
+.pa-field__input:focus {
+  outline: none;
+  background: var(--pa-white);
+  border-color: var(--pa-pear);
+  box-shadow:
+    0 0 0 3px rgba(155,181,58,.16),
+    0 6px 22px -12px var(--pa-pear-glow);
+}
+.pa-field__input.is-tapped { transform: scale(.995); }
+
+/* Invalid only AFTER the field has been left or the form submitted —
+   :invalid alone paints every required field red on first paint, which
+   is the single most common way a nice form turns hostile. index.html
+   adds .was-touched on blur and .was-submitted on a failed submit. */
+.pa-form.was-submitted .pa-field__input:invalid,
+.pa-field__input.was-touched:invalid {
+  border-color: rgba(214, 69, 69, .65);
+  box-shadow: 0 0 0 3px rgba(214, 69, 69, .12);
+}
+.pa-form.was-submitted .pa-field__input:invalid { animation: pa-shake .4s var(--pa-ease-io); }
+@keyframes pa-shake {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-4px); }
+  50%      { transform: translateX(3px); }
+  75%      { transform: translateX(-2px); }
+}
+
+/* ── submit ── */
+.pa-submit {
+  position: relative; overflow: hidden; isolation: isolate;
+  width: 100%;
+  display: inline-flex; align-items: center; justify-content: center; gap: .55rem;
+  font: inherit; font-size: .92rem; font-weight: 600;
+  color: #fff;
+  background: linear-gradient(120deg, var(--pa-pear-deep), var(--pa-pear));
+  border: 0; border-radius: 12px;
+  padding: .85rem 1.4rem;
+  cursor: pointer;
+  box-shadow: 0 10px 30px -14px var(--pa-pear-glow);
+  transition:
+    transform .3s var(--pa-ease-out),
+    box-shadow .3s var(--pa-ease-out),
+    filter .3s var(--pa-ease-out);
+}
+/* The shine strip: parked off the leading edge and swept across on
+   hover. inset-inline-start, so it sweeps with the reading direction
+   in both languages rather than backwards in one of them. */
+.pa-submit::before {
+  content: ''; position: absolute; top: 0; bottom: 0; width: 45%;
+  inset-inline-start: -60%; z-index: -1;
+  background: linear-gradient(105deg, transparent, rgba(255,255,255,.38), transparent);
+  transform: skewX(-18deg);
+  transition: inset-inline-start .65s var(--pa-ease-out);
+}
+.pa-submit:hover { transform: translateY(-2px); box-shadow: 0 18px 40px -16px var(--pa-pear-glow); filter: brightness(1.06); }
+.pa-submit:hover::before { inset-inline-start: 130%; }
+/* Press physics: the button goes DOWN and its shadow collapses under
+   it. Both, or it reads as a colour change rather than as a press. */
+.pa-submit:active, .pa-submit.is-tapped {
+  transform: translateY(1px) scale(.985);
+  box-shadow: 0 4px 12px -8px var(--pa-pear-glow);
+  transition-duration: .09s;
+}
+.pa-submit:disabled { cursor: wait; filter: saturate(.8); transform: none; }
+.pa-submit:disabled::before { display: none; }
+.pa-submit svg { width: 16px; height: 16px; flex: none; }
+.pa-submit .hidden { display: none; }
+
+/* Sent: the button holds a confirmed state for a beat before the form
+   resets, so the success is legible where the visitor is already
+   looking instead of only in a toast at the top of the screen. */
+.pa-submit.is-sent {
+  background: var(--pa-onyx);
+  box-shadow: 0 10px 30px -16px rgba(13,13,13,.6);
+  animation: pa-sent-pop .5s var(--pa-ease-out);
+}
+@keyframes pa-sent-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.035); }
+  100% { transform: scale(1); }
+}
+
+.pa-spin { position: relative; width: 16px; height: 16px; flex: none; }
+.pa-spin svg { position: absolute; inset: 0; }
+.pa-spin svg:first-child { animation: pa-spin 1.1s linear infinite; }
+.pa-spin svg:last-child  { opacity: .55; animation: pa-spin 1.1s linear infinite reverse; }
+@keyframes pa-spin { to { transform: rotate(360deg); } }
+
+/* ── the aside cards ── */
+.pa-contact__card {
+  border-radius: var(--pa-radius);
+  background: var(--pa-onyx);
+  color: var(--pa-beige);
+  padding: clamp(1.4rem, 3vw, 1.9rem);
+}
+.pa-contact__card h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 .3rem; }
+.pa-contact__card > p { font-size: .86rem; color: rgba(244,241,234,.62); margin: 0 0 1.4rem; line-height: 1.6; }
+
+.pa-contact__link {
+  display: flex; align-items: center; gap: .9rem;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.05);
+  padding: .8rem .9rem;
+  color: inherit;
+  transition: transform .35s var(--pa-ease-out), background-color .3s, border-color .3s;
+}
+.pa-contact__link:hover {
+  transform: translateY(-2px);
+  background: rgba(255,255,255,.09);
+  border-color: rgba(155,181,58,.4);
+}
+.pa-contact__link i {
+  flex: none; width: 2.4rem; height: 2.4rem; border-radius: 11px;
+  display: grid; place-items: center;
+  background: rgba(155,181,58,.18); color: var(--pa-pear);
+}
+.pa-contact__link i svg { width: 18px; height: 18px; }
+.pa-contact__link small {
+  display: block; font-family: var(--pa-mono); font-size: .62rem;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: rgba(244,241,234,.42); margin-bottom: .1rem;
+}
+.pa-contact__link b { display: block; font-size: .85rem; font-weight: 600; }
+
+.pa-contact__note {
+  display: flex; align-items: flex-start; gap: .8rem;
+  border-radius: var(--pa-radius);
+  border: 1px solid var(--pa-hair);
+  background: rgba(255,255,255,.6);
+  padding: clamp(1.1rem, 2.4vw, 1.4rem);
+}
+.pa-contact__note b { flex: none; font-size: 1.15rem; line-height: 1.3; }
+.pa-contact__note p { margin: 0; font-size: .86rem; color: var(--pa-ink-70); line-height: 1.6; }
+
+@media (max-width: 900px) {
+  .pa-contact__grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .pa-form__row { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ═══════════ 20 · SHARED VIEW HERO (docs + contact) ═════════════ */
+.pa-subhero {
+  border-bottom: 1px solid var(--pa-hair);
+  padding-block: clamp(5rem, 11vw, 7rem) clamp(2.5rem, 5vw, 3.5rem);
+}
+.pa-subhero__inner {
+  width: 100%; max-width: 52rem;
+  margin-inline: auto; padding-inline: var(--pa-gutter);
+}
+.pa-subhero--center .pa-subhero__inner { text-align: center; }
+.pa-subhero h1 {
+  font-family: var(--pa-sans);
+  font-size: clamp(2.1rem, 5vw, 3.6rem);
+  font-weight: 650; letter-spacing: -0.04em; line-height: 1.04;
+  margin: .9rem 0 1rem; text-wrap: balance;
+}
+[lang="he"] .pa-subhero h1, [dir="rtl"] .pa-subhero h1 {
+  letter-spacing: -0.01em; line-height: 1.18; font-weight: 700;
+}
+.pa-subhero p { font-size: 1.02rem; color: var(--pa-ink-50); line-height: 1.65; margin: 0; text-wrap: pretty; }
+.pa-subhero--center p { max-width: 38rem; margin-inline: auto; }
 
 /* ───────────────────── 17 · REDUCED MOTION ──────────────────────── */
 @media (prefers-reduced-motion: reduce) {
