@@ -166,7 +166,7 @@ const GUIDE_HTML = `
       <div class="pa-panel__pad">
         <p class="pa-panel__lede" data-i18n="guide.reqBody">
           הוויג'ט הוא סקריפט JavaScript קל-משקל שנטען אסינכרונית ואינו משפיע על מהירות האתר.
-          אין תלות בפלטפורמה — הוא עובד עם כל פלטפורמות האיקומרס:
+          אין תלות בפלטפורמה, הוא עובד עם כל פלטפורמות האיקומרס:
         </p>
         <div class="pa-chips">
           <span>Shopify</span>
@@ -198,7 +198,7 @@ const GUIDE_HTML = `
         </div>
         <div class="pa-step__body pa-panel">
           <h3 class="pa-step__title" data-i18n="guide.step1Title">שלב 1 · הוספת סקריפט המערכת (CDN)</h3>
-          <p class="pa-step__note" data-i18n-html="guide.step1Body">הדביקו את השורה הבאה לפני תג <code dir="ltr">&lt;/body&gt;</code> — פעם אחת, בכל עמודי המוצר.</p>
+          <p class="pa-step__note" data-i18n-html="guide.step1Body">הדביקו את השורה הבאה לפני תג <code dir="ltr">&lt;/body&gt;</code>, פעם אחת בכל עמודי המוצר.</p>
         <div class="pa-code">
           <div class="pa-code__bar" dir="ltr">
             <span class="pa-code__dots" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -222,7 +222,7 @@ const GUIDE_HTML = `
         </div>
         <div class="pa-step__body pa-panel">
           <h3 class="pa-step__title" data-i18n="guide.step2Title">שלב 2 · מיקום כפתור המדידה בדף המוצר</h3>
-          <p class="pa-step__note" data-i18n="guide.step2Body">הניחו את הקונטיינר בכל מקום בעמוד המוצר — לרוב מתחת לבורר המידות. הוויג'ט יעצב את עצמו בהתאם למקום.</p>
+          <p class="pa-step__note" data-i18n="guide.step2Body">הניחו את הקונטיינר בכל מקום בעמוד המוצר, לרוב מתחת לבורר המידות. הוויג'ט יעצב את עצמו בהתאם למקום.</p>
         <div class="pa-code">
           <div class="pa-code__bar" dir="ltr">
             <span class="pa-code__dots" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -248,7 +248,7 @@ const GUIDE_HTML = `
         </div>
         <div class="pa-step__body pa-panel">
           <h3 class="pa-step__title" data-i18n="guide.step3Title">שלב 3 · אתחול והגדרות מותאמות אישית</h3>
-          <p class="pa-step__note" data-i18n="guide.step3Body">שליטה מלאה על שפה, ערכת נושא, טקסט הכפתור ו-callbacks — הכל מאובייקט קונפיגורציה אחד.</p>
+          <p class="pa-step__note" data-i18n="guide.step3Body">שליטה מלאה על שפה, ערכת נושא, טקסט הכפתור ו-callbacks, הכל מאובייקט קונפיגורציה אחד.</p>
         <div class="pa-code">
           <div class="pa-code__bar" dir="ltr">
             <span class="pa-code__dots" aria-hidden="true"><i></i><i></i><i></i></span>

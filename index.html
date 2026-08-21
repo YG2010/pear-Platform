@@ -669,7 +669,10 @@
     <div class="pa-nav__tools">
       <!-- The option labels are language NAMES, so they are deliberately
            identical in both dictionaries and stay hard-coded. -->
-      <div class="pa-lang" role="group" data-i18n-aria-label="a11y.langSwitch" aria-label="בחירת שפה">
+      <div class="pa-lang pa-glass" id="langSwitch" role="group" data-i18n-aria-label="a11y.langSwitch" aria-label="בחירת שפה">
+        <span class="pa-lang__thumb pa-glass-knob" aria-hidden="true">
+          <span class="pa-glass-knob__shimmer"></span>
+        </span>
         <button type="button" data-set-lang="he" lang="he" aria-pressed="true" data-pa-hover>עב</button>
         <button type="button" data-set-lang="en" lang="en" aria-pressed="false" data-pa-hover>EN</button>
       </div>
@@ -733,7 +736,7 @@
              claim and must stay distinct from the pillar card bodies. -->
         <div class="pa-proof" data-pa-stagger>
           <p data-i18n-html="hero.proof1"><span>100% ביטחון בהתאמה</span> ברגע התשלום</p>
-          <p data-i18n-html="hero.proof2"><span>אפס Bracketing</span> — סוף להזמנת שלוש מידות</p>
+          <p data-i18n-html="hero.proof2"><span>אפס Bracketing</span>, סוף להזמנת שלוש מידות</p>
           <p data-i18n-html="hero.proof3"><span>עד כ-25% פחות החזרות</span> ופחות עלויות תפעול</p>
         </div>
       </div>
@@ -765,7 +768,7 @@
           <div class="pa-stage__screen">
             <video id="vtonVideo" data-src="pear-VTon.mp4" muted loop playsinline preload="auto"
                    data-i18n-aria-label="a11y.heroVideo"
-                   aria-label="הדגמת מדידה וירטואלית של PEAR — לולאה ללא קול"></video>
+                   aria-label="הדגמת מדידה וירטואלית של PEAR, לולאה ללא קול"></video>
 
             <!-- No data-i18n-aria-label: the label alternates with
                  playback state, so the hero-loop block owns it and
@@ -776,6 +779,34 @@
                 <path id="vtonPath" d="M8 5h3v14H8zM13 5h3v14h-3z"/>
               </svg>
             </button>
+
+            <!-- Mirrors vtonToggle on the opposite corner. Liquid-glass
+                 widget (.pa-glass-sound etc., shared with the demo
+                 band's #demoSound — see pear-atelier.css and block 10's
+                 makeElasticDrag). vtonMuteBtn's aria-label alternates
+                 with mute state like vtonToggle's does, so it skips
+                 data-i18n-aria-label too; the slider's own label is
+                 static, so it keeps one. -->
+            <div id="vtonSound" class="pa-glass-sound">
+              <button id="vtonMuteBtn" type="button" class="pa-glass-btn pa-glass"
+                      aria-label="השתקת הקול" data-pa-hover>
+                <svg id="vtonSoundIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M11 5 6 9H3v6h3l5 4z"/>
+                  <path id="vtonSoundWave1" d="M15.2 8.8a5 5 0 0 1 0 6.4"/>
+                  <path id="vtonSoundWave2" d="M18.3 5.7a9.5 9.5 0 0 1 0 12.6"/>
+                  <path id="vtonSoundMuteX" d="m22.5 9-5.5 5.5M17 9l5.5 5.5"/>
+                </svg>
+              </button>
+              <div id="vtonVolumeTrack" class="pa-glass-slider pa-glass" role="slider" tabindex="0"
+                   aria-label="עוצמת קול" data-i18n-aria-label="a11y.vtonVolume"
+                   aria-valuemin="0" aria-valuemax="100" aria-valuenow="80">
+                <div class="pa-glass-slider__fill" id="vtonVolumeFill"></div>
+                <div class="pa-glass-slider__thumb pa-glass-knob" id="vtonVolumeThumb">
+                  <span class="pa-glass-knob__shimmer"></span>
+                </div>
+              </div>
+            </div>
           </div>
 
           <span class="pa-badge tilt-float pa-badge--size" data-i18n-html="hero.badgeSize">מידה מומלצת: <span class="font-mono">M</span></span>
@@ -823,12 +854,12 @@
                    data-product-image data-pear-back="./pear-tshirt-back.jpeg"
                    src="pear-tshirt.jpg"
                    data-i18n-alt="play.productAlt"
-                   alt="הוידג'ט PEAR AI Virtual Try-On בדף מוצר אופנה — חולצת הלוגו של PEAR, גזרה רפויה/אוברסייז, מידות S–XXL"
+                   alt="הוידג'ט PEAR AI Virtual Try-On בדף מוצר אופנה, חולצת הלוגו של PEAR, גזרה רפויה/אוברסייז, מידות S-XXL"
                    width="1024" height="1024" loading="lazy" />
               <img class="pa-angle__img" data-pa-angle-img="back"
                    src="pear-tshirt-back.jpeg"
                    data-i18n-alt="play.productBackAlt"
-                   alt="חולצת הלוגו של PEAR — מבט מהגב"
+                   alt="חולצת הלוגו של PEAR, מבט מהגב"
                    width="1024" height="1024" loading="lazy" />
             </div>
             <div class="pa-flip__face pa-flip__face--back">
@@ -846,7 +877,7 @@
         <div class="pa-play__meta">
           <div>
             <p class="pa-play__name" data-i18n-html="play.productName">חולצת הלוגו של <span class="brand-pear">PEAR</span> · Virtual Try-On</p>
-            <p class="pa-play__sub" data-i18n="play.productMeta">בז' · מידות S–XXL</p>
+            <p class="pa-play__sub" data-i18n="play.productMeta">בז' · מידות S-XXL</p>
             <span class="pa-fit-tag" data-i18n="play.fitTag">גזרה רפויה / אוברסייז</span>
           </div>
           <div class="pa-sizes" aria-hidden="true"><b>S</b><b class="is-fit">M</b><b>L</b><b>XL</b></div>
@@ -865,7 +896,7 @@
                   aria-pressed="false" data-i18n="play.angleBack">גב</button>
         </div>
 
-        <p class="pa-play__fitnote" data-i18n="play.fitGuidance">סילואט אוברסייז — רדו מידה אחת להתאמה סטנדרטית, או בחרו את המידה הרגילה למראה בוקסי מכוון.</p>
+        <p class="pa-play__fitnote" data-i18n="play.fitGuidance">סילואט אוברסייז: רדו מידה אחת להתאמה סטנדרטית, או בחרו את המידה הרגילה למראה בוקסי מכוון.</p>
 
         <!-- text-only by contract: the modal script assigns textContent -->
         <button id="pearDirectMeasureBtn" type="button"
@@ -875,14 +906,14 @@
                 aria-label="מדידה וירטואלית חד-פעמית, ללא שלב הרשמה, פעם אחת בביקור"
                 data-pa-hover>⚡ מדידה חד-פעמית מהירה</button>
 
-        <p class="pa-play__note" data-i18n="play.ctaNote">דילוג על שלב ההרשמה — ישר למדידה, שימוש אחד בכל ביקור.</p>
+        <p class="pa-play__note" data-i18n="play.ctaNote">דילוג על שלב ההרשמה, ישר למדידה, שימוש אחד בכל ביקור.</p>
       </div>
 
       <div class="pa-play__copy">
         <p class="pa-eyebrow" data-pa-reveal data-i18n="play.eyebrow">Live Widget · בלי הרשמה</p>
         <h2 class="pa-display pa-d-lg" style="margin-top:1rem" data-pa-reveal data-i18n="play.title">זה הוויג'ט האמיתי. ממש כאן.</h2>
         <p class="pa-lede" style="margin-top:1.2rem" data-pa-reveal data-i18n="play.sub">כך זה נראה בדף מוצר: לחצו על "מדידה חד-פעמית מהירה" וקבלו מדידה וירטואלית אמיתית, בלי הרשמה.</p>
-        <p class="pa-play__physics" data-pa-reveal data-i18n="play.physicsNote">ה-AI בזמן אמת לא רק מותח תמונות שטוחות — הוא ממפה במדויק כתפיים מוטות, שרוולים רפויים ונפילת בד טבעית ישירות על צורת הגוף של המשתמש.</p>
+        <p class="pa-play__physics" data-pa-reveal data-i18n="play.physicsNote">תוכנית מותאמת אישית לכל עסק: קבעו בעצמכם את כמות המדידות המותרת למשתמש. התממשקו בקלות עם אחת מ-4 התוכניות שלנו שניתנות לעריכה מלאה.</p>
       </div>
 
     </div>
@@ -898,13 +929,38 @@
           <p class="pa-eyebrow" data-pa-reveal data-i18n="demo.eyebrow">17 שניות · לפני/אחרי</p>
           <h2 class="pa-display pa-d-lg pa-head__title" data-pa-reveal data-i18n="demo.title">כך זה נראה ללקוח שלכם</h2>
         </div>
-        <p class="pa-lede" data-pa-reveal data-i18n="demo.sub">מהעמוד מוצר ועד תמונת לבוש — חוויה חלקה, ישירות בדפדפן, ללא אפליקציה.</p>
+        <p class="pa-lede" data-pa-reveal data-i18n="demo.sub">מהעמוד מוצר ועד תמונת לבוש, חוויה חלקה ישירות בדפדפן, ללא צורך באפליקציה.</p>
       </div>
 
       <div class="pa-demo__frame" data-pa-reveal data-pa-parallax="-4">
-        <video src="pear-ad.mp4" muted loop playsinline preload="metadata" autoplay
+        <video id="demoVideoEl" src="pear-ad.mp4" muted loop playsinline preload="metadata" autoplay
                data-i18n-aria-label="a11y.demoVideo"
                aria-label="סרטון הדגמה מלא של הוידג'ט PEAR AI Virtual Try-On"></video>
+
+        <!-- Liquid-glass mute/volume widget, bottom corner. Same shared
+             .pa-glass-sound system and wiring pattern as the hero
+             phone's #vtonSound (see block 7b/10) — separate IDs because
+             this controls a different <video>. -->
+        <div id="demoSound" class="pa-glass-sound">
+          <button id="demoMuteBtn" type="button" class="pa-glass-btn pa-glass"
+                  aria-label="השתקת הקול" data-pa-hover>
+            <svg id="demoSoundIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M11 5 6 9H3v6h3l5 4z"/>
+              <path id="demoSoundWave1" d="M15.2 8.8a5 5 0 0 1 0 6.4"/>
+              <path id="demoSoundWave2" d="M18.3 5.7a9.5 9.5 0 0 1 0 12.6"/>
+              <path id="demoSoundMuteX" d="m22.5 9-5.5 5.5M17 9l5.5 5.5"/>
+            </svg>
+          </button>
+          <div id="demoVolumeTrack" class="pa-glass-slider pa-glass" role="slider" tabindex="0"
+               aria-label="עוצמת קול" data-i18n-aria-label="a11y.vtonVolume"
+               aria-valuemin="0" aria-valuemax="100" aria-valuenow="80">
+            <div class="pa-glass-slider__fill" id="demoVolumeFill"></div>
+            <div class="pa-glass-slider__thumb pa-glass-knob" id="demoVolumeThumb">
+              <span class="pa-glass-knob__shimmer"></span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -1028,7 +1084,7 @@
     <div class="pa-solution" data-pa-reveal data-pa-tilt>
       <span class="pa-cell__glow" aria-hidden="true"></span>
       <p class="pa-eyebrow" data-i18n-html="market.solutionEyebrow">הפתרון של <span class="brand-pear">PEAR</span></p>
-      <h2 class="pa-display pa-d-lg" style="margin-block:1.1rem 1.3rem" data-i18n="market.solutionTitle">ודאות מלאה במידה — ישירות בדף המוצר</h2>
+      <h2 class="pa-display pa-d-lg" style="margin-block:1.1rem 1.3rem" data-i18n="market.solutionTitle">ודאות מלאה במידה, ישירות בדף המוצר</h2>
       <p class="pa-lede" style="max-width:56ch" data-i18n-html="market.potential">
         <span class="brand-pear">PEAR</span> משתלבת בדפי המוצר שלכם ב<span>שורת קוד אחת</span>.
       </p>
@@ -1108,7 +1164,7 @@
           </button>
         </form>
         <!-- Same story: the message depends on WHICH failure occurred. -->
-        <p id="docsGateError" class="pa-gate__error hidden">קוד שגוי — נסו שוב.</p>
+        <p id="docsGateError" class="pa-gate__error hidden">קוד שגוי, נסו שוב.</p>
 
         <a href="#contact" data-scroll="contact-section" data-view="contact" data-prefill="docsAccess"
            data-i18n="docs.gateRequest" class="pa-gate__ask">
@@ -1280,11 +1336,11 @@
 <footer class="pa-foot pa-shell">
   <div class="pa-foot__row">
     <span class="pa-foot__brand">
-      <img src="PEAR-logo.png" alt="PEAR — AI Virtual Try-On platform logo" width="1110" height="1586" />
+      <img src="PEAR-logo.png" alt="PEAR AI Virtual Try-On platform logo" width="1110" height="1586" />
       <span class="pa-nav__word brand-pear brand-pear--ink">PEAR</span>
     </span>
 
-    <p data-i18n-html="footer.rights">© 2026 <span class="brand-pear">PEAR</span> Platform (pearvton) — Virtual Try-On · כל הזכויות שמורות</p>
+    <p data-i18n-html="footer.rights">© 2026 <span class="brand-pear">PEAR</span> Platform (pearvton), Virtual Try-On · כל הזכויות שמורות</p>
 
     <!-- Local clock: the only non-translated string on the page, and it
          is numerals, so it needs no dictionary entry. -->
@@ -1749,6 +1805,166 @@ if (tiltCard && !REDUCED) {
    without a reload, and the stage becoming visible with an empty <video>
    inside it is a worse bug than the download we avoided. Attachment is
    one-way — once the file is fetched, narrowing again just pauses it. */
+/* Shared by every mute-button + volume-slider widget on the page
+   (currently the hero phone's and the demo band's — see the two call
+   sites below). video.muted/.volume are the only state that actually
+   matters; everything else here is just keeping a button's icon and a
+   slider's thumb in sync with them. muteXId is optional: the hero
+   phone's icon reads "muted" as a plain speaker with no wave lines,
+   while the demo band's carries an explicit X glyph (wireIds.muteXId),
+   so this only touches that element when a widget actually has one. */
+
+/* ── Liquid-glass elastic drag ──────────────────────────────────────
+   One drag engine shared by the language switch (below) and both
+   volume sliders (wireSoundControl, right after this): a plain 0..1
+   drag surface, measured against trackEl's own box, that reports how
+   far PAST either edge the raw pointer position has gone — negative
+   before the start, positive beyond the end — so a caller can turn
+   that into the rubber-band stretch the brief asks for. Rendering
+   (where a knob actually goes, how the stretch looks) is entirely the
+   caller's job via the callbacks; this only owns the pointer math and
+   the drag-vs-tap state machine. onDrag also fires once more on
+   release with over=0, so a caller can rely on it alone to always end
+   at the true clamped value. */
+function makeElasticDrag(surfaceEl, trackEl, { onDrag, onRelease, onTap } = {}) {
+  const DRAG_PX = 4;
+  let downX = 0, dragging = false, trackRect = null;
+  // signed px/ms over the last pointermove, for onRelease's flick check
+  let lastX = 0, lastT = 0, velocity = 0;
+
+  const rawFraction = (clientX) => (clientX - trackRect.left) / trackRect.width;
+
+  const onMove = (e) => {
+    if (lastT) {
+      const dt = e.timeStamp - lastT;
+      if (dt > 0) velocity = (e.clientX - lastX) / dt;
+    }
+    lastX = e.clientX; lastT = e.timeStamp;
+
+    if (!dragging && Math.abs(e.clientX - downX) < DRAG_PX) return;
+    if (!dragging) { dragging = true; surfaceEl.classList.add('is-dragging'); }
+    const raw = rawFraction(e.clientX);
+    onDrag?.(Math.min(1, Math.max(0, raw)), raw < 0 ? raw : raw > 1 ? raw - 1 : 0);
+  };
+  const onUp = (e) => {
+    removeEventListener('pointermove', onMove);
+    removeEventListener('pointerup', onUp);
+    surfaceEl.classList.remove('is-dragging');
+    if (!dragging) { onTap?.(Math.min(1, Math.max(0, rawFraction(e.clientX)))); lastT = 0; return; }
+    dragging = false;
+    const clamped = Math.min(1, Math.max(0, rawFraction(e.clientX)));
+    onDrag?.(clamped, 0);
+    onRelease?.(clamped, velocity);
+    lastT = 0; velocity = 0;
+  };
+  surfaceEl.addEventListener('pointerdown', (e) => {
+    if (!e.isPrimary) return;
+    downX = e.clientX;
+    lastX = e.clientX; lastT = 0; velocity = 0;
+    trackRect = trackEl.getBoundingClientRect();
+    addEventListener('pointermove', onMove);
+    addEventListener('pointerup', onUp);
+  });
+}
+
+function wireSoundControl(video, ids) {
+  const btn = document.getElementById(ids.btnId);
+  const track = document.getElementById(ids.sliderId);
+  const fill = document.getElementById(ids.fillId);
+  const thumb = document.getElementById(ids.thumbId);
+  const wave1 = document.getElementById(ids.wave1Id);
+  const wave2 = document.getElementById(ids.wave2Id);
+  const muteX = ids.muteXId ? document.getElementById(ids.muteXId) : null;
+  if (!video || !btn || !track || !fill || !thumb || !wave1 || !wave2) return;
+
+  video.volume = 0.8;
+
+  /* Positions the knob (left, in px) and fill (width, in px) for a
+     given 0..1 level. pad keeps the knob's own radius inside the
+     track's rounded ends instead of poking through them. */
+  const renderVolume = (v) => {
+    const w = track.clientWidth || 92, pad = 9;
+    const x = pad + v * Math.max(0, w - pad * 2);
+    fill.style.width = `${Math.max(0, x - pad)}px`;
+    thumb.style.left = `${x}px`;
+  };
+
+  const sync = () => {
+    const muted = video.muted || video.volume === 0;
+    const shown = muted ? 0 : video.volume;
+    wave1.style.display = muted ? 'none' : '';
+    wave2.style.display = (muted || shown < 0.5) ? 'none' : '';
+    if (muteX) muteX.style.display = muted ? '' : 'none';
+    btn.setAttribute('aria-label', t(muted ? 'a11y.vtonUnmute' : 'a11y.vtonMute'));
+    renderVolume(shown);
+    track.setAttribute('aria-valuenow', String(Math.round(shown * 100)));
+  };
+  window.PearI18n?.onChange(sync);
+  addEventListener('resize', sync);
+
+  const apply = (v) => {
+    video.volume = v;
+    video.muted = v === 0;   // dragging up from 0 unmutes; dragging to 0 mutes
+    sync();
+  };
+
+  btn.addEventListener('click', () => {
+    video.muted = !video.muted;
+    // coming back from 0 (via the slider, not the button) would
+    // otherwise unmute into silence
+    if (!video.muted && video.volume === 0) video.volume = 0.8;
+    sync();
+  });
+
+  /* The knob's own edge-stretch: a native <input type=range> can't be
+     dragged past its min/max, so this custom slider is what makes the
+     rubber-band overshoot possible at all. transform:scaleX from the
+     anchored edge keeps that edge fixed while the far side stretches
+     toward the pointer; a one-shot shimmer fires the instant a drag
+     first reaches a limit (not every frame it stays there). */
+  let atLimit = null;
+  const triggerShimmer = () => {
+    const shimmer = thumb.querySelector('.pa-glass-knob__shimmer');
+    if (!shimmer) return;
+    shimmer.classList.remove('is-active');
+    void shimmer.offsetWidth; // restart the animation
+    shimmer.classList.add('is-active');
+  };
+  const setElastic = (over) => {
+    const stretch = 1 + Math.min(0.32, Math.abs(over) * 1.7);
+    if (stretch < 1.015) {
+      thumb.classList.remove('is-elastic');
+      thumb.style.transform = '';
+      atLimit = null;
+      return;
+    }
+    thumb.classList.add('is-elastic');
+    thumb.style.transformOrigin = over < 0 ? 'right center' : 'left center';
+    thumb.style.transform = `scaleX(${stretch})`;
+    const edge = over < 0 ? 'start' : 'end';
+    if (atLimit !== edge) { atLimit = edge; triggerShimmer(); }
+  };
+
+  makeElasticDrag(track, track, {
+    onDrag: (fraction, over) => { apply(fraction); setElastic(over); },
+    onTap: apply,
+  });
+
+  // Arrow-key/Home/End support — what this custom slider had to pick
+  // back up itself after replacing a native <input type=range>.
+  track.addEventListener('keydown', (e) => {
+    const cur = video.muted ? 0 : video.volume;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowUp') apply(Math.min(1, cur + 0.05));
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') apply(Math.max(0, cur - 0.05));
+    else if (e.key === 'Home') apply(0);
+    else if (e.key === 'End') apply(1);
+    else return;
+    e.preventDefault();
+  });
+
+  sync();
+}
+
 const vton = document.getElementById('vtonVideo');
 if (vton) {
   const frame = vton.closest('.vton-frame');
@@ -1793,6 +2009,17 @@ if (vton) {
   vton.addEventListener('pause', sync);
   btn.addEventListener('click', () => { wantsPlay = !wantsPlay; apply(); });
 
+  /* The clip currently ships with no audio track (see a11y.heroVideo —
+     "silent loop"), so today this has nothing to actually make audible;
+     it's wired for real regardless — video.muted/.volume behave
+     normally whether or not a track exists, so this needs no changes
+     the day the clip does carry sound. */
+  wireSoundControl(vton, {
+    btnId: 'vtonMuteBtn', sliderId: 'vtonVolumeTrack',
+    fillId: 'vtonVolumeFill', thumbId: 'vtonVolumeThumb',
+    wave1Id: 'vtonSoundWave1', wave2Id: 'vtonSoundWave2', muteXId: 'vtonSoundMuteX',
+  });
+
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(([e]) => { onScreen = e.isIntersecting; apply(); },
                              { threshold: 0.15 }).observe(vton);
@@ -1807,6 +2034,15 @@ if (vton) {
   apply();
   sync();
 }
+
+/* Demo band's video autoplays unconditionally (no lazy-attach gate like
+   the hero phone's — it's a single onyx-band video, not a per-viewport
+   asset) and starts muted for autoplay compliance, same as vton. */
+wireSoundControl(document.getElementById('demoVideoEl'), {
+  btnId: 'demoMuteBtn', sliderId: 'demoVolumeTrack',
+  fillId: 'demoVolumeFill', thumbId: 'demoVolumeThumb',
+  wave1Id: 'demoSoundWave1', wave2Id: 'demoSoundWave2', muteXId: 'demoSoundMuteX',
+});
 
 /* ── 8 · Scroll HUD (ring gauge + % + chapter) + navbar elevation ─
    One passive, rAF-throttled scroll listener drives everything. */
@@ -2006,6 +2242,104 @@ document.addEventListener('click', (e) => {
   if (!opt || !window.PearI18n) return;
   window.PearI18n.setLang(opt.dataset.setLang);
 });
+
+/* Language switch thumb: a frosted glass knob that slides under
+   whichever button is active, and doubles as a drag handle (press
+   anywhere in the track, drag toward a side, release to land on it) —
+   the same makeElasticDrag() engine the volume sliders use (defined in
+   block 7b, above the vton video wiring), so dragging past either end
+   of the track rubber-bands the knob instead of just stopping dead.
+   The drag calls PearI18n.setLang() directly instead of dispatching a
+   click, so it works identically to a click but never depends on one
+   also firing; if the browser's own click fires anyway after the
+   pointerup, setLang() runs again with the same value, which is a
+   harmless no-op. */
+(() => {
+  const group = document.getElementById('langSwitch');
+  const thumb = group?.querySelector('.pa-lang__thumb');
+  const buttons = group ? [...group.querySelectorAll('[data-set-lang]')] : [];
+  if (!group || !thumb || buttons.length < 2 || !window.PearI18n) return;
+
+  const activeBtn = () => buttons.find((b) => b.getAttribute('aria-pressed') === 'true') || buttons[0];
+
+  const placeThumb = (btn) => {
+    thumb.classList.remove('is-elastic');
+    thumb.style.width = `${btn.offsetWidth}px`;
+    thumb.style.transform = `translateX(${btn.offsetLeft}px)`;
+  };
+  const sync = () => placeThumb(activeBtn());
+  window.PearI18n.onChange(sync);
+  addEventListener('resize', sync);
+  // web-font swap can change label widths after first paint
+  if (document.fonts) document.fonts.ready.then(sync);
+  sync();
+
+  const nearestButton = (clientX) => buttons.reduce((closest, b) => {
+    const c = b.getBoundingClientRect(), k = closest.getBoundingClientRect();
+    return Math.abs(clientX - (c.left + c.width / 2)) < Math.abs(clientX - (k.left + k.width / 2)) ? b : closest;
+  });
+
+  // width stays fixed at whatever the active button measured (the
+  // knob doesn't resize mid-drag, only on the release snap via
+  // placeThumb — same trade-off the volume knobs make), only its
+  // translateX + elastic scaleX move during the drag itself.
+  let atLimit = null;
+  const triggerShimmer = () => {
+    const shimmer = thumb.querySelector('.pa-glass-knob__shimmer');
+    if (!shimmer) return;
+    shimmer.classList.remove('is-active');
+    void shimmer.offsetWidth;
+    shimmer.classList.add('is-active');
+  };
+  const render = (x, over) => {
+    const stretch = 1 + Math.min(0.3, Math.abs(over) * 1.6);
+    if (stretch < 1.015) {
+      thumb.classList.remove('is-elastic');
+      thumb.style.transform = `translateX(${x}px)`;
+      atLimit = null;
+      return;
+    }
+    thumb.classList.add('is-elastic');
+    thumb.style.transformOrigin = over < 0 ? 'right center' : 'left center';
+    thumb.style.transform = `translateX(${x}px) scaleX(${stretch})`;
+    const edge = over < 0 ? 'start' : 'end';
+    if (atLimit !== edge) { atLimit = edge; triggerShimmer(); }
+  };
+
+  makeElasticDrag(group, group, {
+    onDrag: (fraction, over) => {
+      const gr = group.getBoundingClientRect();
+      const half = thumb.offsetWidth / 2;
+      const x = Math.min(Math.max(fraction * gr.width, half), gr.width - half) - half;
+      render(x, over);
+    },
+    onRelease: (fraction, velocity) => {
+      /* A fast flick wins over exact release position — matches the
+         gesture a visitor actually made rather than where their finger
+         happened to be at the last sampled frame. Buttons are sorted by
+         their OWN measured left edge, not DOM/array order, so this
+         reads correctly under RTL too (English sits physically left of
+         Hebrew there, the reverse of the LTR page). */
+      const FLICK_PX_PER_MS = 0.5;
+      let target;
+      if (Math.abs(velocity) > FLICK_PX_PER_MS) {
+        const sorted = [...buttons].sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
+        target = velocity > 0 ? sorted[sorted.length - 1] : sorted[0];
+      } else {
+        const gr = group.getBoundingClientRect();
+        target = nearestButton(gr.left + fraction * gr.width);
+      }
+      window.PearI18n.setLang(target.dataset.setLang);
+      /* Snap the knob ourselves rather than only through PearI18n's
+         onChange: setLang() is a no-op (no notify, so sync() never
+         fires) when the drag lands back on the language that was
+         already active, which used to leave the knob wherever the
+         drag's live approximate position last put it — the "stuck
+         floating between states" bug. This makes the snap unconditional. */
+      placeThumb(target);
+    },
+  });
+})();
 
 /* Everything that has to be re-run AFTER the copy changes. i18n.js only
    fires this once the new text is in the DOM, so the split below always

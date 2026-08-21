@@ -391,22 +391,138 @@ body.pa .pa-nav {
 
 .pa-nav__tools { display: flex; align-items: center; gap: .45rem; flex: none; }
 
-/* language switch, rebuilt as a segmented pill */
+/* ═════════════════ LIQUID GLASS component system ══════════════════
+   Shared by the language switch and both video sound widgets (hero
+   phone + demo band): one translucent, blurred material recipe — it
+   works over both the light hero card and the dark onyx band since it
+   mostly picks up whatever is behind it — plus one drag-physics engine
+   (makeElasticDrag, block 10) giving every draggable knob here the
+   same rubber-band overshoot past its track's edges and a spring
+   snap-back on release, instead of three separate hand-rolled drags.
+   .pa-glass is the track/surface look; .pa-glass-knob is the frosted
+   circular handle that rides on top of it. ═══════════════════════ */
+.pa-glass {
+  background: linear-gradient(180deg, rgba(255,255,255,.34), rgba(255,255,255,.10));
+  border: 1px solid rgba(255,255,255,.38);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  box-shadow:
+    0 8px 32px rgba(0,0,0,.22),
+    inset 0 1px 1px rgba(255,255,255,.55),
+    inset 0 -1px 3px rgba(0,0,0,.12);
+}
+.pa-glass-knob {
+  position: relative;
+  background: linear-gradient(180deg, rgba(255,255,255,.94), rgba(255,255,255,.64));
+  border: 1px solid rgba(255,255,255,.75);
+  box-shadow: 0 4px 14px rgba(0,0,0,.28), inset 0 1px 1px rgba(255,255,255,.95);
+  transition: transform .45s cubic-bezier(.175,.885,.32,1.275),
+              left .45s cubic-bezier(.175,.885,.32,1.275),
+              width .45s cubic-bezier(.175,.885,.32,1.275);
+}
+.is-dragging .pa-glass-knob { transition: none; }
+/* transform itself is NOT set here: the sound-slider thumb positions
+   via left/margin-top so JS can set transform:scaleX(...) directly,
+   but the language-switch thumb positions via transform:translateX(),
+   so its stretch has to be combined into that same string in JS —
+   one shared CSS rule can't know which case it's in, so both callers
+   (block 10) just write the right transform themselves. This rule only
+   turns the spring transition off while a stretch is active, so the
+   stretch itself tracks the pointer immediately instead of lagging. */
+.pa-glass-knob.is-elastic { transition: none; }
+
+/* the flash at the moment a drag first reaches either edge */
+.pa-glass-knob__shimmer {
+  position: absolute; inset: -8px; border-radius: inherit;
+  background: radial-gradient(circle, rgba(255,255,255,.95), transparent 70%);
+  pointer-events: none; opacity: 0;
+}
+.pa-glass-knob__shimmer.is-active { animation: pa-glass-shimmer .55s ease-out; }
+@keyframes pa-glass-shimmer {
+  0%   { opacity: .95; transform: scale(.6); }
+  55%  { opacity: .4;  transform: scale(1.7); }
+  100% { opacity: 0;   transform: scale(2.4); }
+}
+
+/* language switch — a glass track (.pa-glass, added in the markup)
+   with a frosted knob (.pa-glass-knob) sliding under whichever button
+   is active. JS (block 10) drives both position/width — measured off
+   the active button's own box, so it works for two differently-sized
+   labels in either language/direction — and the elastic drag. */
 .pa-lang {
+  position: relative;
   display: inline-flex; align-items: center; gap: 2px;
   padding: 3px; border-radius: var(--pa-pill);
-  border: 1px solid var(--pa-hair);
-  background: rgba(255,255,255,.5);
+  cursor: grab;
+}
+.pa-lang.is-dragging { cursor: grabbing; }
+.pa-lang__thumb {
+  position: absolute; top: 3px; bottom: 3px; left: 0; z-index: 0;
+  border-radius: var(--pa-pill);
+  pointer-events: none;          /* the group, not the thumb, owns the drag */
+  touch-action: none;
 }
 .pa-lang button {
+  position: relative; z-index: 1;
   font-family: var(--pa-mono); font-size: .62rem; font-weight: 500;
   letter-spacing: .08em;
   padding: .34rem .6rem; border-radius: var(--pa-pill);
-  color: var(--pa-ink-35); background: none; border: 0; cursor: pointer;
-  transition: color .3s, background-color .3s;
+  color: var(--pa-ink-50); background: none; border: 0; cursor: pointer;
+  transition: color .3s;
 }
 .pa-lang button:hover { color: var(--pa-ink); }
-.pa-lang button[aria-pressed="true"] { background: var(--pa-onyx); color: var(--pa-beige); }
+.pa-lang button[aria-pressed="true"] { color: var(--pa-ink); font-weight: 700; }
+
+/* video sound widgets — shared by the hero phone (#vtonSound) and the
+   demo band (#demoSound); both anchor to the same bottom corner of
+   their own video frame, so one class carries the position too. */
+.pa-glass-sound {
+  position: absolute; bottom: 1rem; inset-inline-end: 1rem; z-index: 3;
+  display: flex; align-items: center; gap: .6rem;
+}
+.pa-glass-btn {
+  flex: none; width: 40px; height: 40px; border-radius: 50%;
+  display: grid; place-items: center;
+  color: var(--pa-ink); cursor: pointer;
+  transition: transform .3s var(--pa-ease-out);
+}
+.pa-glass-btn:hover { transform: scale(1.08); }
+.pa-glass-btn:active { transform: scale(.94); }
+.pa-glass-btn svg { width: 16px; height: 16px; }
+
+/* custom slider (not a native <input type=range>): a native range
+   can't be dragged past its own min/max, so it can't produce the
+   rubber-band overshoot the brief asks for. This is a plain glass
+   track + a positioned knob, driven entirely by JS/makeElasticDrag —
+   but role="slider" + the aria-value* attributes + arrow-key support
+   (block 10) keep it as accessible as the input it replaces. */
+.pa-glass-slider {
+  position: relative;
+  width: 0; height: 34px; border-radius: 999px;
+  opacity: 0; pointer-events: none;
+  transition: width .3s var(--pa-ease-out), opacity .25s var(--pa-ease-out);
+  touch-action: none; cursor: pointer;
+}
+.pa-glass-sound:hover .pa-glass-slider,
+.pa-glass-sound:focus-within .pa-glass-slider,
+.pa-glass-slider.is-dragging {
+  width: 92px; opacity: 1; pointer-events: auto;
+}
+.pa-glass-slider__fill {
+  position: absolute; top: 50%; margin-top: -2px; left: 9px;
+  height: 4px; border-radius: 999px;
+  background: linear-gradient(90deg, var(--pa-pear), var(--pa-pear-deep));
+  width: 0;
+}
+.pa-glass-slider__thumb {
+  position: absolute; top: 50%; margin-top: -9px; left: 9px;
+  width: 18px; height: 18px; border-radius: 50%;
+}
+@media (hover: none) {
+  /* touch has no hover to reveal it with, and it needs to stay
+     reachable without a pointer */
+  .pa-glass-slider { width: 64px; opacity: 1; pointer-events: auto; }
+}
 
 /* ──────────────────────── 6 · BUTTONS ───────────────────────────── */
 body.pa .pa-btn {
@@ -562,6 +678,13 @@ body.pa .pa-btn--ghost:hover { color: var(--pa-beige); border-color: var(--pa-on
 }
 .pa-stage__toggle:hover { transform: scale(1.08); background: var(--pa-pear); }
 .pa-stage__toggle svg { width: 15px; height: 15px; }
+
+/* The hero phone's sound widget (.pa-glass-sound, defined with the rest
+   of the liquid-glass system near .pa-lang) needs the OPPOSITE corner
+   from .pa-stage__toggle, which already owns inset-inline-end here —
+   the demo band has no competing button, so it keeps the shared
+   default on that side. */
+#vtonSound { inset-inline-start: 1rem; inset-inline-end: auto; }
 
 .pa-badge {
   position: absolute; z-index: 4;
@@ -990,6 +1113,7 @@ body.pa .pa-btn--ghost:hover { color: var(--pa-beige); border-color: var(--pa-on
 .pa-demo .pa-eyebrow { color: rgba(244,241,234,.5); }
 .pa-demo .pa-lede { color: rgba(244,241,234,.66); }
 .pa-demo__frame {
+  position: relative;
   margin-top: clamp(2rem, 4vw, 3.5rem);
   border-radius: var(--pa-radius-lg);
   overflow: hidden;
@@ -999,6 +1123,14 @@ body.pa .pa-btn--ghost:hover { color: var(--pa-beige); border-color: var(--pa-on
   will-change: transform;
 }
 .pa-demo__frame video { width: 100%; height: auto; display: block; }
+
+/* demoSound/vtonSound (structure + drag physics) share the liquid-glass
+   .pa-glass-sound/-btn/-slider system defined near .pa-lang. Rest-state
+   default before JS syncs the real state: both videos start muted
+   (autoplay requires it), so hiding the wave paths is the correct
+   first paint for demo's icon rather than a flash of the wrong one. */
+#vtonSoundWave1, #vtonSoundWave2,
+#demoSoundWave1, #demoSoundWave2 { display: none; }
 
 /* ─────────────────── 13 · SOLUTION / CLOSING ────────────────────── */
 .pa-solution {
