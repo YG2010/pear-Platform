@@ -402,7 +402,7 @@
       'play.productMeta':  'Beige · sizes S-XXL',
       'play.fitTag':       'Relaxed / Oversized Fit',
       'play.fitGuidance':  'Oversized silhouette: size down for a standard fit, or select true size for an intentional boxy look.',
-      'play.physicsNote':  'Real-time AI doesn’t just stretch flat images. It accurately maps dropped shoulders, relaxed sleeve lengths, and natural fabric drape directly onto the user’s body shape.',
+      'play.physicsNote':  'Custom plans for every business. Set your allowed try-on quota per user and seamlessly integrate with one of our four fully editable plans.',
       'play.cta':          '⚡ Quick one-time measurement',
       'play.ctaNote':      'Skips the signup step, straight into the fitting room, once per visit.',
       'play.ctaUsed':      '✓ Fitting already used this visit',
