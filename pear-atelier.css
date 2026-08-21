@@ -220,13 +220,45 @@ body.pa .pa-close .brand-pear {
 }
 
 /* ───────────────────── 3 · WEBGL + ATMOSPHERE ───────────────────── */
+/* z-index is driven per chapter from the 3D module, not fixed here.
+   One canvas cannot be both "in front of the cards" and "behind the
+   copy", so the layer moves with the story: the model sits BEHIND while
+   the hero device and the product card lead, and comes FORWARD through
+   the middle sections, where the layout below reserves an empty lane
+   for it. This value is the safe fallback if that script never runs. */
 #pearStage {
   position: fixed;
   inset: 0;
   z-index: 1;
-  pointer-events: none;
+  pointer-events: none;   /* never intercepts a click on a CTA */
   opacity: 0;
   transition: opacity 1.2s var(--pa-ease-out);
+}
+
+/* ── the 3D travel lane ───────────────────────────────────────────
+   The middle sections give up ~28% of their width so the model has
+   somewhere to be that is not on top of a paragraph. The reserved side
+   alternates — value keeps its lane at the inline end, market at the
+   inline start — so the model crosses the page as it explodes rather
+   than sliding down one edge. Below 1200px there is no width to spare
+   and the lane closes; the model is hidden under 1024px anyway. */
+@media (min-width: 1200px) {
+  #value .pa-head,
+  #value .pa-bento,
+  #demo .pa-head,
+  #demo .pa-demo__frame {
+    max-width: 72%;
+    margin-inline-start: 0;
+    margin-inline-end: auto;
+  }
+  #market-section .pa-solution {
+    max-width: 72%;
+    margin-inline-start: auto;
+    margin-inline-end: 0;
+  }
+  /* the closing panel keeps its full width but pulls its centred column
+     in, which opens a usable band on both sides of the copy */
+  #cta .pa-close > * { max-width: 58%; margin-inline: auto; }
 }
 #pearStage.is-ready { opacity: 1; }
 #pearStage canvas { width: 100% !important; height: 100% !important; display: block; }
@@ -582,7 +614,11 @@ body.pa .pa-btn--ghost:hover { color: var(--pa-beige); border-color: var(--pa-on
 .pa-cell:hover .pa-cell__glow { opacity: 1; }
 .pa-cell > *:not(.pa-cell__glow) { position: relative; z-index: 1; transform: translateZ(30px); }
 
-.pa-cell__head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: auto; }
+/* The head stays at the top and the bullets are pinned to the bottom,
+   so titles line up across the row whatever the body copy does. With
+   `margin-bottom: auto` on the head instead, each title floated to a
+   different height as soon as the lane narrowed the cards. */
+.pa-cell__head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .pa-cell__tag {
   font-family: var(--pa-mono); font-size: .58rem; letter-spacing: .16em;
   text-transform: uppercase; color: var(--pa-ink-35);
@@ -606,13 +642,13 @@ body.pa .pa-btn--ghost:hover { color: var(--pa-beige); border-color: var(--pa-on
 }
 
 .pa-cell__title {
-  margin: 1.5rem 0 .6rem;
+  margin: 1.6rem 0 .6rem;
   letter-spacing: -0.03em; font-weight: 600;
   font-size: clamp(1.15rem, 1.6vw, 1.5rem); line-height: 1.12;
 }
 [lang="he"] .pa-cell__title, [dir="rtl"] .pa-cell__title { letter-spacing: 0; line-height: 1.25; font-weight: 700; }
 .pa-cell__body { font-size: .88rem; color: var(--pa-ink-70); text-wrap: pretty; }
-.pa-cell__list { margin-top: 1.1rem; padding-top: 1rem; border-top: 1px solid var(--pa-hair-soft); display: grid; gap: .45rem; }
+.pa-cell__list { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--pa-hair-soft); display: grid; gap: .45rem; }
 .pa-cell__list li { display: flex; align-items: baseline; gap: .55rem; font-size: .78rem; color: var(--pa-ink-50); list-style: none; }
 .pa-cell__list li::before {
   content: ''; flex: none;

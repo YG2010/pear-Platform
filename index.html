@@ -2118,24 +2118,98 @@ try {
     shadow.position.set(0, -1.06, 0.9);
     atelier.add(shadow);
 
+    /* ── exploded view ────────────────────────────────────────────
+       Choreographed rather than derived. A centroid-radial explosion is
+       the textbook approach, but it fails on this model twice over: the
+       hanger's tubes bake their geometry at absolute coordinates so
+       every mesh.position is (0,0,0) and has no radial direction to
+       read, and the pear body sits exactly on the group origin.
+
+       So each part carries a hand-authored vector. They lean heavily on
+       Y and Z rather than X on purpose — the model travels down a
+       reserved lane roughly 28% of the viewport wide, and an explosion
+       that spread sideways would walk straight back out of it and over
+       the copy.
+
+       The pear body is the one part that never moves: an exploded view
+       needs a core to read as exploded rather than merely scattered. */
+    const parts = [];
+    const part = (obj, dir, dist, tumble = 0, drift = 0, fabric = false) => {
+      if (!obj) return;
+      parts.push({
+        obj,
+        home: obj.position.clone(),
+        rest: obj.rotation.clone(),
+        dir: new THREE.Vector3(...dir).normalize(),
+        baseScale: obj.scale.x,
+        dist, tumble, drift, fabric,
+      });
+    };
+
+    const [pearBody, pearStem, pearLeaf] = pear.children;
+    const [shoulders, bottomBar, hangerNeck, hangerHook] = hanger.children;
+
+    part(pearStem,   [ 0.15,  1.00,  0.10], 1.05,  0.5);
+    part(pearLeaf,   [ 0.55,  0.95,  0.20], 1.35, -0.7);
+    part(shoulders,  [ 0.00,  0.85, -0.50], 1.15,  0.3);
+    part(bottomBar,  [ 0.00, -1.00, -0.30], 1.30, -0.4);
+    part(hangerNeck, [-0.20,  1.00,  0.30], 1.55,  0.6);
+    part(hangerHook, [ 0.25,  1.00,  0.15], 2.05, -0.5);
+    part(drape,      [-0.30, -0.35, -1.00], 1.70,  0.15,  0.010, true);
+    part(swatches[0].m, [-0.45,  0.60,  0.70], 1.45, -0.35,  0.055, true);
+    part(swatches[1].m, [ 0.40, -0.70,  0.65], 1.45,  0.35, -0.048, true);
+    part(swatches[2].m, [ 0.35,  0.75, -0.60], 1.30, -0.25,  0.040, true);
+
+    /* Scroll-scrubbed so the parts track the scrollbar directly — a fast
+       fling drags them apart in real time instead of leaving them frozen
+       while a timed tween plays catch-up. The hold in the middle keeps
+       the model open across the two lane sections rather than pulsing. */
+    const exState = { v: 0 };
+    if (window.gsap && window.ScrollTrigger && document.getElementById('cta')) {
+      gsap.timeline({
+        defaults: { ease: 'sine.inOut' },
+        scrollTrigger: {
+          trigger: '#playground', start: 'top 60%',
+          endTrigger: '#cta', end: 'top 65%',
+          scrub: 1,
+        },
+      })
+        .to(exState, { v: 1, duration: 1 })     // come apart
+        .to(exState, { v: 1, duration: 1.4 })   // hold open down the lane
+        .to(exState, { v: 0, duration: 1 });    // reassemble into the CTA
+    }
+
     /* ── framing per chapter ──────────────────────────────────────── */
     /* x is roughly "which column am I standing in" at this camera:
        ±2.7 lands on a half-column edge, ±4 is off the side of the page.
        Signed against reading direction, so the composition always sits
        opposite the copy rather than under it. */
+    /* Chapter framing.
+
+       `layer` is the canvas z-index for that chapter, and it is the only
+       honest way to satisfy "float over the cards" and "never cover the
+       copy" from a single full-viewport canvas: the model sits BEHIND
+       while the hero device and the product card are the subject, and
+       comes FORWARD through the middle, where the stylesheet reserves an
+       empty lane for it. `spread` scales the exploded travel — the wider
+       the model gets, the more of the lane it needs.
+
+       x is solved from a target screen fraction rather than eyeballed:
+         halfWidth = (9 - z) * tan(19°) * aspect
+         x         = (2f - 1) * halfWidth
+       so the comment on each line is the screen position it aims at. */
     const ACTS = {
-      /* The hero copy column runs to ~55% and the device card starts at
-         ~64%, so there is no gap wide enough to stand a pear in. It goes
-         BEHIND the card instead and peeks around its edges — atmosphere,
-         not a third column competing with the headline. */
-      hero:              { x:  2.40, y: -0.10, z: -2.4, rx:  0.05, ry: -0.50, s: 0.78, o: 0.85 },
-      /* The playground mirrors the hero — artefact leading, copy
-         following — so the scene mirrors with it. */
-      playground:        { x: -2.40, y:  0.00, z: -2.2, rx:  0.02, ry:  0.35, s: 0.80, o: 0.62 },
-      demo:              { x:  3.40, y:  0.40, z: -2.5, rx:  0.08, ry: -0.90, s: 0.85, o: 0.30 },
-      value:             { x: -3.60, y:  0.50, z: -4.0, rx:  0.06, ry:  1.00, s: 0.75, o: 0.26 },
-      'market-section':  { x:  3.60, y: -0.40, z: -3.6, rx: -0.05, ry: -1.20, s: 0.78, o: 0.30 },
-      cta:               { x:  0.00, y:  0.10, z: -2.2, rx:  0.00, ry:  0.35, s: 1.00, o: 0.55 },
+      // behind: the device card is the subject here, the model haloes it
+      hero:             { x:  2.40, y: -0.10, z: -2.4, rx:  0.05, ry: -0.50, s: 0.78, o: 0.85, layer: 1,   spread: 0,   wide: 1 },
+      // behind: mirrored, the product card leads
+      playground:       { x: -2.40, y:  0.00, z: -2.2, rx:  0.02, ry:  0.35, s: 0.72, o: 0.75, layer: 1,   spread: 0.3, wide: 0.9 },
+      // forward from here: the lane opens, the silk tucks in and the
+      // pear and hanger come apart down the reserved side of the page
+      demo:             { x:  3.95, y:  0.20, z: -1.4, rx:  0.06, ry: -0.75, s: 0.46, o: 1.00, layer: 120, spread: 0.85, wide: 0.3 }, // ~86%
+      value:            { x:  4.05, y:  0.10, z: -1.8, rx:  0.05, ry:  0.55, s: 0.46, o: 1.00, layer: 120, spread: 1.0, wide: 0.25 }, // ~87%
+      'market-section': { x: -4.05, y:  0.10, z: -1.8, rx: -0.04, ry: -0.60, s: 0.46, o: 1.00, layer: 120, spread: 1.0, wide: 0.25 }, // ~13%
+      // reassembled, framed in the band the closing panel opens up
+      cta:              { x: -4.05, y:  0.05, z: -1.6, rx:  0.00, ry:  0.35, s: 0.42, o: 0.95, layer: 120, spread: 0,   wide: 0.5 },  // ~13%
     };
 
     let chapter = 'hero';
@@ -2150,6 +2224,29 @@ try {
     const goal = actFor('hero');
     const cur = { ...goal };
     let stageOpacity = goal.o;
+    let curSpread = goal.spread;
+    let curWide = goal.wide;
+    let curLayer = null;
+
+    /* Test surface: projects the group's world bounding box into screen
+       space so the framing checks can assert the model never lands on a
+       paragraph or a button, instead of that being judged by eye. */
+    window.__pearProbe = () => {
+      const box = new THREE.Box3().setFromObject(atelier);
+      if (box.isEmpty()) return null;
+      let l = Infinity, r = -Infinity, t = Infinity, b = -Infinity;
+      for (const x of [box.min.x, box.max.x])
+        for (const y of [box.min.y, box.max.y])
+          for (const z of [box.min.z, box.max.z]) {
+            const v = new THREE.Vector3(x, y, z).project(camera);
+            const sx = (v.x * 0.5 + 0.5) * innerWidth;
+            const sy = (-v.y * 0.5 + 0.5) * innerHeight;
+            l = Math.min(l, sx); r = Math.max(r, sx);
+            t = Math.min(t, sy); b = Math.max(b, sy);
+          }
+      return { left: l, right: r, top: t, bottom: b,
+               chapter, explode: +exState.v.toFixed(3), layer: curLayer };
+    };
 
     if (window.gsap && window.ScrollTrigger) {
       gsap.registerPlugin(ScrollTrigger);
@@ -2210,6 +2307,45 @@ try {
       torque.x = damp(torque.x, pointer.y * 0.16, 3.2, dt);
       torque.y = damp(torque.y, pointer.x * 0.28, 3.2, dt);
 
+      /* Exploded view. The scrubbed timeline already carries the weight;
+         this damp is a light low-pass so a jittery trackpad does not
+         translate into jittery parts. */
+      curSpread = damp(curSpread, goal.spread, 2.4, dt);
+      curWide = damp(curWide, goal.wide, 2.4, dt);
+      const e = exState.v * curSpread;
+
+      /* `wide` tucks the silk in toward the core. The lane the model
+         travels down is ~28% of the viewport; the drape alone is nearly
+         3 world units across and would hang straight out of it and over
+         the copy. Pulling the fabric home toward the origin — and
+         shrinking it — keeps the travelling silhouette narrow enough to
+         stay inside the lane while the pear and hanger still come apart. */
+      for (let i = 0; i < parts.length; i++) {
+        const p = parts[i];
+        const w = p.fabric ? curWide : 1;
+        if (p.fabric) p.obj.scale.setScalar(p.baseScale * (0.42 + 0.58 * curWide));
+        p.obj.position.set(
+          p.home.x * w + p.dir.x * p.dist * e * w,
+          p.home.y * w + p.dir.y * p.dist * e * w,
+          p.home.z * w + p.dir.z * p.dist * e * w,
+        );
+        if (p.tumble || p.drift) {
+          p.obj.rotation.set(
+            p.rest.x + p.tumble * e * 0.9,
+            p.rest.y + p.tumble * e * 1.3,
+            p.rest.z + p.tumble * e * 0.6 + t * p.drift,
+          );
+        }
+      }
+
+      /* The canvas changes stacking order with the chapter. Written only
+         on change — touching style.zIndex every frame would invalidate
+         the compositor layer 60 times a second for no reason. */
+      if (goal.layer !== curLayer) {
+        curLayer = goal.layer;
+        stage.style.zIndex = String(curLayer);
+      }
+
       atelier.position.set(cur.x, cur.y + Math.sin(t * 0.55) * 0.075, cur.z);
       atelier.scale.setScalar(cur.s);
       atelier.rotation.set(cur.rx + torque.x, cur.ry + torque.y, 0);
@@ -2221,9 +2357,10 @@ try {
       // the shadow tightens as the pear settles and softens as it lifts;
       // one that merely follows the object reads as a decal
       shadow.position.y = -1.06 + Math.sin(t * 0.85) * 0.015;
-      shadow.material.opacity = 0.62 - Math.sin(t * 0.85) * 0.12;
+      /* Nothing is resting on anything once the model is open, so the
+         contact shadow has to go with it. */
+      shadow.material.opacity = (0.62 - Math.sin(t * 0.85) * 0.12) * (1 - e * 0.8);
       shadow.scale.setScalar(1 - Math.sin(t * 0.85) * 0.06);
-      swatches.forEach(({ m }, i) => { m.rotation.z += (i % 2 ? -1 : 1) * dt * 0.06; });
 
       stageOpacity = damp(stageOpacity, goal.o, 2.2, dt);
       renderer.domElement.style.opacity = stageOpacity.toFixed(3);
